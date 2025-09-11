@@ -1,0 +1,387 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Solid'Avenir - Validation de projet{% endblock %}
+
+{% block extra_css %}
+<style>
+    .validation-container {
+        min-height: 80vh;
+        padding: 2rem 0;
+        background: #f8f9fa;
+    }
+    
+    .validation-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 2.5rem;
+        margin: 2rem 0;
+    }
+    
+    .validation-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid #f1f3f4;
+    }
+    
+    .validation-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    
+    .project-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-item {
+        padding: 1rem;
+        background: white;
+        border-radius: 8px;
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .info-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+    
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--dark-color);
+    }
+    
+    .document-card {
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .document-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .document-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-right: 1rem;
+    }
+    
+    .btn-download {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        border-radius: 6px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-download:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--dark-color);
+    }
+    
+    .form-control, .form-select, .form-textarea {
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus, .form-textarea:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
+    }
+    
+    .statut-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .statut-en_attente { background: #fff3e0; color: #f57c00; }
+    .statut-brouillon { background: #e3f2fd; color: #1976d2; }
+    
+    .btn-validate {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        color: white;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-reject {
+        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+        border: none;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        color: white;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-validate:hover, .btn-reject:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .commentaire-section {
+        background: #fff3e0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        border-left: 4px solid #fd7e14;
+    }
+    
+    .porteur-info {
+        background: #e8f5e8;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-left: 4px solid #28a745;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="validation-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="validation-card">
+                    <!-- En-tête -->
+                    <div class="validation-header">
+                        <div class="validation-icon">
+                            <i class="bi bi-clipboard-check"></i>
+                        </div>
+                        <h1 class="h2 fw-bold">Validation de projet</h1>
+                        <p class="text-muted">Examinez et validez ce projet soumis par la communauté</p>
+                    </div>
+
+                    <!-- Informations du porteur -->
+                    <div class="porteur-info">
+                        <h5 class="mb-3"><i class="bi bi-person"></i> Porteur du projet</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>{{ porteur.get_full_name|default:porteur.username }}</strong>
+                                <p class="mb-1 text-muted">{{ porteur.email }}</p>
+                                <p class="mb-0 text-muted">Téléphone: {{ porteur.telephone|default:"Non renseigné" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1">
+                                    <strong>Organisation:</strong> {{ porteur.organisation|default:"Non renseignée" }}
+                                </p>
+                                <p class="mb-0">
+                                    <strong>Projets créés:</strong> {{ stats.projets_utilisateur }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informations du projet -->
+                    <div class="project-info">
+                        <h4 class="mb-3">{{ projet.titre }}</h4>
+                        
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">Statut actuel</div>
+                                <div class="info-value">
+                                    <span class="statut-badge statut-{{ projet.statut }}">
+                                        {{ STATUTS|get_item:projet.statut }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">Montant demandé</div>
+                                <div class="info-value">{{ projet.montant_demande|floatformat:0|intcomma }} FCFA</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">Date de création</div>
+                                <div class="info-value">{{ projet.date_creation|date:"d/m/Y" }}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">Âge du projet</div>
+                                <div class="info-value">{{ stats.duree_existence }} jours</div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mb-3">Description</h5>
+                        <div class="project-description">
+                            {{ projet.description|linebreaks }}
+                        </div>
+                    </div>
+
+                    <!-- Documents -->
+                    {% if documents %}
+                    <div class="mb-4">
+                        <h5 class="mb-3"><i class="bi bi-files"></i> Documents joints</h5>
+                        {% for doc in documents %}
+                        <div class="document-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="document-icon">
+                                        <i class="bi bi-file-earmark-{{ doc.type }}"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">{{ doc.nom }}</h6>
+                                        <small class="text-muted">
+                                            {{ doc.fichier.name|split:"/"|last }}
+                                        </small>
+                                    </div>
+                                </div>
+                                <a href="{{ doc.fichier.url }}" target="_blank" class="btn-download">
+                                    <i class="bi bi-download"></i> Télécharger
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Formulaire de validation -->
+                    <form method="post" id="validationForm">
+                        {% csrf_token %}
+                        
+                        <h5 class="mb-3"><i class="bi bi-clipboard-check"></i> Décision de validation</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.statut.id_for_label }}" class="form-label">
+                                    Statut *
+                                </label>
+                                {{ form.statut }}
+                                {% if form.statut.errors %}
+                                <div class="text-danger">{{ form.statut.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Section commentaire (obligatoire pour rejet) -->
+                        <div class="commentaire-section">
+                            <label for="{{ form.commentaire_validation.id_for_label }}" class="form-label">
+                                Commentaire de validation *
+                                <small class="text-muted">(Obligatoire en cas de rejet)</small>
+                            </label>
+                            <textarea name="commentaire_validation" class="form-control form-textarea" 
+                                      id="{{ form.commentaire_validation.id_for_label }}" 
+                                      rows="4" placeholder="Donnez des détails sur votre décision...">{{ form.commentaire_validation.value|default:'' }}</textarea>
+                            {% if form.commentaire_validation.errors %}
+                            <div class="text-danger">{{ form.commentaire_validation.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                Ce commentaire sera visible par le porteur du projet en cas de rejet.
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" name="action" value="valider" class="btn btn-validate">
+                                <i class="bi bi-check-circle"></i> Valider le projet
+                            </button>
+                            
+                            <button type="submit" name="action" value="rejeter" class="btn btn-reject">
+                                <i class="bi bi-x-circle"></i> Rejeter le projet
+                            </button>
+                            
+                            <a href="{% url 'admin:core_projet_changelist' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Retour
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const validationForm = document.getElementById('validationForm');
+        const statutSelect = document.getElementById('{{ form.statut.id_for_label }}');
+        const commentaireTextarea = document.getElementById('{{ form.commentaire_validation.id_for_label }}');
+        
+        // Pré-remplir le statut selon le bouton cliqué
+        document.querySelectorAll('button[type="submit"]').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const action = this.getAttribute('value');
+                if (action === 'valider') {
+                    statutSelect.value = 'actif';
+                } else if (action === 'rejeter') {
+                    statutSelect.value = 'rejete';
+                }
+            });
+        });
+        
+        // Validation avant soumission
+        validationForm.addEventListener('submit', function(e) {
+            const statut = statutSelect.value;
+            const commentaire = commentaireTextarea.value.trim();
+            
+            if (statut === 'rejete' && !commentaire) {
+                e.preventDefault();
+                alert('Un commentaire est obligatoire pour le rejet d\'un projet.');
+                commentaireTextarea.focus();
+                return false;
+            }
+            
+            let message = '';
+            if (statut === 'actif') {
+                message = 'Êtes-vous sûr de vouloir valider ce projet ? Il sera visible par tous les utilisateurs.';
+            } else if (statut === 'rejete') {
+                message = 'Êtes-vous sûr de vouloir rejeter ce projet ? Le porteur sera notifié.';
+            }
+            
+            if (message && !confirm(message)) {
+                e.preventDefault();
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // Avertissement si rejet sans commentaire
+        statutSelect.addEventListener('change', function() {
+            if (this.value === 'rejete' && !commentaireTextarea.value.trim()) {
+                alert('Attention: Un commentaire détaillé est requis pour le rejet.');
+                commentaireTextarea.focus();
+            }
+        });
+    });
+</script>
+{% endblock %}

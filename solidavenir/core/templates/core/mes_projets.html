@@ -1,0 +1,426 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Solid'Avenir - Mes projets{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        min-height: 80vh;
+        padding: 2rem 0;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        text-align: center;
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .project-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .project-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .project-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f1f3f4;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    
+    .project-body {
+        padding: 1.5rem;
+    }
+    
+    .project-footer {
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-brouillon { background: #e3f2fd; color: #1976d2; }
+    .status-en_attente { background: #fff3e0; color: #f57c00; }
+    .status-actif { background: #e8f5e8; color: #2e7d32; }
+    .status-termine { background: #f1f8e9; color: #558b2f; }
+    .status-annule { background: #ffebee; color: #d32f2f; }
+    .status-rejete { background: #fbe9e7; color: #d84315; }
+    
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+        margin: 1rem 0;
+        background: #e9ecef;
+    }
+    
+    .progress-bar {
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+    
+    .project-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .project-stat {
+        text-align: center;
+        padding: 0.5rem;
+    }
+    
+    .project-stat-number {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--dark-color);
+    }
+    
+    .project-stat-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-action {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        border: 1px solid transparent;
+    }
+    
+    .btn-outline-primary { border-color: var(--primary-color); color: var(--primary-color); }
+    .btn-outline-secondary { border-color: #6c757d; color: #6c757d; }
+    .btn-outline-info { border-color: #17a2b8; color: #17a2b8; }
+    .btn-success { background: var(--success-color); color: white; }
+    .btn-warning { background: var(--warning-color); color: white; }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+    }
+    
+    .filter-buttons {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 20px;
+        background: white;
+        color: #6c757d;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .filter-btn.active, .filter-btn:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-container">
+    <div class="container">
+        <!-- En-tête -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="h2 fw-bold">Mes projets</h1>
+                    <a href="{% url 'creer_projet' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Nouveau projet
+                    </a>
+                </div>
+                <p class="text-muted">Gérez tous vos projets en un seul endroit</p>
+            </div>
+        </div>
+
+        <!-- Statistiques globales -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.total_projets }}</div>
+                <div class="stat-label">Projets au total</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.projets_actifs }}</div>
+                <div class="stat-label">Projets actifs</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.projets_en_attente }}</div>
+                <div class="stat-label">En attente</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.total_collecte|floatformat:0|intcomma }}</div>
+                <div class="stat-label">FCFA collectés</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.pourcentage_global }}%</div>
+                <div class="stat-label">Taux de réussite</div>
+            </div>
+        </div>
+
+        <!-- Filtres -->
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">Tous</button>
+            <button class="filter-btn" data-filter="actif">Actifs</button>
+            <button class="filter-btn" data-filter="en_attente">En attente</button>
+            <button class="filter-btn" data-filter="brouillon">Brouillons</button>
+            <button class="filter-btn" data-filter="termine">Terminés</button>
+        </div>
+
+        <!-- Liste des projets -->
+        <div class="row">
+            <div class="col-12">
+                {% if projets %}
+                    {% for projet in projets %}
+                    <div class="project-card" data-status="{{ projet.statut }}">
+                        <div class="project-header">
+                            <div class="flex-grow-1">
+                                <h3 class="h5 mb-1">{{ projet.titre }}</h3>
+                                <p class="text-muted mb-2">
+                                    Créé le {{ projet.date_creation|date:"d/m/Y" }}
+                                    {% if projet.date_mise_a_jour %}
+                                        • Modifié le {{ projet.date_mise_a_jour|date:"d/m/Y" }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <span class="status-badge status-{{ projet.statut }}">
+                                {% for key, value in STATUTS.items %}
+                                    {% if key == projet.statut %}
+                                        {{ value }}
+                                    {% endif %}
+                                {% endfor %}
+                            </span>
+                        </div>
+                        
+                        <div class="project-body">
+                            <p class="mb-3">{{ projet.description|truncatewords:30 }}</p>
+                            
+                            <!-- Barre de progression -->
+                            <div class="progress">
+                                <div class="progress-bar bg-success" 
+                                     style="width: {{ projet.pourcentage_financement }}%"
+                                     role="progressbar"
+                                     aria-valuenow="{{ projet.pourcentage_financement }}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            
+                            <!-- Statistiques du projet -->
+                            <div class="project-stats">
+                                <div class="project-stat">
+                                    <div class="project-stat-number">{{ projet.montant_demande|floatformat:0|intcomma }}</div>
+                                    <div class="project-stat-label">Objectif (FCFA)</div>
+                                </div>
+                                
+                                <div class="project-stat">
+                                    <div class="project-stat-number">{{ projet.montant_collecte|floatformat:0|intcomma }}</div>
+                                    <div class="project-stat-label">Collecté (FCFA)</div>
+                                </div>
+                                
+                                <div class="project-stat">
+                                    <div class="project-stat-number">{{ projet.nombre_donateurs|default:0 }}</div>
+                                    <div class="project-stat-label">Contributeurs</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="project-footer">
+                            <div class="action-buttons">
+                                <a href="{% url 'detail_projet' projet.audit_uuid %}" 
+                                   class="btn-action btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Voir
+                                </a>
+                                
+                                {% if projet.statut == 'brouillon' %}
+                                <a href="#" 
+                                   class="btn-action btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </a>
+                                
+                                <form method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="projet_id" value="{{ projet.id }}">
+                                    <input type="hidden" name="action" value="soumettre">
+                                    <button type="submit" class="btn-action btn-success">
+                                        <i class="bi bi-send"></i> Soumettre
+                                    </button>
+                                </form>
+                                
+                                {% elif projet.statut == 'en_attente' %}
+                                <form method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="projet_id" value="{{ projet.id }}">
+                                    <input type="hidden" name="action" value="annuler">
+                                    <button type="submit" class="btn-action btn-warning">
+                                        <i class="bi bi-x-circle"></i> Annuler
+                                    </button>
+                                </form>
+                                
+                                {% elif projet.statut == 'actif' %}
+                                <a href="#" class="btn-action btn-outline-info">
+                                    <i class="bi bi-graph-up"></i> Statistiques
+                                </a>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="text-muted small">
+                                ID: {{ projet.audit_uuid|slice:":8" }}...
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-folder-x"></i>
+                    </div>
+                    <h3>Aucun projet créé</h3>
+                    <p class="text-muted mb-3">Vous n'avez pas encore créé de projet.</p>
+                    <a href="{% url 'creer_projet' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Créer votre premier projet
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filtrage des projets
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const projectCards = document.querySelectorAll('.project-card');
+        
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Mettre à jour les boutons actifs
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                const filter = this.getAttribute('data-filter');
+                
+                // Filtrer les projets
+                projectCards.forEach(card => {
+                    if (filter === 'all') {
+                        card.style.display = 'block';
+                    } else {
+                        const status = card.getAttribute('data-status');
+                        if (status === filter) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        });
+        
+        // Animation des barres de progression
+        const progressBars = document.querySelectorAll('.progress-bar');
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 300);
+        });
+        
+        // Confirmation pour les actions sensibles
+        const actionForms = document.querySelectorAll('form');
+        actionForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const action = this.querySelector('input[name="action"]').value;
+                let message = '';
+                
+                if (action === 'soumettre') {
+                    message = 'Êtes-vous sûr de vouloir soumettre ce projet pour validation ?';
+                } else if (action === 'annuler') {
+                    message = 'Êtes-vous sûr de vouloir annuler la soumission de ce projet ?';
+                }
+                
+                if (message && !confirm(message)) {
+                    e.preventDefault();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

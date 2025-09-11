@@ -1,0 +1,584 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Solid'Avenir - Créer un compte{% endblock %}
+
+{% block extra_css %}
+{{ form.media }}
+<style>
+    .auth-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        padding: 2rem 0;
+    }
+    
+    .auth-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 2.5rem;
+        margin: 2rem 0;
+    }
+    
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .auth-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    
+    .form-step {
+        display: none;
+    }
+    
+    .form-step.active {
+        display: block;
+    }
+    
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+    
+    .step {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 10px;
+        font-weight: 600;
+        color: #6c757d;
+    }
+    
+    .step.active {
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    .step.completed {
+        background: var(--success-color);
+        color: white;
+    }
+    
+    .step-connector {
+        width: 40px;
+        height: 2px;
+        background: #e9ecef;
+        margin: 0 5px;
+        align-self: center;
+    }
+    
+    .user-type-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .user-type-card {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .user-type-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+    
+    .user-type-card.selected {
+        border-color: var(--primary-color);
+        background: rgba(var(--primary-rgb), 0.1);
+    }
+    
+    .user-type-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    
+    .form-navigation {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+    }
+    
+    .conditional-field {
+        display: none;
+    }
+    
+    .conditional-field.show {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .password-strength {
+        height: 5px;
+        background: #e9ecef;
+        border-radius: 3px;
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .password-strength-bar {
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s ease;
+        border-radius: 3px;
+    }
+    
+    .strength-weak { background: var(--danger-color); width: 33%; }
+    .strength-medium { background: var(--warning-color); width: 66%; }
+    .strength-strong { background: var(--success-color); width: 100%; }
+    
+    .password-requirements {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--dark-color);
+    }
+    
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
+    }
+    
+    .text-danger {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .form-text {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    /* Style pour Django Summernote */
+    .note-editor {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        margin-bottom: 1rem;
+    }
+    
+    .note-editor:focus-within {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
+    }
+    
+    .note-toolbar {
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .note-editable {
+        border-radius: 0 0 8px 8px;
+        min-height: 150px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="auth-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-8">
+                <div class="auth-card">
+                    <!-- En-tête -->
+                    <div class="auth-header">
+                        <div class="auth-icon">
+                            <i class="bi bi-person-plus"></i>
+                        </div>
+                        <h1 class="h2 fw-bold">Rejoindre Solid'Avenir</h1>
+                        <p class="text-muted">Créez votre compte pour soutenir ou proposer des projets</p>
+                    </div>
+
+                    <!-- Indicateur d'étapes -->
+                    <div class="step-indicator">
+                        <div class="step active" id="step1">1</div>
+                        <div class="step-connector"></div>
+                        <div class="step" id="step2">2</div>
+                        <div class="step-connector"></div>
+                        <div class="step" id="step3">3</div>
+                    </div>
+
+                    <!-- Formulaire d'inscription -->
+                    <form method="post" id="inscriptionForm" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Étape 1: Type d'utilisateur -->
+                        <div class="form-step active" id="step1-form">
+                            <h4 class="mb-4 text-center">Quel type d'utilisateur êtes-vous ?</h4>
+                            
+                            <div class="user-type-cards">
+                                <div class="user-type-card" data-user-type="donateur">
+                                    <div class="user-type-icon">
+                                        <i class="bi bi-heart"></i>
+                                    </div>
+                                    <h5>Donateur</h5>
+                                    <p class="text-muted small">
+                                        Je souhaite soutenir financièrement des projets qui me tiennent à cœur
+                                    </p>
+                                </div>
+                                
+                                <div class="user-type-card" data-user-type="porteur">
+                                    <div class="user-type-icon">
+                                        <i class="bi bi-lightbulb"></i>
+                                    </div>
+                                    <h5>Porteur de Projet</h5>
+                                    <p class="text-muted small">
+                                        Je souhaite proposer et gérer des projets de développement communautaire
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <input type="hidden" name="user_type" id="id_user_type" value="">
+                            
+                            <div class="form-navigation">
+                                <div></div> <!-- Espaceur -->
+                                <button type="button" class="btn btn-primary" onclick="nextStep(2)">
+                                    Suivant <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Étape 2: Informations personnelles -->
+                        <div class="form-step" id="step2-form">
+                            <h4 class="mb-4 text-center">Informations personnelles</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.username.id_for_label }}" class="form-label">
+                                        Nom d'utilisateur *
+                                    </label>
+                                    <input type="text" name="username" class="form-control" id="{{ form.username.id_for_label }}" 
+                                           value="{{ form.username.value|default:'' }}" required>
+                                    {% if form.username.errors %}
+                                    <div class="text-danger">{{ form.username.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                                        Adresse email *
+                                    </label>
+                                    <input type="email" name="email" class="form-control" id="{{ form.email.id_for_label }}" 
+                                           value="{{ form.email.value|default:'' }}" required>
+                                    {% if form.email.errors %}
+                                    <div class="text-danger">{{ form.email.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="first_name" class="form-label">
+                                        Prénom
+                                    </label>
+                                    <input type="text" name="first_name" class="form-control" id="first_name" 
+                                           value="{{ form.first_name.value|default:'' }}">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="last_name" class="form-label">
+                                        Nom
+                                    </label>
+                                    <input type="text" name="last_name" class="form-control" id="last_name" 
+                                           value="{{ form.last_name.value|default:'' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.telephone.id_for_label }}" class="form-label">
+                                        Téléphone
+                                    </label>
+                                    <input type="text" name="telephone" class="form-control" id="{{ form.telephone.id_for_label }}" 
+                                           value="{{ form.telephone.value|default:'' }}">
+                                    <div class="form-text">Format: +223 XX XX XX XX</div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="date_naissance" class="form-label">
+                                        Date de naissance
+                                    </label>
+                                    <input type="date" name="date_naissance" class="form-control" id="date_naissance" 
+                                           value="{{ form.date_naissance.value|default:'' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.adresse.id_for_label }}" class="form-label">
+                                    Adresse
+                                </label>
+                                <textarea name="adresse" class="form-control" id="{{ form.adresse.id_for_label }}" 
+                                          rows="3">{{ form.adresse.value|default:'' }}</textarea>
+                            </div>
+                            
+                            <div class="form-navigation">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(1)">
+                                    <i class="bi bi-arrow-left"></i> Retour
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep(3)">
+                                    Suivant <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Étape 3: Mot de passe et finalisation -->
+                        <div class="form-step" id="step3-form">
+                            <h4 class="mb-4 text-center">Sécurité du compte</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.password1.id_for_label }}" class="form-label">
+                                        Mot de passe *
+                                    </label>
+                                    <input type="password" name="password1" class="form-control" id="{{ form.password1.id_for_label }}" required>
+                                    <div class="password-strength">
+                                        <div class="password-strength-bar" id="passwordStrengthBar"></div>
+                                    </div>
+                                    <div class="password-requirements">
+                                        <small>Le mot de passe doit contenir au moins 8 caractères</small>
+                                    </div>
+                                    {% if form.password1.errors %}
+                                    <div class="text-danger">{{ form.password1.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.password2.id_for_label }}" class="form-label">
+                                        Confirmation du mot de passe *
+                                    </label>
+                                    <input type="password" name="password2" class="form-control" id="{{ form.password2.id_for_label }}" required>
+                                    {% if form.password2.errors %}
+                                    <div class="text-danger">{{ form.password2.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Champs conditionnels pour porteurs de projet -->
+                            <div class="conditional-field" id="porteurFields">
+                                <h5 class="mb-3">Informations professionnelles</h5>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.organisation.id_for_label }}" class="form-label">
+                                            Organisation
+                                        </label>
+                                        <input type="text" name="organisation" class="form-control" id="{{ form.organisation.id_for_label }}" 
+                                               value="{{ form.organisation.value|default:'' }}">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.site_web.id_for_label }}" class="form-label">
+                                            Site web
+                                        </label>
+                                        <input type="url" name="site_web" class="form-control" id="{{ form.site_web.id_for_label }}" 
+                                               value="{{ form.site_web.value|default:'' }}">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                                <label class="form-check-label" for="termsCheck">
+                                    J'accepte les <a href="#" target="_blank">conditions d'utilisation</a> 
+                                    et la <a href="#" target="_blank">politique de confidentialité</a>
+                                </label>
+                            </div>
+                            
+                            <div class="form-navigation">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
+                                    <i class="bi bi-arrow-left"></i> Retour
+                                </button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-lg"></i> Créer mon compte
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <p class="text-muted">
+                            Vous avez déjà un compte ? 
+                            <a href="#" class="text-primary">Connectez-vous</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentStep = 1;
+    const totalSteps = 3;
+    
+    function showStep(step) {
+        // Cacher toutes les étapes
+        document.querySelectorAll('.form-step').forEach(el => {
+            el.classList.remove('active');
+        });
+        
+        // Afficher l'étape courante
+        document.getElementById(`step${step}-form`).classList.add('active');
+        
+        // Mettre à jour l'indicateur d'étapes
+        document.querySelectorAll('.step').forEach((el, index) => {
+            el.classList.remove('active', 'completed');
+            if (index + 1 < step) {
+                el.classList.add('completed');
+            } else if (index + 1 === step) {
+                el.classList.add('active');
+            }
+        });
+        
+        currentStep = step;
+    }
+    
+    function nextStep(step) {
+        if (validateStep(currentStep)) {
+            showStep(step);
+        }
+    }
+    
+    function prevStep(step) {
+        showStep(step);
+    }
+    
+    function validateStep(step) {
+        // Validation basique pour l'étape 1
+        if (step === 1) {
+            const userType = document.getElementById('id_user_type').value;
+            if (!userType) {
+                alert('Veuillez sélectionner un type d\'utilisateur');
+                return false;
+            }
+        }
+        
+        // Validation pour l'étape 2
+        if (step === 2) {
+            const username = document.getElementById('{{ form.username.id_for_label }}').value;
+            const email = document.getElementById('{{ form.email.id_for_label }}').value;
+            
+            if (!username || !email) {
+                alert('Veuillez remplir tous les champs obligatoires');
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    // Gestion du choix du type d'utilisateur
+    document.querySelectorAll('.user-type-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.user-type-card').forEach(c => {
+                c.classList.remove('selected');
+            });
+            this.classList.add('selected');
+            
+            const userType = this.getAttribute('data-user-type');
+            document.getElementById('id_user_type').value = userType;
+            
+            // Afficher/masquer les champs conditionnels
+            const porteurFields = document.getElementById('porteurFields');
+            if (userType === 'porteur') {
+                porteurFields.classList.add('show');
+            } else {
+                porteurFields.classList.remove('show');
+            }
+        });
+    });
+    
+    // Vérification de la force du mot de passe
+    const passwordInput = document.getElementById('{{ form.password1.id_for_label }}');
+    const strengthBar = document.getElementById('passwordStrengthBar');
+    
+    if (passwordInput && strengthBar) {
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+            
+            if (password.length >= 8) strength += 1;
+            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 1;
+            if (password.match(/\d/)) strength += 1;
+            if (password.match(/[^a-zA-Z\d]/)) strength += 1;
+            
+            strengthBar.className = 'password-strength-bar';
+            if (strength === 0) {
+                strengthBar.style.width = '0%';
+            } else if (strength === 1) {
+                strengthBar.classList.add('strength-weak');
+            } else if (strength === 2) {
+                strengthBar.classList.add('strength-medium');
+            } else {
+                strengthBar.classList.add('strength-strong');
+            }
+        });
+    }
+    
+    // Validation du formulaire avant soumission
+    document.getElementById('inscriptionForm').addEventListener('submit', function(e) {
+        if (!document.getElementById('termsCheck').checked) {
+            e.preventDefault();
+            alert('Veuillez accepter les conditions d\'utilisation');
+        }
+    });
+    
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', function() {
+        // Focus sur le premier champ
+        const firstInput = document.querySelector('input');
+        if (firstInput) firstInput.focus();
+        
+        // Initialiser Summernote si présent
+        if (typeof $ !== 'undefined' && $.fn.summernote) {
+            $('.summernote').summernote({
+                height: 200,
+                toolbar: [
+                    ['style', ['bold', 'italic', 'underline', 'clear']],
+                    ['font', ['strikethrough', 'superscript', 'subscript']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['insert', ['link', 'picture', 'video']],
+                    ['view', ['fullscreen', 'codeview', 'help']]
+                ]
+            });
+        }
+    });
+</script>
+{% endblock %}

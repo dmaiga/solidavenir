@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Solid'Avenir - Tous les projets{% endblock %}
+
+{% block extra_css %}
+<style>
+    .project-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
+        height: 100%;
+    }
+    
+    .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .project-image {
+        height: 200px;
+        object-fit: cover;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+    
+    .category-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: var(--secondary-color);
+        color: var(--dark-color);
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .progress {
+        height: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+    
+    .stats-info {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .pagination {
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .page-item.active .page-link {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .page-link {
+        color: var(--primary-color);
+    }
+    
+    .page-link:hover {
+        color: var(--dark-color);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+    <!-- En-tête -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 mb-3">Tous les projets</h1>
+            <p class="lead">Découvrez tous les projets actifs qui cherchent à se financer</p>
+        </div>
+    </div>
+
+    <!-- Filtres et recherche -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="filter-section">
+                <div class="row">
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" placeholder="Rechercher un projet..." id="searchInput">
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" id="categoryFilter">
+                            <option value="">Toutes les catégories</option>
+                            <option value="education">Éducation</option>
+                            <option value="sante">Santé</option>
+                            <option value="environnement">Environnement</option>
+                            <option value="social">Social</option>
+                            <option value="technologie">Technologie</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des projets -->
+    <div class="row" id="projectsContainer">
+        {% for projet in projets %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card project-card">
+                <span class="category-badge">{{ projet.get_categorie_display }}</span>
+                
+                {% if projet.document_justificatif %}
+                <img src="{{ projet.document_justificatif.url }}" class="card-img-top project-image" alt="{{ projet.titre }}">
+                {% else %}
+                <img src="https://via.placeholder.com/300x200?text=Projet+Solid'Avenir" class="card-img-top project-image" alt="{{ projet.titre }}">
+                {% endif %}
+                
+                <div class="card-body">
+                    <h5 class="card-title">{{ projet.titre }}</h5>
+                    <p class="card-text">{{ projet.description|truncatewords:20 }}</p>
+                    
+                    <!-- Barre de progression -->
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style='width: {{ projet.pourcentage_financement|default:0 }}%;' 
+                             aria-valuenow="{{ projet.pourcentage_financement|default:0 }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between stats-info mb-2">
+                        <span>{{ projet.pourcentage_financement|default:0 }}% financé</span>
+                        <span>{{ projet.duree_restante }} jours restants</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>{{ projet.montant_collectes|default:0|floatformat:0 }} FCFA</strong>
+                        <span class="text-muted">sur {{ projet.montant_demande|floatformat:0 }} FCFA</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">
+                            <i class="bi bi-people"></i> {{ projet.nombre_donateurs }} contributeurs
+                        </span>
+                        <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-primary btn-sm">
+                            Voir le projet
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">
+                        Créé le {{ projet.date_creation|date:"d/m/Y" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="bi bi-inbox"></i>
+                </div>
+                <h3>Aucun projet actif pour le moment</h3>
+                <p class="text-muted">Il n'y a actuellement aucun projet en cours de financement.</p>
+                <a href="{% url 'creer_projet' %}" class="btn btn-primary mt-3">
+                    Proposer un projet
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if projets.has_other_pages %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            {% if projets.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ projets.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&laquo;</span>
+            </li>
+            {% endif %}
+
+            {% for i in projets.paginator.page_range %}
+                {% if projets.number == i %}
+                <li class="page-item active">
+                    <span class="page-link">{{ i }}</span>
+                </li>
+                {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if projets.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ projets.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&raquo;</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filtrage et recherche simplifiés
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const projectCards = document.querySelectorAll('.project-card');
+        
+        function filterProjects() {
+            const searchText = searchInput.value.toLowerCase();
+            const categoryValue = categoryFilter.value.toLowerCase();
+            
+            projectCards.forEach(card => {
+                const title = card.querySelector('.card-title').textContent.toLowerCase();
+                const description = card.querySelector('.card-text').textContent.toLowerCase();
+                const category = card.querySelector('.category-badge').textContent.toLowerCase();
+                
+                const matchesSearch = title.includes(searchText) || description.includes(searchText);
+                const matchesCategory = categoryValue === '' || category.includes(categoryValue);
+                
+                if (matchesSearch && matchesCategory) {
+                    card.parentElement.style.display = 'block';
+                } else {
+                    card.parentElement.style.display = 'none';
+                }
+            });
+        }
+        
+        searchInput.addEventListener('input', filterProjects);
+        categoryFilter.addEventListener('change', filterProjects);
+        
+        // Animation au scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Appliquer l'animation aux cartes
+        document.querySelectorAll('.project-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    });
+</script>
+{% endblock %}
