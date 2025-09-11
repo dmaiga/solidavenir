@@ -75,8 +75,12 @@ class User(AbstractUser):
     def get_hedera_private_key(self):
         """Déchiffre la clé privée"""
         if self.hedera_private_key and hasattr(settings, 'ENCRYPTION_KEY'):
-            fernet = Fernet(settings.ENCRYPTION_KEY)
-            return fernet.decrypt(self.hedera_private_key).decode()
+            try:
+                fernet = Fernet(settings.ENCRYPTION_KEY)
+                return fernet.decrypt(self.hedera_private_key).decode()
+            except Exception as e:
+                logger.error(f"Erreur lors du déchiffrement de la clé: {str(e)}")
+                return None
         return None
     
 

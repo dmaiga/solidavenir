@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Mes Dons - Plateforme de Financement Participatif{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- En-tête -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2 mb-0">Mes Dons</h1>
+                <a href="{% url 'profil' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Retour au profil
+                </a>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Résumé des dons -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ total_dons|intcomma }} FCFA</h5>
+                            <p class="card-text">Total des dons</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ dons.count }}</h5>
+                            <p class="card-text">Nombre de dons</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-info text-white text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ projets_count }}</h5>
+                            <p class="card-text">Projets soutenus</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des dons -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Historique des dons</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if dons %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Projet</th>
+                                    <th scope="col" class="text-end">Montant</th>
+                                    <th scope="col">Statut</th>
+                                    <th scope="col">Transaction</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for don in dons %}
+                                <tr>
+                                    <td>{{ don.date_transaction|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'detail_projet' don.projet.audit_uuid %}" class="text-decoration-none">
+                                            {{ don.projet.titre }}
+                                        </a>
+                                    </td>
+                                    <td class="text-end">{{ don.montant|intcomma }} FCFA</td>
+                                    <td>
+                                        <span class="badge bg-{% if don.statut == 'confirme' %}success{% elif don.statut == 'en_attente' %}warning{% elif don.statut == 'erreur' %}danger{% else %}secondary{% endif %}">
+                                            {{ don.get_statut_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-truncate" style="max-width: 120px;" title="{{ don.hedera_transaction_hash }}">
+                                        {% if don.hedera_transaction_hash %}
+                                        <a href="https://hashscan.io/testnet/transaction/{{ don.hedera_transaction_hash }}" target="_blank" rel="noopener" class="text-decoration-none">
+                                            {{ don.hedera_transaction_hash|truncatechars:15 }}
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'confirmation_don' don.audit_uuid %}" class="btn btn-sm btn-outline-primary" title="Voir les détails">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-hand-holding-heart fa-3x text-muted"></i>
+                        </div>
+                        <h4 class="text-muted">Aucun don pour le moment</h4>
+                        <p class="text-muted">Vous n'avez pas encore effectué de dons.</p>
+                        <a href="{% url 'liste_projets' %}" class="btn btn-primary mt-3">
+                            <i class="fas fa-heart me-2"></i>Découvrir les projets
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Statistiques avancées -->
+            {% if dons %}
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Répartition par projet</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                {% for projet in projets_stats %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="text-truncate" style="max-width: 70%;" title="{{ projet.titre }}">
+                                        {{ projet.titre }}
+                                    </span>
+                                    <span class="badge bg-primary rounded-pill">{{ projet.total|intcomma }} FCFA</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Évolution mensuelle</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                {% for mois in dons_mensuels %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>{{ mois.mois|date:"F Y" }}</span>
+                                    <span class="badge bg-success rounded-pill">{{ mois.total|intcomma }} FCFA</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .card-header {
+        border-radius: 15px 15px 0 0 !important;
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .badge {
+        font-size: 0.75em;
+        padding: 0.5em 0.75em;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}

@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from .models import User, Projet, Transaction
 from django_summernote.widgets import SummernoteWidget
+from django.utils import timezone
 
 class InscriptionForm(UserCreationForm):
     user_type = forms.ChoiceField(choices=User.USER_TYPES, label="Type d'utilisateur")
@@ -224,33 +225,114 @@ class ValidationProjetForm(forms.ModelForm):
             ('actif', 'Actif'),
             ('rejete', 'Rejeté')
         ]
+from django import forms
+from django.contrib.auth.forms import UserChangeForm
+from .models import User
 
-class ProfilUtilisateurForm(forms.ModelForm):
-    # Formulaire de mise à jour du profil utilisateur
+class ProfilUtilisateurForm(UserChangeForm):
+    password = None  # On ne gère pas le mot de passe ici
+
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'telephone', 'adresse']
-    
+        fields = [
+            'first_name', 'last_name', 'email', 'telephone', 
+            'date_naissance', 'adresse', 'organisation', 
+            'site_web', 'departement', 'role_admin'
+        ]
+        labels = {
+            'first_name': 'Prénom',
+            'last_name': 'Nom',
+            'email': 'Adresse email',
+            'telephone': 'Téléphone',
+            'date_naissance': 'Date de naissance',
+            'adresse': 'Adresse',
+            'organisation': 'Organisation',
+            'site_web': 'Site web',
+            'departement': 'Département',
+            'role_admin': 'Rôle administratif',
+        }
+        widgets = {
+            'date_naissance': forms.DateInput(attrs={'type': 'date'}),
+            'adresse': forms.Textarea(attrs={'rows': 3}),
+        }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Personnalisation des labels
-        self.fields['first_name'].label = "Prénom"
-        self.fields['last_name'].label = "Nom"
-        self.fields['telephone'].label = "Téléphone"
-        self.fields['adresse'].label = "Adresse"
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.exclude(pk=self.instance.pk).filter(email=email).exists():
-            raise ValidationError("Cet email est déjà utilisé par un autre utilisateur.")
-        return email
-
+        # Masquer les champs qui ne sont pas pertinents selon le type d'utilisateur
+        user = kwargs.get('instance')
+        if user:
+            if user.user_type != 'porteur':
+                self.fields['organisation'].widget = forms.HiddenInput()
+                self.fields['site_web'].widget = forms.HiddenInput()
+            if user.user_type != 'admin':
+                self.fields['departement'].widget = forms.HiddenInput()
+                self.fields['role_admin'].widget = forms.HiddenInput()
+# forms.py
+import random
+from django import forms
+from django.core.exceptions import ValidationError
+import random
+from django import forms
+from django.core.exceptions import ValidationError
 
 class ContactForm(forms.Form):
     # Formulaire de contact générique
-    sujet = forms.CharField(max_length=100, label="Sujet")
-    email = forms.EmailField(label="Votre email")
-    message = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}), label="Message")
+    sujet = forms.CharField(
+        max_length=100, 
+        label="Sujet",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ex: Problème avec un don'
+        })
+    )
+    
+    email = forms.EmailField(
+        label="Votre email",
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'votre@email.com'
+        })
+    )
+    
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 5,
+            'class': 'form-control',
+            'placeholder': 'Décrivez votre demande en détail...'
+        }), 
+        label="Message"
+    )
+    
+    # CAPTCHA plus sécurisé avec opération aléatoire
+    captcha_question = forms.CharField(widget=forms.HiddenInput())
+    captcha_answer = forms.CharField(
+        label="Question de sécurité",
+        help_text="Répondez à la question ci-dessous pour prouver que vous n'êtes pas un robot",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Votre réponse'
+        })
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Générer une question CAPTCHA aléatoire
+        if not self.is_bound:
+            a = random.randint(1, 10)
+            b = random.randint(1, 10)
+            operation = random.choice(['+', '-'])
+            
+            if operation == '+':
+                result = a + b
+                question = f"{a} + {b}"
+            else:
+                result = max(a, b) - min(a, b)
+                question = f"{max(a, b)} - {min(a, b)}"
+            
+            self.fields['captcha_question'].initial = f"{question}|{result}"
+            self.initial['captcha_question'] = f"{question}|{result}"
+            # Stocker la question pour l'affichage dans le template
+            self.captcha_display_question = question
     
     def clean_sujet(self):
         sujet = self.cleaned_data.get('sujet')
@@ -258,10 +340,21 @@ class ContactForm(forms.Form):
             raise ValidationError("Le sujet doit contenir au moins 5 caractères.")
         return sujet
     
-    captcha = forms.CharField(label="Combien font 2 + 3 ?", help_text="Question anti-spam")
-
-    def clean_captcha(self):
-        value = self.cleaned_data.get('captcha')
-        if value.strip() != "5":
-            raise ValidationError("Captcha incorrect.")
-        return value
+    def clean_captcha_answer(self):
+        answer = self.cleaned_data.get('captcha_answer')
+        question_data = self.cleaned_data.get('captcha_question', '')
+        
+        if not question_data:
+            raise ValidationError("Erreur de validation du CAPTCHA.")
+        
+        question, expected_answer = question_data.split('|')
+        
+        try:
+            user_answer = int(answer.strip())
+        except (ValueError, TypeError):
+            raise ValidationError("Veuillez entrer un nombre valide.")
+        
+        if user_answer != int(expected_answer):
+            raise ValidationError(f"Réponse incorrecte. La réponse attendue était {expected_answer}.")
+        
+        return answer

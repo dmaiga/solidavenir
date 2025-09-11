@@ -232,7 +232,7 @@
                     <!-- Formulaire de connexion -->
                     <form method="post" id="loginForm">
                         {% csrf_token %}
-                        
+                          <input type="hidden" name="next" value="{{ next }}">
                         <!-- Nom d'utilisateur -->
                         <div class="mb-3">
                             <label for="username" class="form-label">

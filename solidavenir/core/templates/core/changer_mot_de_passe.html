@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Changer mon mot de passe - Plateforme de Financement Participatif{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Changer mon mot de passe</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.old_password.id_for_label }}" class="form-label">
+                                Mot de passe actuel
+                            </label>
+                            <input type="password" class="form-control {% if form.old_password.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.old_password.id_for_label }}" name="{{ form.old_password.name }}">
+                            {% if form.old_password.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.old_password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.new_password1.id_for_label }}" class="form-label">
+                                Nouveau mot de passe
+                            </label>
+                            <input type="password" class="form-control {% if form.new_password1.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.new_password1.id_for_label }}" name="{{ form.new_password1.name }}">
+                            {% if form.new_password1.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.new_password1.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                {{ form.new_password1.help_text }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.new_password2.id_for_label }}" class="form-label">
+                                Confirmation du nouveau mot de passe
+                            </label>
+                            <input type="password" class="form-control {% if form.new_password2.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.new_password2.id_for_label }}" name="{{ form.new_password2.name }}">
+                            {% if form.new_password2.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.new_password2.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'modifier_profil' %}" class="btn btn-secondary me-md-2">Annuler</a>
+                            <button type="submit" class="btn btn-primary">Changer le mot de passe</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

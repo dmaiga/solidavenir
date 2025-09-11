@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 # Dans views.py
 from django.shortcuts import render
-from django.db.models import Sum, Q, Count
+from django.db.models import Sum, Q, Count,Avg
 from .models import Projet, Transaction, User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -134,142 +134,11 @@ def liste_projets(request):
     
     return render(request, 'core/liste_projets.html', {'projets': projets})
 
-def detail_projet(request, audit_uuid):
-    """Détail d'un projet spécifique avec possibilité de don"""
-    projet = get_object_or_404(Projet, audit_uuid=audit_uuid)
-    
-    # Seuls les projets actifs ou terminés sont visibles par le public
-    if projet.statut not in ['actif', 'termine'] and not request.user.is_staff:
-        messages.error(request, "Ce projet n'est pas accessible.")
-        return redirect('liste_projets')
-    
-    # Récupérer des projets similaires
-    projets_similaires = Projet.objects.filter(
-        statut='actif'
-    ).exclude(
-        audit_uuid=audit_uuid
-    )[:3]
-    
-    transactions = Transaction.objects.filter(projet=projet, statut='confirme').order_by('-date_transaction')[:10]
-    
-    if request.method == 'POST':
-        if not request.user.is_authenticated:
-            messages.info(request, "Connectez-vous pour faire un don.")
-            return redirect('connexion')
-        
-        if request.user.user_type != 'donateur':
-            messages.error(request, "Seuls les donateurs peuvent effectuer des dons.")
-            return redirect('detail_projet', audit_uuid=audit_uuid)
-        
-        form = DonForm(request.POST, projet=projet, donateur=request.user)
-        if form.is_valid():
-            return _process_don(request, form, projet)
-    else:
-        form = DonForm(projet=projet, donateur=request.user if request.user.is_authenticated else None)
-    
-    return render(request, 'core/detail_projet.html', {
-        'projet': projet,
-        'transactions': transactions,
-        'form': form,
-        'projets_similaires': projets_similaires,
-        'pourcentage': projet.pourcentage_financement  
-    })
-
-@db_transaction.atomic
-def _process_don(request, form, projet):
-    """Traitement d'un don avec intégration Hedera - Version corrigée"""
-    try:
-        montant = form.cleaned_data['montant']
-        
-        # Vérifications de sécurité
-        if not request.user.hedera_account_id:
-            messages.error(request, "Veuillez configurer votre compte Hedera dans votre profil.")
-            return redirect('detail_projet', audit_uuid=projet.audit_uuid)
-        
-        # Récupérer la clé privée déchiffrée
-        private_key = request.user.get_hedera_private_key()
-        if not private_key:
-            messages.error(request, "Problème de sécurité avec votre compte. Contactez l'administrateur.")
-            return redirect('detail_projet', audit_uuid=projet.audit_uuid)
-        
-        # Vérifier le solde
-        hedera_service = HederaService()
-        solde = hedera_service.get_account_balance(request.user.hedera_account_id)
-        if solde < float(montant):
-            messages.error(request, f"Solde insuffisant. Votre solde: {solde:.2f} HBAR")
-            return redirect('detail_projet', audit_uuid=projet.audit_uuid)
-        
-        # Effectuer la transaction
-        transaction_hash = hedera_service.effectuer_transaction(
-            request.user.hedera_account_id,
-            private_key,  # Clé déjà déchiffrée
-            projet.porteur.hedera_account_id,
-            float(montant)
-        )
-        
-        # Création de l'enregistrement de transaction
-        transaction = Transaction.objects.create(
-            montant=montant,
-            hedera_transaction_hash=transaction_hash,
-            donateur=request.user,
-            projet=projet,
-            statut='confirme'
-        )
-        
-        # Journalisation de l'audit
-        AuditLog.objects.create(
-            utilisateur=request.user,
-            action='create',
-            modele='Transaction',
-            objet_id=str(transaction.audit_uuid),
-            details={
-                'montant': float(montant),
-                'projet': projet.titre,
-                'transaction_hash': transaction_hash
-            },
-            adresse_ip=request.META.get('REMOTE_ADDR')
-        )
-        
-        # Mise à jour du montant collecté
-        projet.montant_collecte += montant
-        if projet.montant_collecte >= projet.montant_demande:
-            projet.statut = 'termine'
-            messages.success(request, "Félicitations! Ce projet est maintenant entièrement financé!")
-        
-        projet.save()
-        
-        messages.success(request, f"Don de {montant:.0f} FCFA effectué avec succès!")
-        return redirect('confirmation_don', transaction_audit_uuid=transaction.audit_uuid)
-        
-    except Exception as e:
-        logger.error(f"Erreur lors du don: {str(e)}")
-        
-        # Journalisation de l'erreur
-        AuditLog.objects.create(
-            utilisateur=request.user,
-            action='error',
-            modele='Transaction',
-            details={
-                'erreur': str(e),
-                'projet': projet.titre,
-                'montant_tente': float(montant) if 'montant' in locals() else 'inconnu'
-            },
-            adresse_ip=request.META.get('REMOTE_ADDR')
-        )
-        
-        messages.error(request, "Une erreur s'est produite lors du traitement de votre don. Veuillez réessayer.")
-        return redirect('detail_projet', audit_uuid=projet.audit_uuid)
 
 
-def confirmation_don(request, transaction_audit_uuid):
-    """Page de confirmation après un don"""
-    transaction = get_object_or_404(Transaction, audit_uuid=transaction_audit_uuid)
-    
-    # Vérifier que l'utilisateur a le droit de voir cette transaction
-    if request.user != transaction.donateur and not request.user.is_staff:
-        return HttpResponseForbidden("Accès non autorisé.")
-    
-    return render(request, 'core/confirmation_don.html', {'transaction': transaction})
+
+
+
 
 def inscription(request):
     """Inscription d'un nouvel utilisateur"""
@@ -469,66 +338,111 @@ def mes_projets(request):
     return render(request, 'core/mes_projets.html', context)
 
 
-@login_required
-def mes_dons(request):
-    """Historique des dons de l'utilisateur connecté"""
-    if request.user.user_type != 'donateur':
-        messages.error(request, "Accès réservé aux donateurs.")
-        return redirect('accueil')
-    
-    dons = Transaction.objects.filter(donateur=request.user).select_related('projet').order_by('-date_transaction')
-    total_dons = sum(don.montant for don in dons)
-    
-    return render(request, 'core/mes_dons.html', {
-        'dons': dons,
-        'total_dons': total_dons
-    })
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Count, Sum, Q
+from django.utils import timezone
 
-@login_required
-def modifier_profil(request):
-    """Modification du profil utilisateur"""
-    if request.method == 'POST':
-        form = ProfilUtilisateurForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
-            
-            # Journalisation audit
-            AuditLog.objects.create(
-                utilisateur=request.user,
-                action='update',
-                modele='User',
-                objet_id=str(request.user.audit_uuid),
-                details={'champs_modifies': list(form.changed_data)},
-                adresse_ip=request.META.get('REMOTE_ADDR')
-            )
-            
-            messages.success(request, "Votre profil a été mis à jour avec succès.")
-            return redirect('modifier_profil')
-    else:
-        form = ProfilUtilisateurForm(instance=request.user)
-    
-    return render(request, 'core/modifier_profil.html', {'form': form})
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Count, Sum, Q, Avg
+from django.db.models.functions import TruncMonth
+from django.utils import timezone
+from datetime import timedelta
 
 def transparence(request):
-    """Page de transparence avec toutes les transactions vérifiables"""
-    transactions = Transaction.objects.filter(statut='confirme').select_related('projet').order_by('-date_transaction')
+    """Page de transparence avec toutes les transactions vérifiables et statistiques détaillées"""
+    # Filtres possibles
+    projet_filter = request.GET.get('projet')
+    date_debut = request.GET.get('date_debut')
+    date_fin = request.GET.get('date_fin')
     
-    # Statistiques de transparence
+    # Transactions confirmées avec relations
+    transactions = Transaction.objects.filter(statut='confirme').select_related(
+        'projet', 'donateur', 'verifie_par'
+    ).order_by('-date_transaction')
+    
+    # Appliquer les filtres
+    if projet_filter:
+        transactions = transactions.filter(projet__audit_uuid=projet_filter)
+    
+    if date_debut:
+        try:
+            date_debut = timezone.datetime.strptime(date_debut, '%Y-%m-%d').date()
+            transactions = transactions.filter(date_transaction__date__gte=date_debut)
+        except ValueError:
+            pass
+    
+    if date_fin:
+        try:
+            date_fin = timezone.datetime.strptime(date_fin, '%Y-%m-%d').date()
+            transactions = transactions.filter(date_transaction__date__lte=date_fin)
+        except ValueError:
+            pass
+    
+    # Statistiques détaillées
     stats = {
-        'total_dons': sum(t.montant for t in transactions),
+        'total_dons': transactions.aggregate(total=Sum('montant'))['total'] or 0,
         'total_transactions': transactions.count(),
-        'projets_finances': len(set(t.projet_id for t in transactions)),
+        'projets_finances': transactions.values('projet').distinct().count(),
+        'donateurs_uniques': transactions.values('donateur').distinct().count(),
+        'moyenne_don': transactions.aggregate(moyenne=Avg('montant'))['moyenne'] or 0,
     }
     
-    # Pagination
-    paginator = Paginator(transactions, 20)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    # Top projets par montant collecté
+    top_projets = Projet.objects.filter(
+        transaction__statut='confirme'
+    ).annotate(
+        total_collecte=Sum('transaction__montant'),
+        nombre_dons=Count('transaction')
+    ).order_by('-total_collecte')[:5]
     
-    return render(request, 'core/transparence.html', {
+    # Top donateurs
+    top_donateurs = User.objects.filter(
+        transaction__statut='confirme'
+    ).annotate(
+        total_dons=Sum('transaction__montant'),
+        nombre_dons=Count('transaction')
+    ).order_by('-total_dons')[:5]
+    
+    # Évolution mensuelle des dons - Méthode compatible avec tous les SGBD
+    donations_mensuelles = Transaction.objects.filter(
+        statut='confirme',
+        date_transaction__gte=timezone.now() - timedelta(days=365)
+    ).annotate(
+        mois=TruncMonth('date_transaction')
+    ).values('mois').annotate(
+        total=Sum('montant'),
+        count=Count('id')
+    ).order_by('mois')
+    
+    # Projets disponibles pour le filtre
+    projets_actifs = Projet.objects.filter(statut='actif').values('audit_uuid', 'titre')
+    
+    # Pagination
+    paginator = Paginator(transactions, 25)
+    page_number = request.GET.get('page')
+    
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+    
+    context = {
         'transactions': page_obj,
-        'stats': stats
-    })
+        'stats': stats,
+        'top_projets': top_projets,
+        'top_donateurs': top_donateurs,
+        'donations_mensuelles': list(donations_mensuelles),
+        'projets_actifs': projets_actifs,
+        'filters': {
+            'projet': projet_filter,
+            'date_debut': date_debut,
+            'date_fin': date_fin,
+        }
+    }
+    
+    return render(request, 'core/transparence.html', context)
 
 
 from .models import Projet, AuditLog
@@ -681,18 +595,6 @@ def valider_projet(request, audit_uuid):
     
     return render(request, 'core/valider_projet.html', context)
 
-def contact(request):
-    """Page de contact"""
-    if request.method == 'POST':
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            # Ici vous pourriez envoyer un email ou enregistrer le message
-            messages.success(request, "Votre message a été envoyé avec succès!")
-            return redirect('contact')
-    else:
-        form = ContactForm()
-    
-    return render(request, 'core/contact.html', {'form': form})
 
 
 @login_required
@@ -832,3 +734,399 @@ def tableau_de_bord(request):
     }
     
     return render(request, 'core/tableau_de_bord.html', context)
+
+
+def contact(request):
+    """Page de contact"""
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            # Ici vous pourriez envoyer un email ou enregistrer le message
+            messages.success(request, "Votre message a été envoyé avec succès!")
+            return redirect('contact')
+    else:
+        form = ContactForm()
+    
+    return render(request, 'core/contact.html', {'form': form})
+
+from django.db.models.functions import TruncMonth
+
+@login_required
+def mes_dons(request):
+    """Historique des dons de l'utilisateur connecté"""
+    if request.user.user_type != 'donateur':
+        messages.error(request, "Accès réservé aux donateurs.")
+        return redirect('accueil')
+    
+    # Dons de l'utilisateur
+    dons = Transaction.objects.filter(donateur=request.user).select_related('projet').order_by('-date_transaction')
+    total_dons = sum(don.montant for don in dons)
+    
+    # Statistiques par projet
+    projets_stats = Transaction.objects.filter(
+        donateur=request.user, 
+        statut='confirme'
+    ).values(
+        'projet__titre'
+    ).annotate(
+        total=Sum('montant')
+    ).order_by('-total')
+    
+    # Dons mensuels (6 derniers mois) - Compatible SQLite
+    six_mois = timezone.now() - timedelta(days=180)
+    dons_mensuels = Transaction.objects.filter(
+        donateur=request.user,
+        statut='confirme',
+        date_transaction__gte=six_mois
+    ).annotate(
+        mois=TruncMonth('date_transaction')
+    ).values('mois').annotate(
+        total=Sum('montant')
+    ).order_by('mois')
+    
+    context = {
+        'dons': dons,
+        'total_dons': total_dons,
+        'projets_count': projets_stats.count(),
+        'projets_stats': projets_stats,
+        'dons_mensuels': dons_mensuels
+    }
+    
+    return render(request, 'core/mes_dons.html', context)
+
+
+@login_required
+def modifier_profil(request):
+    """Modification du profil utilisateur"""
+    if request.method == 'POST':
+        form = ProfilUtilisateurForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            
+            # Journalisation audit
+            AuditLog.objects.create(
+                utilisateur=request.user,
+                action='update',
+                modele='User',
+                objet_id=str(request.user.audit_uuid),
+                details={'champs_modifies': list(form.changed_data)},
+                adresse_ip=request.META.get('REMOTE_ADDR')
+            )
+            
+            messages.success(request, "Votre profil a été mis à jour avec succès.")
+            return redirect('modifier_profil')
+    else:
+        form = ProfilUtilisateurForm(instance=request.user)
+    
+    return render(request, 'core/modifier_profil.html', {'form': form})
+
+from django.db import transaction as db_transaction
+
+@db_transaction.atomic
+def _process_don(request, form, projet):
+    """Traitement simplifié d'un don pour le développement"""
+    try:
+        montant = form.cleaned_data['montant']
+        
+        # En mode développement, on saute les vérifications Hedera complexes
+        hedera_service = HederaService()
+        
+        # Générer un hash de transaction simulé
+        transaction_hash = hedera_service.effectuer_transaction(
+            request.user.hedera_account_id or "0.0.dev123",
+            request.user.get_hedera_private_key() or "dev_key",
+            projet.porteur.hedera_account_id or "0.0.dev456",
+            float(montant)
+        )
+        
+        # Création de l'enregistrement de transaction
+        transaction = Transaction.objects.create(
+            montant=montant,
+            hedera_transaction_hash=transaction_hash,
+            donateur=request.user,
+            projet=projet,
+            statut='confirme'
+        )
+        
+        # Journalisation
+        AuditLog.objects.create(
+            utilisateur=request.user,
+            action='create',
+            modele='Transaction',
+            objet_id=str(transaction.audit_uuid),
+            details={
+                'montant': float(montant),
+                'projet': projet.titre,
+                'transaction_hash': transaction_hash,
+                'mode': 'development'
+            },
+            adresse_ip=request.META.get('REMOTE_ADDR')
+        )
+        
+        # Mise à jour du montant collecté
+        projet.montant_collecte += montant
+        if projet.montant_collecte >= projet.montant_demande:
+            projet.statut = 'termine'
+            messages.success(request, "Félicitations! Ce projet est maintenant entièrement financé!")
+        
+        projet.save()
+        
+        messages.success(request, f"Don de {montant:.0f} FCFA effectué avec succès!")
+        return redirect('confirmation_don', transaction_audit_uuid=transaction.audit_uuid)
+        
+    except Exception as e:
+        logger.error(f"Erreur lors du don (mode dev): {str(e)}")
+        messages.error(request, f"Erreur lors du traitement de votre don: {str(e)}")
+        return redirect('detail_projet', audit_uuid=projet.audit_uuid)
+        
+
+def confirmation_don(request, transaction_audit_uuid):
+    """Page de confirmation après un don"""
+    transaction = get_object_or_404(Transaction, audit_uuid=transaction_audit_uuid)
+    
+    # Vérifier que l'utilisateur a le droit de voir cette transaction
+    if request.user != transaction.donateur and not request.user.is_staff:
+        return HttpResponseForbidden("Accès non autorisé.")
+    
+    return render(request, 'core/confirmation_don.html', {'transaction': transaction})
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from urllib.parse import urlencode
+
+def detail_projet(request, audit_uuid):
+    """Détail d'un projet spécifique avec possibilité de don"""
+    projet = get_object_or_404(Projet, audit_uuid=audit_uuid)
+    
+    # Seuls les projets actifs ou terminés sont visibles par le public
+    if projet.statut not in ['actif', 'termine'] and not request.user.is_staff:
+        messages.error(request, "Ce projet n'est pas accessible.")
+        return redirect('liste_projets')
+    
+    # Récupérer des projets similaires
+    projets_similaires = Projet.objects.filter(
+        statut='actif'
+    ).exclude(
+        audit_uuid=audit_uuid
+    )[:3]
+    
+    transactions = Transaction.objects.filter(projet=projet, statut='confirme').order_by('-date_transaction')[:10]
+    
+    # Récupérer le solde de l'utilisateur s'il est connecté et est un donateur
+    user_balance = None
+    if request.user.is_authenticated and request.user.user_type == 'donateur' and request.user.hedera_account_id:
+        try:
+            hedera_service = HederaService()
+            user_balance = hedera_service.get_account_balance(request.user.hedera_account_id)
+        except:
+            user_balance = "Erreur"
+    
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            messages.info(request, "Connectez-vous pour faire un don.")
+            # CORRECTION: Utiliser redirect avec paramètres d'URL
+            return redirect(f"{reverse('connexion')}?{urlencode({'next': request.path})}")
+        
+        if request.user.user_type != 'donateur':
+            messages.error(request, "Seuls les donateurs peuvent effectuer des dons.")
+            return redirect('detail_projet', audit_uuid=audit_uuid)
+        
+        # Vérifier si l'utilisateur a configuré son compte Hedera
+        if not request.user.hedera_account_id or not request.user.hedera_private_key:
+            messages.info(request, "Veuillez configurer votre compte Hedera pour effectuer un don.")
+            # CORRECTION: Utiliser redirect avec paramètres d'URL
+            return redirect(f"{reverse('configurer_hedera')}?{urlencode({'next': request.path})}")
+        
+        form = DonForm(request.POST, projet=projet, donateur=request.user)
+        if form.is_valid():
+            return _process_don(request, form, projet)
+        else:
+            # Si le formulaire est invalide, on reste sur la page avec les erreurs
+            messages.error(request, "Veuillez corriger les erreurs ci-dessous.")
+    else:
+        form = DonForm(projet=projet, donateur=request.user if request.user.is_authenticated else None)
+    
+    return render(request, 'core/detail_projet.html', {
+        'projet': projet,
+        'transactions': transactions,
+        'form': form,
+        'projets_similaires': projets_similaires,
+        'pourcentage': projet.pourcentage_financement,
+        'user_balance': user_balance
+    })
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_protect
+from django.http import JsonResponse
+
+from django.db.models import Sum, Count
+from django.utils import timezone
+from datetime import timedelta
+
+@login_required
+def profil(request):
+    """Page de profil utilisateur"""
+    context = {'user': request.user}
+    
+    # Statistiques pour les donateurs
+    if request.user.user_type == 'donateur':
+        dons = Transaction.objects.filter(
+            donateur=request.user, 
+            statut='confirme'
+        )
+        context['dons_count'] = dons.count()
+        context['projets_soutenus_count'] = dons.values('projet').distinct().count()
+    
+    # Statistiques pour les porteurs de projet
+    elif request.user.user_type == 'porteur':
+        projets = Projet.objects.filter(porteur=request.user)
+        context['projets_count'] = projets.count()
+        context['total_collecte'] = projets.aggregate(
+            total=Sum('montant_collecte')
+        )['total'] or 0
+    
+    # Activités récentes (30 derniers jours)
+    activites_recentes = AuditLog.objects.filter(
+        utilisateur=request.user,
+        date_action__gte=timezone.now() - timedelta(days=30)
+    ).order_by('-date_action')[:10]
+    
+    context['activites_recentes'] = activites_recentes
+    
+    return render(request, 'core/profil.html', context)
+
+@login_required
+def configurer_hedera(request):
+    """Page de configuration du compte Hedera"""
+    next_url = request.GET.get('next', 'profil')
+    # CORRECTION: S'assurer que next_url n'est jamais vide
+    if not next_url or next_url.strip() == '':
+        next_url = 'profil'
+    
+    return render(request, 'core/hedera_configuration.html', {'next': next_url})
+
+
+from django.shortcuts import redirect
+from django.urls import reverse
+
+@login_required
+@csrf_protect
+def creer_compte_hedera(request):
+    """Créer un nouveau compte Hedera pour l'utilisateur"""
+    try:
+        hedera_service = HederaService()
+        compte = hedera_service.creer_compte()
+        
+        # Enregistrer le compte pour l'utilisateur
+        request.user.hedera_account_id = compte['account_id']
+        request.user.set_hedera_private_key(compte['private_key'])
+        request.user.save()
+        
+        # Journalisation
+        AuditLog.objects.create(
+            utilisateur=request.user,
+            action='create',
+            modele='User',
+            objet_id=str(request.user.audit_uuid),
+            details={'hedera_account_created': compte['account_id']},
+            adresse_ip=request.META.get('REMOTE_ADDR')
+        )
+        
+        messages.success(request, f"Compte Hedera créé avec succès: {compte['account_id']}")
+        
+    except Exception as e:
+        logger.error(f"Erreur création compte Hedera: {str(e)}")
+        messages.error(request, "Erreur lors de la création du compte. Veuillez réessayer.")
+    
+    # CORRECTION: Gestion robuste du paramètre next
+    next_url = request.POST.get('next', '') or 'profil'
+    if not next_url or next_url.strip() == '':
+        next_url = 'profil'
+    
+    return redirect(next_url)
+
+@login_required
+@csrf_protect
+def configurer_compte_existant(request):
+    """Configurer un compte Hedera existant"""
+    if request.method == 'POST':
+        account_id = request.POST.get('account_id', '').strip()
+        private_key = request.POST.get('private_key', '').strip()
+        
+        # Validation basique
+        if not account_id or not private_key:
+            messages.error(request, "Veuillez remplir tous les champs.")
+            return redirect('configurer_hedera')
+        
+        if not account_id.startswith('0.0.'):
+            messages.error(request, "Format d'Account ID invalide. Doit commencer par '0.0.'")
+            return redirect('configurer_hedera')
+        
+        try:
+            # Vérifier que la clé privée est valide en testant une opération simple
+            hedera_service = HederaService()
+            solde = hedera_service.get_account_balance(account_id)
+            
+            # Si on arrive ici, la clé est valide
+            request.user.hedera_account_id = account_id
+            request.user.set_hedera_private_key(private_key)
+            request.user.save()
+            
+            # Journalisation
+            AuditLog.objects.create(
+                utilisateur=request.user,
+                action='update',
+                modele='User',
+                objet_id=str(request.user.audit_uuid),
+                details={'hedera_account_linked': account_id},
+                adresse_ip=request.META.get('REMOTE_ADDR')
+            )
+            
+            messages.success(request, f"Compte Hedera associé avec succès: {account_id}")
+            
+        except Exception as e:
+            logger.error(f"Erreur association compte Hedera: {str(e)}")
+            messages.error(request, "Erreur lors de l'association du compte. Vérifiez vos informations.")
+    
+    # CORRECTION: Gestion robuste du paramètre next
+    next_url = request.POST.get('next', '') or 'profil'
+    if not next_url or next_url.strip() == '':
+        next_url = 'profil'
+    
+    return redirect(next_url)
+
+
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+
+@login_required
+def changer_mot_de_passe(request):
+    """Changer le mot de passe de l'utilisateur"""
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Garder l'utilisateur connecté
+            
+            # Journalisation audit
+            AuditLog.objects.create(
+                utilisateur=request.user,
+                action='update',
+                modele='User',
+                objet_id=str(request.user.audit_uuid),
+                details={'action': 'password_change'},
+                adresse_ip=request.META.get('REMOTE_ADDR')
+            )
+            
+            messages.success(request, "Votre mot de passe a été changé avec succès.")
+            return redirect('accueil')
+    else:
+        form = PasswordChangeForm(request.user)
+    
+    return render(request, 'core/changer_mot_de_passe.html', {'form': form})

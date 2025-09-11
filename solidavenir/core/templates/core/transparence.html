@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Transparence des dons - Plateforme de Financement Participatif{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-4 mb-4">Transparence des dons</h1>
+            <p class="lead">Toutes les transactions sont enregistrées sur la blockchain Hedera Hashgraph pour une vérification indépendante et transparente.</p>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Filtres</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="projet" class="form-label">Projet</label>
+                            <select class="form-select" id="projet" name="projet">
+                                <option value="">Tous les projets</option>
+                                {% for projet in projets_actifs %}
+                                <option value="{{ projet.audit_uuid }}" {% if filters.projet == projet.audit_uuid|stringformat:"s" %}selected{% endif %}>
+                                    {{ projet.titre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_debut" class="form-label">Date de début</label>
+                            <input type="date" class="form-control" id="date_debut" name="date_debut" value="{{ filters.date_debut|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_fin" class="form-label">Date de fin</label>
+                            <input type="date" class="form-control" id="date_fin" name="date_fin" value="{{ filters.date_fin|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Appliquer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="h4 mb-3">Statistiques globales</h2>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-primary text-white text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{ stats.total_dons|intcomma }} €</h5>
+                    <p class="card-text">Total des dons</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-success text-white text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{ stats.total_transactions|intcomma }}</h5>
+                    <p class="card-text">Transactions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-info text-white text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{ stats.projets_finances|intcomma }}</h5>
+                    <p class="card-text">Projets financés</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-warning text-dark text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{ stats.donateurs_uniques|intcomma }}</h5>
+                    <p class="card-text">Donateurs uniques</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Classements -->
+    <div class="row mb-4">
+        <!-- Top projets -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Top 5 des projets</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for projet in top_projets %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="me-3">
+                                <h6 class="mb-0">{{ projet.titre }}</h6>
+                                <small class="text-muted">{{ projet.nombre_dons }} dons</small>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">{{ projet.total_collecte|intcomma }} €</span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center text-muted py-4">
+                            Aucun projet pour le moment
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top donateurs -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Top 5 des donateurs</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for donateur in top_donateurs %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="me-3">
+                                <h6 class="mb-0">{{ donateur.username }}</h6>
+                                <small class="text-muted">{{ donateur.nombre_dons }} dons</small>
+                            </div>
+                            <span class="badge bg-success rounded-pill">{{ donateur.total_dons|intcomma }} €</span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center text-muted py-4">
+                            Aucun donateur pour le moment
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Transactions vérifiées</h5>
+                    <span class="badge bg-primary">{{ transactions.paginator.count }} transactions</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Donateur</th>
+                                    <th scope="col">Projet</th>
+                                    <th scope="col" class="text-end">Montant</th>
+                                    <th scope="col">Statut</th>
+                                    <th scope="col">Hash</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                <tr>
+                                    <td>{{ transaction.date_transaction|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ transaction.donateur_anonymise }}</td>
+                                    <td>
+                                        <a href="{% url 'projet_detail' transaction.projet.audit_uuid %}">
+                                            {{ transaction.projet.titre }}
+                                        </a>
+                                    </td>
+                                    <td class="text-end">{{ transaction.montant|intcomma }} €</td>
+                                    <td>
+                                        <span class="badge bg-{% if transaction.statut == 'confirme' %}success{% else %}warning{% endif %}">
+                                            {{ transaction.get_statut_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-truncate" style="max-width: 120px;" title="{{ transaction.hedera_transaction_hash }}">
+                                        <a href="https://hashscan.io/testnet/transaction/{{ transaction.hedera_transaction_hash }}" target="_blank" rel="noopener">
+                                            {{ transaction.hedera_transaction_hash|truncatechars:15 }}
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        Aucune transaction ne correspond à vos critères de recherche
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                {% if transactions.has_other_pages %}
+                <div class="card-footer">
+                    <nav aria-label="Navigation des transactions">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if transactions.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ transactions.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Précédent</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Précédent</span>
+                            </li>
+                            {% endif %}
+                            
+                            {% for i in transactions.paginator.page_range %}
+                                {% if transactions.number == i %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ i }}</span>
+                                </li>
+                                {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if transactions.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ transactions.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Suivant</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Suivant</span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Information blockchain -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <i class="fas fa-info-circle fa-2x"></i>
+                    </div>
+                    <div>
+                        <h4 class="alert-heading">Transparence garantie par la blockchain</h4>
+                        <p class="mb-0">
+                            Toutes les transactions sont enregistrées sur Hedera Hashgraph, une blockchain publique.
+                            Chaque don peut être vérifié indépendamment en utilisant le hash de transaction fourni.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialiser les sélecteurs de date
+        $('#date_debut, #date_fin').flatpickr({
+            dateFormat: "Y-m-d",
+            locale: "fr"
+        });
+    });
+</script>
+{% endblock %}

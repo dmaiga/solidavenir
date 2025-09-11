@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact - Plateforme de Financement Participatif{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Contactez-nous</h2>
+                </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <p class="text-muted mb-4">
+                        Vous avez une question, une suggestion ou besoin d'assistance ? 
+                        Remplissez ce formulaire et nous vous répondrons dans les plus brefs délais.
+                    </p>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Champ Sujet -->
+                        <div class="mb-3">
+                            <label for="{{ form.sujet.id_for_label }}" class="form-label">
+                                {{ form.sujet.label }}
+                                {% if form.sujet.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            <input 
+                                type="text" 
+                                class="form-control {% if form.sujet.errors %}is-invalid{% endif %}" 
+                                id="{{ form.sujet.id_for_label }}" 
+                                name="{{ form.sujet.name }}" 
+                                value="{{ form.sujet.value|default_if_none:'' }}"
+                                placeholder="Ex: Problème avec un don"
+                            >
+                            {% if form.sujet.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.sujet.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Champ Email -->
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                {{ form.email.label }}
+                                {% if form.email.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            <input 
+                                type="email" 
+                                class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                                id="{{ form.email.id_for_label }}" 
+                                name="{{ form.email.name }}" 
+                                value="{{ form.email.value|default_if_none:'' }}"
+                                placeholder="votre@email.com"
+                            >
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Champ Message -->
+                        <div class="mb-3">
+                            <label for="{{ form.message.id_for_label }}" class="form-label">
+                                {{ form.message.label }}
+                                {% if form.message.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            <textarea 
+                                class="form-control {% if form.message.errors %}is-invalid{% endif %}" 
+                                id="{{ form.message.id_for_label }}" 
+                                name="{{ form.message.name }}" 
+                                rows="5"
+                                placeholder="Décrivez votre demande en détail..."
+                            >{{ form.message.value|default_if_none:'' }}</textarea>
+                            {% if form.message.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.message.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Champ CAPTCHA -->
+                        <div class="mb-4">
+                            <label for="{{ form.captcha_answer.id_for_label }}" class="form-label">
+                                {{ form.captcha_answer.label }}
+                                {% if form.captcha_answer.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            <small class="form-text text-muted d-block mb-2">
+                                Combien font <strong>{{ form.captcha_display_question }}</strong> ?
+                            </small>
+                            <input 
+                                type="text" 
+                                class="form-control {% if form.captcha_answer.errors %}is-invalid{% endif %}" 
+                                id="{{ form.captcha_answer.id_for_label }}" 
+                                name="{{ form.captcha_answer.name }}" 
+                                value="{{ form.captcha_answer.value|default_if_none:'' }}"
+                                placeholder="Votre réponse"
+                            >
+                            {{ form.captcha_question }}
+                            {% if form.captcha_answer.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.captcha_answer.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Envoyer le message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Informations de contact supplémentaires -->
+            <div class="mt-4">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-envelope fa-2x text-primary mb-3"></i>
+                                <h5 class="card-title">Email</h5>
+                                <p class="card-text">support@solidavenir.org</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clock fa-2x text-primary mb-3"></i>
+                                <h5 class="card-title">Temps de réponse</h5>
+                                <p class="card-text">Sous 24-48 heures</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

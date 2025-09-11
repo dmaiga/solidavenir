@@ -19,3 +19,8 @@ def map_attribute(queryset, attribute_name):
 def get_item(dictionary, key):
     """Retourne la valeur d'un dictionnaire par clé"""
     return dictionary.get(key)
+
+@register.filter
+def split(value, delimiter):
+    """Split a string by the given delimiter"""
+    return value.split(delimiter)
