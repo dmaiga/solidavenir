@@ -1,0 +1,376 @@
+<!-- core/users/modifier_profil.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Modifier mon profil - Solid'Avenir{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-picture-container {
+    width: 150px;
+    height: 150px;
+    position: relative;
+    margin: 0 auto;
+}
+
+.profile-picture-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 3px solid var(--primary-color);
+}
+
+.avatar-initials-preview {
+    width: 150px;
+    height: 150px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+    color: white;
+    font-size: 3rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--primary-color);
+}
+
+.profile-completion {
+    height: 10px;
+    border-radius: 5px;
+    background: #e9ecef;
+    overflow: hidden;
+}
+
+.profile-completion-bar {
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    transition: width 0.5s ease;
+}
+
+.upload-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 5px;
+    text-align: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.profile-picture-container:hover .upload-overlay {
+    opacity: 1;
+}
+
+.form-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-section h5 {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">
+                        <i class="bi bi-person-gear me-2"></i>Modifier mon profil
+                    </h2>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Indicateur de complétion du profil -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Complétion du profil</span>
+                            <span class="fw-bold">{{ profile_completion }}%</span>
+                        </div>
+                        <div class="profile-completion">
+                            <div class="profile-completion-bar" style="width: {{ profile_completion }}%;"></div>
+                        </div>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" id="profileForm">
+                        {% csrf_token %}
+                        
+                        <!-- Section Photo de profil -->
+                        <div class="form-section">
+                            <h5><i class="bi bi-camera me-2"></i>Photo de profil</h5>
+                            <div class="row align-items-center">
+                                <div class="col-md-4 text-center">
+                                    <div class="profile-picture-container">
+                                        {% if user.photo_profil %}
+                                            <img src="{{ user.photo_profil.url }}" alt="Photo de profil" 
+                                                 class="profile-picture-preview rounded-circle" id="profile-preview">
+                                        {% else %}
+                                            <div class="avatar-initials-preview rounded-circle" id="profile-preview">
+                                                {{ user.get_full_name_or_username|slice:":2"|upper }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="upload-overlay" onclick="document.getElementById('id_photo_profil').click()">
+                                            <i class="bi bi-camera"></i> Changer
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        {{ form.photo_profil }}
+                                        <small class="form-text text-muted">{{ form.photo_profil.help_text }}</small>
+                                        {% if form.photo_profil.errors %}
+                                        <div class="text-danger">{{ form.photo_profil.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Informations personnelles -->
+                        <div class="form-section">
+                            <h5><i class="bi bi-person me-2"></i>Informations personnelles</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Prénom *</label>
+                                        {{ form.first_name }}
+                                        {% if form.first_name.errors %}
+                                        <div class="text-danger">{{ form.first_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Nom *</label>
+                                        {{ form.last_name }}
+                                        {% if form.last_name.errors %}
+                                        <div class="text-danger">{{ form.last_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Email *</label>
+                                        {{ form.email }}
+                                        {% if form.email.errors %}
+                                        <div class="text-danger">{{ form.email.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Téléphone</label>
+                                        {{ form.telephone }}
+                                        {% if form.telephone.errors %}
+                                        <div class="text-danger">{{ form.telephone.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Date de naissance</label>
+                                        {{ form.date_naissance }}
+                                        <small class="form-text text-muted">{{ form.date_naissance.help_text }}</small>
+                                        {% if form.date_naissance.errors %}
+                                        <div class="text-danger">{{ form.date_naissance.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Genre</label>
+                                        {{ form.genre }}
+                                        {% if form.genre.errors %}
+                                        <div class="text-danger">{{ form.genre.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Biographie</label>
+                                {{ form.bio }}
+                                <small class="form-text text-muted">{{ form.bio.help_text }}</small>
+                                {% if form.bio.errors %}
+                                <div class="text-danger">{{ form.bio.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Section Adresse -->
+                        <div class="form-section">
+                            <h5><i class="bi bi-geo-alt me-2"></i>Adresse</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Ville</label>
+                                        {{ form.ville }}
+                                        {% if form.ville.errors %}
+                                        <div class="text-danger">{{ form.ville.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Pays</label>
+                                        {{ form.pays }}
+                                        {% if form.pays.errors %}
+                                        <div class="text-danger">{{ form.pays.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Code postal</label>
+                                {{ form.code_postal }}
+                                {% if form.code_postal.errors %}
+                                <div class="text-danger">{{ form.code_postal.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Section Réseaux sociaux -->
+                        <div class="form-section">
+                            <h5><i class="bi bi-link-45deg me-2"></i>Réseaux sociaux</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Site web personnel</label>
+                                        {{ form.site_web_perso }}
+                                        {% if form.site_web_perso.errors %}
+                                        <div class="text-danger">{{ form.site_web_perso.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">LinkedIn</label>
+                                        {{ form.linkedin }}
+                                        {% if form.linkedin.errors %}
+                                        <div class="text-danger">{{ form.linkedin.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Twitter</label>
+                                        {{ form.twitter }}
+                                        {% if form.twitter.errors %}
+                                        <div class="text-danger">{{ form.twitter.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Facebook</label>
+                                        {{ form.facebook }}
+                                        {% if form.facebook.errors %}
+                                        <div class="text-danger">{{ form.facebook.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Préférences -->
+                        <div class="form-section">
+                            <h5><i class="bi bi-bell me-2"></i>Préférences</h5>
+                            <div class="form-check form-switch mb-3">
+                                {{ form.newsletter }}
+                                <label class="form-check-label" for="{{ form.newsletter.id_for_label }}">
+                                    {{ form.newsletter.label }}
+                                </label>
+                                {% if form.newsletter.errors %}
+                                <div class="text-danger">{{ form.newsletter.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Enregistrer les modifications
+                            </button>
+                            <a href="{% url 'profil' %}" class="btn btn-outline-secondary ms-2">
+                                <i class="bi bi-x-circle me-2"></i>Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Prévisualisation de la photo de profil
+    const photoInput = document.getElementById('id_photo_profil');
+    const preview = document.getElementById('profile-preview');
+    
+    if (photoInput && preview) {
+        photoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (preview.tagName === 'IMG') {
+                        preview.src = e.target.result;
+                    } else {
+                        // Remplacer le div par une image
+                        const newPreview = document.createElement('img');
+                        newPreview.id = 'profile-preview';
+                        newPreview.className = 'profile-picture-preview rounded-circle';
+                        newPreview.src = e.target.result;
+                        newPreview.alt = 'Photo de profil';
+                        preview.parentNode.replaceChild(newPreview, preview);
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Mise à jour en temps réel de la complétion du profil
+    const form = document.getElementById('profileForm');
+    const completionBar = document.querySelector('.profile-completion-bar');
+    
+    if (form && completionBar) {
+        const inputs = form.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('input', updateCompletion);
+            input.addEventListener('change', updateCompletion);
+        });
+    }
+    
+    function updateCompletion() {
+        // Cette fonction pourrait être améliorée pour calculer en temps réel
+        // Pour l'instant, on se contente de l'animation
+        completionBar.style.width = '{{ profile_completion }}%';
+    }
+});
+</script>
+{% endblock %}

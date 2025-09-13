@@ -1,0 +1,20 @@
+<!-- core/templates/core/effectuer_contribution.html -->
+<div class="card">
+    <div class="card-header">
+        <h5>Contribuer au projet {{ projet.titre }}</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <strong>Votre solde:</strong> {{ solde_hbar }} HBAR (≈ {{ solde_fcfa|floatformat:0 }} FCFA)
+            <br><strong>Taux:</strong> 1 HBAR = {{ taux_conversion }} FCFA
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-success">
+                💰 Effectuer la contribution
+            </button>
+        </form>
+    </div>
+</div>

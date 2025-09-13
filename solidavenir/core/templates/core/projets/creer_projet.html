@@ -1,0 +1,745 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if action == 'modifier' %}Modifier{% else %}Créer{% endif %} un Projet - Solid'Avenir{% endblock %}
+
+{% block extra_css %}
+{{ form.media }}
+<style>
+    .project-creation-container {
+        min-height: 80vh;
+        padding: 2rem 0;
+    }
+    .creation-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+    }
+    .creation-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .creation-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    .guide-creation {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .guide-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    .guide-icon {
+        color: #28a745;
+        font-size: 1.2rem;
+        margin-right: 1rem;
+        margin-top: 0.2rem;
+    }
+    .character-count {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-align: right;
+    }
+    .character-count.warning {
+        color: #ffc107;
+    }
+    .character-count.danger {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    .montant-input {
+        position: relative;
+    }
+    .montant-suffix {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-weight: 500;
+    }
+    .form-control:focus + .montant-suffix {
+        color: var(--primary-color);
+    }
+    .btn-create {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        border: none;
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(44, 110, 155, 0.3);
+    }
+    /* Styles pour les niveaux de financement */
+    .niveau-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--primary-color);
+        position: relative;
+    }
+    .delete-niveau {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: #dc3545;
+        cursor: pointer;
+    }
+    .add-niveau-btn {
+        margin-bottom: 1.5rem;
+    }
+    .conditional-section {
+        transition: all 0.3s ease;
+    }
+    .niveau-empty {
+        border-left: 4px solid #6c757d;
+        opacity: 0.7;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="project-creation-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="creation-card">
+                    <!-- En-tête -->
+                    <div class="creation-header">
+                        <div class="creation-icon">
+                            <i class="bi bi-lightbulb"></i>
+                        </div>
+                        <h1 class="h2 fw-bold">
+                            {% if action == 'modifier' %}Modifier{% else %}Créer{% endif %} un projet
+                        </h1>
+                        <p class="text-muted">
+                            {% if action == 'modifier' %}
+                            Modifiez les informations de votre projet "{{ projet.titre }}"
+                            {% else %}
+                            Remplissez les informations ci-dessous pour soumettre votre projet à la communauté
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <!-- Guide de création -->
+                    {% if not action == 'modifier' %}
+                    <div class="guide-creation">
+                        <h5 class="mb-3"><i class="bi bi-info-circle"></i> Conseils pour un projet réussi</h5>
+                        
+                        <div class="guide-item">
+                            <div class="guide-icon">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                            <div>
+                                <strong>Titre clair et accrocheur</strong>
+                                <p class="mb-0 text-muted">Un titre qui résume bien votre projet et attire l'attention</p>
+                            </div>
+                        </div>
+                        
+                        <div class="guide-item">
+                            <div class="guide-icon">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                            <div>
+                                <strong>Description courte et percutante</strong>
+                                <p class="mb-0 text-muted">Résumez votre projet en 300 caractères maximum pour les aperçus</p>
+                            </div>
+                        </div>
+                        
+                        <div class="guide-item">
+                            <div class="guide-icon">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                            <div>
+                                <strong>Budget réaliste</strong>
+                                <p class="mb-0 text-muted">Définissez un montant précis et justifié pour votre projet</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Formulaire -->
+                    <form method="post" enctype="multipart/form-data" id="creationForm">
+                        {% csrf_token %}
+                        
+                        <!-- Section 1: Informations de base -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <i class="bi bi-info-circle"></i> Informations de base
+                            </div>
+                            <div class="card-body">
+                                <!-- Titre du projet -->
+                                <div class="mb-4">
+                                    <label>Nom du projet</label>
+                                    {{ form.titre }}
+                                    <div class="character-count" id="titreCount">
+                                        <span id="titreLength">{{ form.titre.value|length|default:0 }}</span>/200 caractères
+                                    </div>
+                                    {% if form.titre.errors %}
+                                    <div class="text-danger">{{ form.titre.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Description courte -->
+<div class="mb-4">
+    <label for="{{ form.description_courte.id_for_label }}" class="form-label fw-semibold">
+        <i class="bi bi-text-paragraph me-1"></i>{{ form.description_courte.label }} *
+    </label>
+    <div class="input-group">
+        <span class="input-group-text bg-light">
+            <i class="bi bi-chat-quote text-info"></i>
+        </span>
+        {{ form.description_courte }}
+    </div>
+    <div class="form-text mt-2">
+        <small>
+            <i class="bi bi-info-circle me-1"></i>
+            {{ form.description_courte.help_text }}
+            <span id="description-courte-count" class="ms-2">0/300 caractères</span>
+        </small>
+    </div>
+    {% if form.description_courte.errors %}
+    <div class="alert alert-danger mt-2 p-2">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        {{ form.description_courte.errors }}
+    </div>
+    {% endif %}
+</div>
+
+                                <!-- Description détaillée -->
+                                <div class="mb-4">
+                                    <label for="{{ form.description.id_for_label }}" class="form-label">
+                                        {{ form.description.label }} *
+                                    </label> <br>
+                                    <small>Donnez une description détaillée du projet que vous voulez portez</small>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                    <div class="text-danger">{{ form.description.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                               <!-- Catégorie et Tags - Section améliorée -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="mb-4">
+            <label for="{{ form.categorie.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-tag me-1"></i>{{ form.categorie.label }} *
+            </label>
+            <div class="input-group">
+                <span class="input-group-text bg-light">
+                    <i class="bi bi-grid-3x3-gap text-primary"></i>
+                </span>
+                {{ form.categorie }}
+            </div>
+            <div class="form-text mt-2">
+                <small>
+                    <i class="bi bi-info-circle me-1"></i>
+                    Choisissez la catégorie qui correspond le mieux à votre projet
+                </small>
+            </div>
+            {% if form.categorie.errors %}
+            <div class="alert alert-danger mt-2 p-2">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                {{ form.categorie.errors }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="mb-4" id="autre-categorie-container" style="display: none;">
+            <label for="{{ form.autre_categorie.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-pencil-square me-1"></i>{{ form.autre_categorie.label }}
+            </label>
+            <div class="input-group">
+                <span class="input-group-text bg-light">
+                    <i class="bi bi-plus-square text-warning"></i>
+                </span>
+                {{ form.autre_categorie }}
+            </div>
+            <div class="form-text mt-2">
+                <small>
+                    <i class="bi bi-lightbulb me-1"></i>
+                    Décrivez brièvement votre domaine d'activité
+                </small>
+            </div>
+            {% if form.autre_categorie.errors %}
+            <div class="alert alert-danger mt-2 p-2">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                {{ form.autre_categorie.errors }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-12">
+        <div class="mb-4">
+            <label for="{{ form.tags.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-hash me-1"></i>{{ form.tags.label }}
+            </label>
+            <div class="input-group">
+                <span class="input-group-text bg-light">
+                    <i class="bi bi-tags text-success"></i>
+                </span>
+                {{ form.tags }}
+            </div>
+            <div class="form-text mt-2">
+                <small>
+                    <i class="bi bi-info-circle me-1"></i>
+                    {{ form.tags.help_text }} Ex: <span class="badge bg-secondary">agriculture</span>
+                    <span class="badge bg-secondary">innovation</span>
+                    <span class="badge bg-secondary">femmes</span>
+                </small>
+            </div>
+            {% if form.tags.errors %}
+            <div class="alert alert-danger mt-2 p-2">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                {{ form.tags.errors }}
+            </div>
+            {% endif %}
+            
+            <!-- Tags suggérés -->
+            <div class="mt-2">
+                <small class="text-muted d-block mb-1">Tags populaires :</small>
+                <div class="d-flex flex-wrap gap-1">
+                    <span class="badge bg-light text-dark border cursor-pointer tag-suggestion" data-tag="innovation">
+                        innovation <i class="bi bi-plus"></i>
+                    </span>
+                    <span class="badge bg-light text-dark border cursor-pointer tag-suggestion" data-tag="durable">
+                        durable <i class="bi bi-plus"></i>
+                    </span>
+                    <span class="badge bg-light text-dark border cursor-pointer tag-suggestion" data-tag="femmes">
+                        femmes <i class="bi bi-plus"></i>
+                    </span>
+                    <span class="badge bg-light text-dark border cursor-pointer tag-suggestion" data-tag="jeunesse">
+                        jeunesse <i class="bi bi-plus"></i>
+                    </span>
+                    <span class="badge bg-light text-dark border cursor-pointer tag-suggestion" data-tag="local">
+                        local <i class="bi bi-plus"></i>
+                    </span>
+                    <span class="badge bg-light text-dark border cursor-pointer tag-suggestion" data-tag="ecologie">
+                        écologie <i class="bi bi-plus"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                        <!-- Section 2: Financement -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-success text-white">
+                                <i class="bi bi-currency-exchange"></i> Financement
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-4">
+                                            <label for="{{ form.type_financement.id_for_label }}" class="form-label">
+                                                {{ form.type_financement.label }} *
+                                            </label>
+                                            {{ form.type_financement }}
+                                            {% if form.type_financement.errors %}
+                                            <div class="text-danger">{{ form.type_financement.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-4">
+                                            <label for="{{ form.duree_campagne.id_for_label }}" class="form-label">
+                                                {{ form.duree_campagne.label }} *
+                                            </label>
+                                            {{ form.duree_campagne }}
+                                            {% if form.duree_campagne.errors %}
+                                            <div class="text-danger">{{ form.duree_campagne.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-4">
+                                            <label for="{{ form.montant_demande.id_for_label }}" class="form-label">
+                                                {{ form.montant_demande.label }} *
+                                            </label>
+                                            <div class="montant-input">
+                                                {{ form.montant_demande }}
+                                                <span class="montant-suffix">FCFA</span>
+                                            </div>
+                                            {% if form.montant_demande.errors %}
+                                            <div class="text-danger">{{ form.montant_demande.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-4">
+                                            <label for="{{ form.montant_minimal.id_for_label }}" class="form-label">
+                                                {{ form.montant_minimal.label }}
+                                            </label>
+                                            <div class="montant-input">
+                                                {{ form.montant_minimal }}
+                                                <span class="montant-suffix">FCFA</span>
+                                            </div>
+                                            <small class="form-text text-muted">{{ form.montant_minimal.help_text }}</small>
+                                            {% if form.montant_minimal.errors %}
+                                            <div class="text-danger">{{ form.montant_minimal.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Récompenses -->
+                                <div class="mb-4">
+                                    <div class="form-check form-switch">
+                                        {{ form.has_recompenses }}
+                                        <label class="form-check-label" for="{{ form.has_recompenses.id_for_label }}">
+                                            {{ form.has_recompenses.label }}
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted">{{ form.has_recompenses.help_text }}</small>
+                                    {% if form.has_recompenses.errors %}
+                                    <div class="text-danger">{{ form.has_recompenses.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Niveaux de financement (conditionnel) -->
+                                <div id="niveaux-section" class="conditional-section" style="display: none;">
+                                    <h5 class="mb-3">Niveaux de financement et récompenses</h5>
+                                    <p class="text-muted mb-3">Définissez les différents niveaux de contribution et les récompenses associées.</p>
+                                    
+                                    <div id="niveaux-container">
+                                        <!-- Les niveaux seront ajoutés dynamiquement ici -->
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-outline-primary btn-sm add-niveau-btn" id="add-niveau">
+                                        <i class="bi bi-plus"></i> Ajouter un niveau
+                                    </button>
+                                    
+                                    <!-- Template pour un nouveau niveau -->
+                                    <template id="niveau-template">
+                                        <div class="niveau-card">
+                                            <button type="button" class="btn btn-sm delete-niveau">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Montant (FCFA) *</label>
+                                                    <input type="number" name="niveau_montant__index__" 
+                                                           class="form-control" min="1000" step="1000" required>
+                                                </div>
+                                                <div class="col-md-8 mb-3">
+                                                    <label class="form-label">Titre *</label>
+                                                    <input type="text" name="niveau_titre__index__" 
+                                                           class="form-control" maxlength="100" required>
+                                                </div>
+                                                <div class="col-12 mb-3">
+                                                    <label class="form-label">Description</label>
+                                                    <textarea name="niveau_description__index__" 
+                                                              class="form-control" rows="3"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Médias -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <i class="bi bi-images"></i> Médias
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-4">
+                                            <label for="{{ form.cover_image.id_for_label }}" class="form-label">
+                                                {{ form.cover_image.label }}
+                                            </label>
+                                            {{ form.cover_image }}
+                                            <small class="form-text text-muted">{{ form.cover_image.help_text }}</small>
+                                            {% if form.cover_image.errors %}
+                                            <div class="text-danger">{{ form.cover_image.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-4">
+                                            <label for="{{ form.video_presentation.id_for_label }}" class="form-label">
+                                                {{ form.video_presentation.label }}
+                                            </label>
+                                            {{ form.video_presentation }}
+                                            <small class="form-text text-muted">{{ form.video_presentation.help_text }}</small>
+                                            {% if form.video_presentation.errors %}
+                                            <div class="text-danger">{{ form.video_presentation.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Documents -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-warning text-dark">
+                                <i class="bi bi-file-earmark-text"></i> Documents
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-4">
+                                            <label for="{{ form.document_justificatif.id_for_label }}" class="form-label">
+                                                {{ form.document_justificatif.label }}
+                                            </label>
+                                            {{ form.document_justificatif }}
+                                            {% if form.document_justificatif.errors %}
+                                            <div class="text-danger">{{ form.document_justificatif.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-4">
+                                            <label for="{{ form.plan_financement.id_for_label }}" class="form-label">
+                                                {{ form.plan_financement.label }}
+                                            </label>
+                                            {{ form.plan_financement }}
+                                            {% if form.plan_financement.errors %}
+                                            <div class="text-danger">{{ form.plan_financement.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-4">
+                                            <label for="{{ form.budget_detaille.id_for_label }}" class="form-label">
+                                                Budget détaillé
+                                            </label>
+                                            {{ form.budget_detaille }}
+                                            <small class="form-text text-muted">{{ form.budget_detaille.help_text }}</small>
+                                            {% if form.budget_detaille.errors %}
+                                            <div class="text-danger">{{ form.budget_detaille.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Informations de validation -->
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Processus de validation</strong><br>
+                            Votre projet sera examiné par notre équipe dans les 48h. 
+                            Vous serez notifié par email une fois la validation effectuée.
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-create">
+                                <i class="bi bi-send"></i> 
+                                {% if action == 'modifier' %}Modifier{% else %}Soumettre{% endif %} le projet
+                            </button>
+                            <a href="{% if action == 'modifier' %}{% url 'detail_projet' uuid=projet.audit_uuid %}{% else %}{% url 'mes_projets' %}{% endif %}" 
+                               class="btn btn-outline-secondary ms-2">
+                                <i class="bi bi-x-circle"></i> Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Gestion de l'affichage conditionnel de la catégorie "autre"
+const categorieSelect = document.getElementById('{{ form.categorie.id_for_label }}');
+const autreCategorieField = document.getElementById('{{ form.autre_categorie.id_for_label }}');
+const autreCategorieContainer = document.getElementById('autre-categorie-container');
+
+function toggleAutreCategorie() {
+    if (categorieSelect && autreCategorieContainer) {
+        if (categorieSelect.value === 'autre') {
+            autreCategorieContainer.style.display = 'block';
+            autreCategorieField.setAttribute('required', 'required');
+        } else {
+            autreCategorieContainer.style.display = 'none';
+            autreCategorieField.removeAttribute('required');
+            autreCategorieField.value = '';
+        }
+    }
+}
+
+if (categorieSelect) {
+    categorieSelect.addEventListener('change', toggleAutreCategorie);
+    toggleAutreCategorie(); // Initial state
+}
+
+// Amélioration du champ tags avec suggestions
+const tagsInput = document.getElementById('{{ form.tags.id_for_label }}');
+const tagSuggestions = document.querySelectorAll('.tag-suggestion');
+
+// Fonction pour ajouter un tag
+function addTag(tag) {
+    if (tagsInput) {
+        const currentTags = tagsInput.value.split(',').map(t => t.trim()).filter(t => t);
+        
+        // Éviter les doublons
+        if (!currentTags.includes(tag)) {
+            currentTags.push(tag);
+            tagsInput.value = currentTags.join(', ');
+        }
+    }
+}
+
+// Ajouter les écouteurs d'événements aux suggestions
+tagSuggestions.forEach(suggestion => {
+    suggestion.addEventListener('click', function() {
+        addTag(this.getAttribute('data-tag'));
+    });
+});
+
+// Formatage automatique des tags
+if (tagsInput) {
+    tagsInput.addEventListener('blur', function() {
+        const tags = this.value.split(',')
+            .map(tag => tag.trim())
+            .filter(tag => tag)
+            .map(tag => tag.toLowerCase())
+            .join(', ');
+        this.value = tags;
+    });
+}
+
+// Amélioration visuelle du select de catégorie
+if (categorieSelect) {
+    categorieSelect.classList.add('form-select-lg');
+    
+    // Ajouter des icônes aux options (optionnel)
+    const categoryIcons = {
+        'agriculture': '🌱',
+        'artisanat': '🛠️',
+        'commerce': '🏪',
+        'education': '📚',
+        'sante': '🏥',
+        'technologie': '💻',
+        'energie': '⚡',
+        'tourisme': '✈️',
+        'culture': '🎭',
+        'social': '🤝',
+        'sport': '⚽',
+        'immobilier': '🏠',
+        'transport': '🚗',
+        'finance': '💰',
+        'autre': '📦'
+    };
+    
+    // Mettre à jour les options avec des icônes
+    Array.from(categorieSelect.options).forEach(option => {
+        const icon = categoryIcons[option.value] || '📦';
+        option.textContent = `${icon} ${option.textContent}`;
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion de l'affichage conditionnel des récompenses
+    const hasRecompenses = document.getElementById('{{ form.has_recompenses.id_for_label }}');
+    const niveauxSection = document.getElementById('niveaux-section');
+    const niveauxContainer = document.getElementById('niveaux-container');
+    const addNiveauBtn = document.getElementById('add-niveau');
+    const niveauTemplate = document.getElementById('niveau-template');
+    let niveauCount = 0;
+    
+    function toggleNiveauxSection() {
+        niveauxSection.style.display = hasRecompenses.checked ? 'block' : 'none';
+    }
+    
+    // Initialiser les niveaux existants (pour la modification)
+    {% if action == 'modifier' and niveaux %}
+        {% for niveau in niveaux %}
+        addNiveau({{ niveau.montant }}, '{{ niveau.titre|escapejs }}', '{{ niveau.description|escapejs }}');
+        {% endfor %}
+    {% endif %}
+    
+    hasRecompenses.addEventListener('change', toggleNiveauxSection);
+    toggleNiveauxSection(); // État initial
+
+    // Fonction pour ajouter un niveau
+    function addNiveau(montant = '', titre = '', description = '') {
+        const newNiveau = niveauTemplate.content.cloneNode(true);
+        const inputs = newNiveau.querySelectorAll('input, textarea');
+        
+        inputs.forEach(input => {
+            const name = input.getAttribute('name').replace('__index__', niveauCount);
+            input.setAttribute('name', name);
+            input.setAttribute('id', 'id_' + name);
+            
+            // Pré-remplir les valeurs si fournies
+            if (input.getAttribute('name').includes('montant') && montant) {
+                input.value = montant;
+            } else if (input.getAttribute('name').includes('titre') && titre) {
+                input.value = titre;
+            } else if (input.getAttribute('name').includes('description') && description) {
+                input.value = description;
+            }
+        });
+        
+        // Ajouter le gestionnaire de suppression
+        const deleteBtn = newNiveau.querySelector('.delete-niveau');
+        deleteBtn.addEventListener('click', function() {
+            this.closest('.niveau-card').remove();
+        });
+        
+        niveauxContainer.appendChild(newNiveau);
+        niveauCount++;
+    }
+    
+    // Ajouter un niveau vide quand on clique sur le bouton
+    addNiveauBtn.addEventListener('click', function() {
+        addNiveau();
+    });
+    
+    // Compteur de caractères pour le titre
+    const titreInput = document.getElementById('{{ form.titre.id_for_label }}');
+    const titreLength = document.getElementById('titreLength');
+    
+    if (titreInput && titreLength) {
+        titreInput.addEventListener('input', function() {
+            titreLength.textContent = this.value.length;
+            titreLength.parentElement.className = 'character-count' + 
+                (this.value.length > 180 ? ' warning' : '') +
+                (this.value.length > 200 ? ' danger' : '');
+        });
+    }
+    
+    // Compteur de caractères pour la description courte
+    const descriptionCourteInput = document.getElementById('{{ form.description_courte.id_for_label }}');
+    const descriptionCourteLength = document.getElementById('descriptionCourteLength');
+    
+    if (descriptionCourteInput && descriptionCourteLength) {
+        descriptionCourteInput.addEventListener('input', function() {
+            descriptionCourteLength.textContent = this.value.length;
+            descriptionCourteLength.parentElement.className = 'character-count' + 
+                (this.value.length > 250 ? ' warning' : '') +
+                (this.value.length > 300 ? ' danger' : '');
+        });
+    }
+});
+
+</script>
+{% endblock %}

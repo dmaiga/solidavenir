@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Solid'Avenir - {{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Statistiques -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h3>{{ stats.total }}</h3>
+                            <p>Membres total</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h3>{{ stats.porteurs }}</h3>
+                            <p>Porteurs</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h3>{{ stats.donateurs }}</h3>
+                            <p>Donateurs</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <h3>{{ stats.actifs }}</h3>
+                            <p>Comptes actifs</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="h4 mb-0">{{ title }}</h2>
+                </div>
+                <div class="card-body">
+                    <!-- Filtres -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Filtres</h5>
+                            <form method="get" class="row g-3">
+                                <div class="col-md-3">
+                                    {{ form.type_utilisateur.label_tag }}
+                                    {{ form.type_utilisateur }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.actif.label_tag }}
+                                    {{ form.actif }}
+                                </div>
+                                <div class="col-md-3">
+                                    {{ form.date_debut.label_tag }}
+                                    {{ form.date_debut }}
+                                </div>
+                                <div class="col-md-3">
+                                    {{ form.date_fin.label_tag }}
+                                    {{ form.date_fin }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.recherche.label_tag }}
+                                    {{ form.recherche }}
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">Filtrer</button>
+                                    <a href="{% url 'liste_membres' %}" class="btn btn-secondary">Réinitialiser</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Liste des membres -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Email</th>
+                                    <th>Type</th>
+                                    <th>Inscription</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for membre in membres %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ membre.get_full_name|default:membre.username }}</strong>
+                                        {% if membre.organisation %}
+                                        <br><small class="text-muted">{{ membre.organisation }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ membre.email }}</td>
+                                    <td>
+                                        <span class="badge {% if membre.user_type == 'porteur' %}bg-success{% elif membre.user_type == 'donateur' %}bg-info{% else %}bg-warning{% endif %}">
+                                            {{ membre.get_user_type_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ membre.date_joined|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <span class="badge {% if membre.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ membre.is_active|yesno:"Actif,Inactif" }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'detail_membre' membre.id %}" 
+                                           class="btn btn-sm btn-primary">Détails</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        Aucun membre trouvé
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if membres.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if membres.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ membres.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Précédent</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for i in membres.paginator.page_range %}
+                            <li class="page-item {% if membres.number == i %}active{% endif %}">
+                                <a class="page-link" href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if membres.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ membres.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Suivant</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

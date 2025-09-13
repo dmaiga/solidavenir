@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Gestion des Associations - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h2 mb-0">
+                    <i class="bi bi-people-fill text-primary"></i> Gestion des Associations
+                </h1>
+                <a href="{% url 'tableau_de_bord' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Retour au tableau de bord
+                </a>
+            </div>
+            <p class="text-muted">Gérez toutes les associations de la plateforme</p>
+        </div>
+    </div>
+
+    <!-- Filtres et statistiques -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <form method="GET" class="row g-3">
+                                <div class="col-md-4">
+                                    <select class="form-select" name="statut" onchange="this.form.submit()">
+                                        <option value="">Tous les statuts</option>
+                                        <option value="validees" {% if request.GET.statut == 'validees' %}selected{% endif %}>Validées</option>
+                                        <option value="attente" {% if request.GET.statut == 'attente' %}selected{% endif %}>En attente</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select" name="domaine" onchange="this.form.submit()">
+                                        <option value="">Tous les domaines</option>
+                                        {% for value, label in domaines %}
+                                        <option value="{{ value }}" {% if request.GET.domaine == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <input type="text" name="recherche" class="form-control" 
+                                               placeholder="Rechercher..." value="{{ request.GET.recherche|default:'' }}">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex justify-content-around text-center">
+                                <div>
+                                    <h5 class="mb-0 text-primary">{{ associations.paginator.count }}</h5>
+                                    <small class="text-muted">Total</small>
+                                </div>
+                                <div>
+                                    <h5 class="mb-0 text-success">{{ associations_validees }}</h5>
+                                    <small class="text-muted">Validées</small>
+                                </div>
+                                <div>
+                                    <h5 class="mb-0 text-warning">{{ associations_attente }}</h5>
+                                    <small class="text-muted">En attente</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des associations -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Liste des associations</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if associations %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Contact</th>
+                                    <th>Domaine</th>
+                                    <th>Ville</th>
+                                    <th>Statut</th>
+                                    <th>Date création</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for association in associations %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if association.logo %}
+                                            <img src="{{ association.logo.url }}" 
+                                                 class="rounded-circle me-2" 
+                                                 alt="{{ association.nom }}"
+                                                 style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="rounded-circle bg-secondary me-2 d-flex align-items-center justify-content-center"
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="bi bi-people text-white"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ association.nom }}</strong>
+                                                {% if association.featured %}
+                                                <span class="badge bg-warning text-dark ms-1" title="En vedette">
+                                                    <i class="bi bi-star-fill"></i>
+                                                </span>
+                                                {% endif %}
+                                                <br>
+                                                <small class="text-muted">{{ association.slogan|default:""|truncatewords:5 }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            {{ association.user.email }}<br>
+                                            {{ association.telephone|default:"-" }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {{ association.get_domaine_principal_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ association.ville }}</td>
+                                    <td>
+                                        {% if association.valide %}
+                                        <span class="badge bg-success">Validée</span>
+                                        {% else %}
+                                        <span class="badge bg-warning text-dark">En attente</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ association.date_creation_profile|date:"d/m/Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'detail_association' association.slug %}" 
+                                               target="_blank" class="btn btn-info" title="Voir">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            {% if not association.valide %}
+                                            <a href="{% url 'valider_association' association.id %}" 
+                                               class="btn btn-success" title="Valider">
+                                                <i class="bi bi-check-lg"></i>
+                                            </a>
+                                            <a href="{% url 'rejeter_association' association.id %}" 
+                                               class="btn btn-danger" title="Rejeter">
+                                                <i class="bi bi-x-lg"></i>
+                                            </a>
+                                            {% else %}
+                                            <a href="#" class="btn btn-outline-secondary" title="Déjà validée">
+                                                <i class="bi bi-check2-all"></i>
+                                            </a>
+                                            {% endif %}
+                                            <a href="{% url 'admin:core_association_change' association.id %}" 
+                                               class="btn btn-primary" title="Éditer">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-people display-1 text-muted"></i>
+                        <h4 class="text-muted mt-3">Aucune association trouvée</h4>
+                        <p class="text-muted">Aucune association ne correspond à vos critères de recherche.</p>
+                        <a href="{% url 'liste_associations_admin' %}" class="btn btn-primary">
+                            Réinitialiser les filtres
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if associations.has_other_pages %}
+                <div class="card-footer">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if associations.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Premier</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ associations.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Précédent</a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in associations.paginator.page_range %}
+                                {% if associations.number == num %}
+                                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                {% elif num > associations.number|add:'-3' and num < associations.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if associations.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ associations.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Suivant</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ associations.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Dernier</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions groupées -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">Actions groupées</h6>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group">
+                        <a href="{% url 'admin:core_association_add' %}" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Ajouter une association
+                        </a>
+                        <a href="{% url 'admin:core_association_changelist' %}" class="btn btn-primary">
+                            <i class="bi bi-gear"></i> Administration complète
+                        </a>
+                        <a href="{% url 'liste_associations' %}" class="btn btn-info" target="_blank">
+                            <i class="bi bi-eye"></i> Voir la page publique
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}{{ association.nom }} - Solidavenir{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- En-tête avec cover -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="position-relative rounded-3 overflow-hidden">
+                <img src="{{ association.get_cover_url }}" 
+                     class="img-fluid w-100" 
+                     alt="{{ association.nom }}"
+                     style="height: 300px; object-fit: cover;">
+                <div class="position-absolute bottom-0 start-0 p-4">
+                    <div class="d-flex align-items-center bg-white rounded-3 p-3 shadow">
+                        <img src="{{ association.get_logo_url }}" 
+                             alt="{{ association.nom }}"
+                             class="rounded-circle me-3"
+                             style="width: 80px; height: 80px; object-fit: cover;">
+                        <div>
+                            <h1 class="h3 mb-1 text-dark">{{ association.nom }}</h1>
+                            <p class="text-muted mb-0">{{ association.slogan }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-body text-center">
+                    <img src="{{ association.get_logo_url }}" 
+                         alt="{{ association.nom }}"
+                         class="rounded-circle mb-3 border border-4 border-primary"
+                         style="width: 120px; height: 120px; object-fit: cover;">
+                    
+                    <h4 class="text-primary">{{ association.nom }}</h4>
+                    <p class="text-muted">{{ association.slogan }}</p>
+                    
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="#contact" class="btn btn-primary">
+                            <i class="bi bi-envelope me-2"></i>Contacter
+                        </a>
+                        {% if association.site_web %}
+                        <a href="{{ association.site_web }}" target="_blank" class="btn btn-outline-primary">
+                            <i class="bi bi-globe me-2"></i>Site web
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Informations rapides -->
+                    <div class="text-start">
+                        <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">Informations</h6>
+                        
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-building text-primary me-2"></i>
+                            <span class="small">Statut : {{ association.get_statut_juridique_display }}</span>
+                        </div>
+                        
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-calendar text-primary me-2"></i>
+                            <span class="small">Crée en {{ association.date_creation.year }}</span>
+                        </div>
+                        
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-people text-primary me-2"></i>
+                            <span class="small">{{ association.nombre_adherents }} membres</span>
+                        </div>
+                        
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-geo-alt text-primary me-2"></i>
+                            <span class="small">{{ association.ville }}, {{ association.pays }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Réseaux sociaux -->
+                    {% if association.facebook or association.twitter or association.linkedin or association.instagram %}
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="text-uppercase text-muted mb-3">Nous suivre</h6>
+                        <div class="d-flex justify-content-center gap-2">
+                            {% if association.facebook %}
+                            <a href="{{ association.facebook }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-circle" style="width: 40px; height: 40px;">
+                                <i class="bi bi-facebook"></i>
+                            </a>
+                            {% endif %}
+                            {% if association.twitter %}
+                            <a href="{{ association.twitter }}" target="_blank" class="btn btn-outline-info btn-sm rounded-circle" style="width: 40px; height: 40px;">
+                                <i class="bi bi-twitter"></i>
+                            </a>
+                            {% endif %}
+                            {% if association.linkedin %}
+                            <a href="{{ association.linkedin }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-circle" style="width: 40px; height: 40px;">
+                                <i class="bi bi-linkedin"></i>
+                            </a>
+                            {% endif %}
+                            {% if association.instagram %}
+                            <a href="{{ association.instagram }}" target="_blank" class="btn btn-outline-danger btn-sm rounded-circle" style="width: 40px; height: 40px;">
+                                <i class="bi bi-instagram"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="col-lg-8">
+            <!-- Domaines d'action -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-body">
+                    <h4 class="card-title text-primary mb-4">
+                        Domaines d'action
+                    </h4>
+                    <div class="mb-3">
+                        {% for domaine in association.get_domaines_list %}
+                        <span class="badge bg-primary me-1 mb-2 px-3 py-2 rounded-pill">{{ domaine }}</span>
+                        {% endfor %}
+                    </div>
+                    <p class="card-text text-muted lead">{{ association.causes_defendues }}</p>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-body">
+                    <h4 class="card-title text-primary mb-4">
+                        <i class="bi bi-info-circle me-2"></i>Notre mission
+                    </h4>
+                    <div class="card-text text-muted">
+                        {{ association.description_longue|linebreaks }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chiffres clés -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-body">
+                    <h4 class="card-title text-primary mb-4">
+                        <i class="bi bi-graph-up me-2"></i>Chiffres clés
+                    </h4>
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <h3 class="text-primary fw-bold">{{ association.nombre_adherents|intcomma }}</h3>
+                                <small class="text-muted">Membres</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <h3 class="text-primary fw-bold">{{ association.nombre_beneficiaires|intcomma }}</h3>
+                                <small class="text-muted">Bénéficiaires</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <h3 class="text-primary fw-bold">{{ association.get_projets_actifs.count }}</h3>
+                                <small class="text-muted">Projets actifs</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <h3 class="text-primary fw-bold">{{ association.pourcentage_frais_gestion }}%</h3>
+                                <small class="text-muted">Frais de gestion</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projets en cours -->
+            {% if association.get_projets_actifs %}
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-body">
+                    <h4 class="card-title text-primary mb-4">
+                        <i class="bi bi-lightbulb text-warning me-2"></i>Projets en cours
+                    </h4>
+                    <div class="row">
+                        {% for projet in association.get_projets_actifs %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                {% if projet.cover_image %}
+                                <img src="{{ projet.cover_image.url }}" 
+                                     class="card-img-top" 
+                                     alt="{{ projet.titre }}"
+                                     style="height: 150px; object-fit: cover;">
+                                {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                                     style="height: 150px;">
+                                    <i class="bi bi-image text-muted display-6"></i>
+                                </div>
+                                {% endif %}
+                                <div class="card-body">
+                                    <h6 class="card-title fw-bold">{{ projet.titre }}</h6>
+                                    <p class="card-text small text-muted">{{ projet.description_courte|truncatewords:15 }}</p>
+                                    <div class="progress mb-2" style="height: 8px;">
+                                        <div class="progress-bar bg-success" 
+                                             style="width: {{ projet.pourcentage_financement }}%;"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-muted">
+                                        <span>{{ projet.pourcentage_financement }}%</span>
+                                        <span>{{ projet.jours_restants }} jours restants</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent py-2 border-0">
+                                    <a href="{% url 'detail_projet' projet.audit_uuid %}" 
+                                       class="btn btn-outline-primary w-100 btn-sm">
+                                        <i class="bi bi-heart me-1"></i>Soutenir
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Contact -->
+            <div class="card shadow-sm mb-4 border-0" id="contact">
+                <div class="card-body">
+                    <h4 class="card-title text-primary mb-4">
+                        <i class="bi bi-envelope me-2"></i>Contact
+                    </h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-uppercase text-muted border-bottom pb-2">Adresse</h6>
+                            <p class="text-muted mb-0">
+                                {{ association.adresse_siege }}<br>
+                                {{ association.code_postal }} {{ association.ville }}<br>
+                                {{ association.pays }}
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-uppercase text-muted border-bottom pb-2">Coordonnées</h6>
+                            <p class="text-muted mb-0">
+                                <i class="bi bi-telephone text-primary me-2"></i> {{ association.telephone }}<br>
+                                <i class="bi bi-envelope text-primary me-2"></i> {{ association.email_contact }}<br>
+                                {% if association.site_web %}
+                                <i class="bi bi-globe text-primary me-2"></i> {{ association.site_web }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

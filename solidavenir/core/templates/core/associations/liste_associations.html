@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Associations & ONG - Solidavenir{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- En-tête -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 fw-bold text-primary mb-3">
+                <i class="bi bi-people-fill me-2"></i>Associations & ONG
+            </h1>
+            <p class="lead text-muted">
+                Découvrez les associations et organisations qui œuvrent pour un avenir meilleur au Mali
+            </p>
+        </div>
+    </div>
+
+    <!-- Message d'encouragement -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info border-0 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-megaphone-fill me-3 fs-2"></i>
+                    <div>
+                        <h5 class="alert-heading mb-2">💡 Vous représentez une association ?</h5>
+                        <p class="mb-0">
+                            Rejoignez notre plateforme pour <strong>mettre en avant votre cause</strong>, 
+                            <strong>atteindre plus de donateurs</strong> et <strong>financer vos projets</strong> 
+                            grâce à la solidarité collective. 
+                            <a href="{% url 'inscription' %}" class="alert-link fw-bold">Inscrivez votre association →</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <form method="GET" action="{% url 'liste_associations' %}">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label small text-muted">Rechercher</label>
+                                <input type="text" name="recherche" class="form-control" 
+                                       placeholder="Nom, domaine, ville..." 
+                                       value="{{ request.GET.recherche|default:'' }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted">Domaine</label>
+                                <select class="form-select" name="domaine">
+                                    <option value="">Tous les domaines</option>
+                                    {% for value, label in domaines %}
+                                    <option value="{{ value }}" {% if request.GET.domaine == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted">Ville</label>
+                                <input type="text" name="ville" class="form-control" 
+                                       placeholder="Bamako, Kayes, Sikasso..." 
+                                       value="{{ request.GET.ville|default:'' }}">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bi bi-funnel me-1"></i> Filtrer
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Associations en vedette -->
+    {% if featured_associations %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 mb-0">
+                    <i class="bi bi-star-fill text-warning me-2"></i> Associations en vedette
+                </h2>
+                <span class="badge bg-warning text-dark">
+                    {{ featured_associations|length }} association(s) mise(s) en avant
+                </span>
+            </div>
+            <div class="row">
+                {% for association in featured_associations %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm border-warning hover-lift">
+                        <div class="position-relative">
+                            <img src="{{ association.get_cover_url }}" 
+                                 class="card-img-top" 
+                                 alt="{{ association.nom }}"
+                                 style="height: 200px; object-fit: cover;">
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-star-fill"></i> Vedette
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <img src="{{ association.get_logo_url }}" 
+                                     alt="{{ association.nom }}"
+                                     class="rounded-circle me-3"
+                                     style="width: 50px; height: 50px; object-fit: cover;">
+                                <h5 class="card-title mb-0">{{ association.nom }}</h5>
+                            </div>
+                            
+                            <p class="card-text text-muted small mb-3">
+                                {{ association.description_courte|truncatewords:20 }}
+                            </p>
+                            
+                            <div class="mb-3">
+                                <span class="badge bg-primary">
+                                    {{ association.get_domaine_principal_display }}
+                                </span>
+                                {% if association.transparent_finances %}
+                                <span class="badge bg-success ms-1">
+                                    <i class="bi bi-shield-check"></i> Transparent
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center text-muted small">
+                                <span><i class="bi bi-geo-alt"></i> {{ association.ville }}</span>
+                                <span><i class="bi bi-people"></i> {{ association.nombre_adherents }}</span>
+                                <span><i class="bi bi-heart"></i> {{ association.nombre_beneficiaires|intcomma }}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            <a href="{% url 'detail_association' association.slug %}" 
+                               class="btn btn-outline-primary w-100">
+                                <i class="bi bi-eye me-1"></i> Découvrir
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Toutes les associations - VERSION LISTE -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 mb-0">
+                    <i class="bi bi-list-ul text-primary me-2"></i> Toutes les associations
+                </h2>
+                <span class="badge bg-primary">
+                    {{ autres_associations|length }} association(s)
+                </span>
+            </div>
+            
+            {% if autres_associations %}
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for association in autres_associations %}
+                        <div class="list-group-item border-0 p-4">
+                            <div class="row align-items-center">
+                                <!-- Logo et informations de base -->
+                                <div class="col-md-2 text-center mb-3 mb-md-0">
+                                    <img src="{{ association.get_logo_url }}" 
+                                         alt="{{ association.nom }}"
+                                         class="rounded-circle border"
+                                         style="width: 80px; height: 80px; object-fit: cover;">
+                                </div>
+                                
+                                <!-- Contenu principal -->
+                                <div class="col-md-6">
+                                    <h5 class="mb-1">{{ association.nom }}</h5>
+                                    <p class="text-muted small mb-2">
+                                        {{ association.description_courte|truncatewords:25 }}
+                                    </p>
+                                    
+                                    <div class="d-flex flex-wrap gap-2 mb-2">
+                                        <span class="badge bg-primary">
+                                            {{ association.get_domaine_principal_display }}
+                                        </span>
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-geo-alt"></i> {{ association.ville }}
+                                        </span>
+                                        {% if association.transparent_finances %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-shield-check"></i> Transparent
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="d-flex text-muted small">
+                                        <span class="me-3"><i class="bi bi-people"></i> {{ association.nombre_adherents }} membres</span>
+                                        <span><i class="bi bi-heart"></i> {{ association.nombre_beneficiaires|intcomma }} bénéficiaires</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Statistiques et action -->
+                                <div class="col-md-4 text-center">
+                                    <div class="mb-2">
+                                        <div class="fw-bold text-primary fs-5">
+                                            {{ association.get_projets_actifs.count }}
+                                        </div>
+                                        <small class="text-muted">projets actifs</small>
+                                    </div>
+                                    
+                                    <a href="{% url 'detail_association' association.slug %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye me-1"></i> Voir l'association
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% if not forloop.last %}
+                        <hr class="my-0">
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-people display-1 text-muted"></i>
+                <h3 class="text-muted mt-3">Aucune association trouvée</h3>
+                <p class="text-muted">Aucune association ne correspond à vos critères de recherche.</p>
+                <a href="{% url 'liste_associations' %}" class="btn btn-primary">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Réinitialiser les filtres
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Call to Action pour les nouvelles associations -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white border-0 shadow-lg">
+                <div class="card-body p-5 text-center">
+                    <h3 class="h2 mb-3">🚀 Prête à faire la différence ?</h3>
+                    <p class="lead mb-4 opacity-90">
+                        Rejoignez les {{ featured_associations.count|add:autres_associations.count }} associations 
+                        qui font bouger les choses au Mali. Mettez en lumière vos actions et mobilisez la communauté 
+                        autour de votre cause.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="{% url 'inscription' %}" class="btn btn-light btn-lg">
+                            <i class="bi bi-person-plus me-2"></i>Inscrire mon association
+                        </a>
+                        <a href="{% url 'contact' %}" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-question-circle me-2"></i>Plus d'informations
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="bg-light rounded-3 p-5 text-center">
+                <h4 class="mb-4 text-primary">Notre impact en chiffres</h4>
+                <div class="row">
+                    <div class="col-md-3 mb-4 mb-md-0">
+                        <div class="display-4 fw-bold text-primary">{{ featured_associations.count|add:autres_associations.count }}</div>
+                        <p class="text-muted mb-0">Associations actives</p>
+                    </div>
+                    <div class="col-md-3 mb-4 mb-md-0">
+                        <div class="display-4 fw-bold text-primary">{{ total_adherents|default:0|intcomma }}</div>
+                        <p class="text-muted mb-0">Membres engagés</p>
+                    </div>
+                    <div class="col-md-3 mb-4 mb-md-0">
+                        <div class="display-4 fw-bold text-primary">{{ total_projets|default:0|intcomma }}</div>
+                        <p class="text-muted mb-0">Projets réalisés</p>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="display-4 fw-bold text-primary">{{ total_villes|default:0 }}</div>
+                        <p class="text-muted mb-0">Villes couvertes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--transparency-color));
+}
+
+.list-group-item {
+    transition: background-color 0.3s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.btn {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.display-4 {
+    font-size: 2.5rem;
+}
+
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .list-group-item .row {
+        text-align: center;
+    }
+    
+    .list-group-item .col-md-2,
+    .list-group-item .col-md-6,
+    .list-group-item .col-md-4 {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %}

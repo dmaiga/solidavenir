@@ -1,0 +1,532 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Modifier le Profil - {{ association.nom }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">
+                        <i class="bi bi-pencil-square text-primary me-2"></i>Modifier le profil
+                    </h1>
+                    <p class="text-muted mb-0">Complétez les informations de votre association</p>
+                </div>
+                <a href="{% url 'espace_association' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Retour
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicateur de progression -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">Profil complété à {{ association.get_completion_percentage }}%</h6>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-success" 
+                                     style="width: {{ association.get_completion_percentage }}%;"
+                                     role="progressbar">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <span class="badge bg-{% if association.valide %}success{% else %}warning{% endif %}">
+                                {% if association.valide %}Validée{% else %}En attente{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+        
+        <div class="row">
+            <!-- Navigation latérale -->
+            <div class="col-lg-3">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">Sections du profil</h6>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="#identite" class="list-group-item list-group-item-action">
+                            <i class="bi bi-building me-2"></i>Identité
+                        </a>
+                        <a href="#logo" class="list-group-item list-group-item-action">
+                            <i class="bi bi-image me-2"></i>Logo & Images
+                        </a>
+                        <a href="#domaines" class="list-group-item list-group-item-action">
+                            <i class="bi bi-heart me-2"></i>Domaines d'action
+                        </a>
+                        <a href="#juridique" class="list-group-item list-group-item-action">
+                            <i class="bi bi-file-text me-2"></i>Informations juridiques
+                        </a>
+                        <a href="#contact" class="list-group-item list-group-item-action">
+                            <i class="bi bi-geo-alt me-2"></i>Contact & Localisation
+                        </a>
+                        <a href="#reseau" class="list-group-item list-group-item-action">
+                            <i class="bi bi-share me-2"></i>Réseaux sociaux
+                        </a>
+                        <a href="#chiffres" class="list-group-item list-group-item-action">
+                            <i class="bi bi-graph-up me-2"></i>Chiffres clés
+                        </a>
+                        <a href="#documents" class="list-group-item list-group-item-action">
+                            <i class="bi bi-file-earmark me-2"></i>Documents
+                        </a>
+                        <a href="#projets" class="list-group-item list-group-item-action">
+                            <i class="bi bi-lightbulb me-2"></i>Projets & Actions
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Aperçu du logo -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">Aperçu du logo</h6>
+                    </div>
+                    <div class="card-body text-center">
+                        <img src="{{ association.get_logo_url }}" 
+                             alt="Logo actuel" 
+                             class="img-fluid rounded-circle border"
+                             style="width: 120px; height: 120px; object-fit: cover;">
+                        <p class="small text-muted mt-2">Logo actuel</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenu principal du formulaire -->
+            <div class="col-lg-9">
+                <!-- Section Identité -->
+                <div class="card shadow-sm mb-4" id="identite">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-building text-primary me-2"></i>Identité de l'association
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.nom.id_for_label }}" class="form-label">Nom de l'association *</label>
+                                {{ form.nom }}
+                                <div class="form-text">Le nom officiel de votre association</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.slogan.id_for_label }}" class="form-label">Slogan</label>
+                                {{ form.slogan }}
+                                <div class="form-text">Une phrase accrocheuse qui représente votre association</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.description_courte.id_for_label }}" class="form-label">Description courte *</label>
+                                {{ form.description_courte }}
+                                <div class="form-text">Description concise pour les listes et aperçus (max 500 caractères)</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.description_longue.id_for_label }}" class="form-label">Description détaillée *</label>
+                                {{ form.description_longue }}
+                                <div class="form-text">Décrivez en détail votre association, sa mission, ses valeurs</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Logo & Images -->
+                <div class="card shadow-sm mb-4" id="logo">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-image text-primary me-2"></i>Logo & Images
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.logo.id_for_label }}" class="form-label">Logo</label>
+                                {{ form.logo }}
+                                <div class="form-text">Format carré recommandé (min. 200x200px)</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.cover_image.id_for_label }}" class="form-label">Image de couverture</label>
+                                {{ form.cover_image }}
+                                <div class="form-text">Format paysage recommandé (1200x400px)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Domaines d'action -->
+                <div class="card shadow-sm mb-4" id="domaines">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-heart text-danger me-2"></i>Domaines d'action
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.domaine_principal.id_for_label }}" class="form-label">Domaine principal *</label>
+                                {{ form.domaine_principal }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.domaines_secondaires.id_for_label }}" class="form-label">Domaines secondaires</label>
+                                {{ form.domaines_secondaires }}
+                                <div class="form-text">Séparés par des virgules (ex: Éducation, Santé, Environnement)</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.causes_defendues.id_for_label }}" class="form-label">Causes défendues *</label>
+                                {{ form.causes_defendues }}
+                                <div class="form-text">Décrivez les causes principales que vous soutenez</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Informations juridiques -->
+                <div class="card shadow-sm mb-4" id="juridique">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-file-text text-primary me-2"></i>Informations juridiques
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.statut_juridique.id_for_label }}" class="form-label">Statut juridique *</label>
+        {{ form.statut_juridique }}
+    </div>
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.numero_agrement.id_for_label }}" class="form-label">Numéro d'agrément</label>
+        {{ form.numero_agrement }}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.date_creation.id_for_label }}" class="form-label">Date de création *</label>
+        {{ form.date_creation }}
+    </div>
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.date_agrement.id_for_label }}" class="form-label">Date d'agrément</label>
+        {{ form.date_agrement }}
+    </div>
+</div>
+
+                </div>
+
+                <!-- Section Contact & Localisation -->
+                <div class="card shadow-sm mb-4" id="contact">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-geo-alt text-primary me-2"></i>Contact & Localisation
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.adresse_siege.id_for_label }}" class="form-label">Adresse du siège *</label>
+                                {{ form.adresse_siege }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.ville.id_for_label }}" class="form-label">Ville *</label>
+                                {{ form.ville }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.code_postal.id_for_label }}" class="form-label">Code postal *</label>
+                                {{ form.code_postal }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.pays.id_for_label }}" class="form-label">Pays *</label>
+                                {{ form.pays }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.telephone.id_for_label }}" class="form-label">Téléphone *</label>
+                                {{ form.telephone }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email_contact.id_for_label }}" class="form-label">Email de contact *</label>
+                                {{ form.email_contact }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.site_web.id_for_label }}" class="form-label">Site web</label>
+                                {{ form.site_web }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Réseaux sociaux -->
+                <div class="card shadow-sm mb-4" id="reseau">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-share text-primary me-2"></i>Réseaux sociaux
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.facebook.id_for_label }}" class="form-label">Facebook</label>
+                                {{ form.facebook }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.twitter.id_for_label }}" class="form-label">Twitter/X</label>
+                                {{ form.twitter }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.linkedin.id_for_label }}" class="form-label">LinkedIn</label>
+                                {{ form.linkedin }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.instagram.id_for_label }}" class="form-label">Instagram</label>
+                                {{ form.instagram }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.youtube.id_for_label }}" class="form-label">YouTube</label>
+                                {{ form.youtube }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Chiffres clés -->
+                <div class="card shadow-sm mb-4" id="chiffres">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-graph-up text-success me-2"></i>Chiffres clés
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.nombre_adherents.id_for_label }}" class="form-label">Nombre d'adhérents</label>
+                                {{ form.nombre_adherents }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.nombre_beneficiaires.id_for_label }}" class="form-label">Nombre de bénéficiaires</label>
+                                {{ form.nombre_beneficiaires }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.budget_annuel.id_for_label }}" class="form-label">Budget annuel (€)</label>
+                                {{ form.budget_annuel }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.pourcentage_frais_gestion.id_for_label }}" class="form-label">Frais de gestion (%)</label>
+                                {{ form.pourcentage_frais_gestion }}
+                                <div class="form-text">Pourcentage des dons consacré aux frais de gestion</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Documents -->
+                <div class="card shadow-sm mb-4" id="documents">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-file-earmark text-primary me-2"></i>Documents
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.rapport_annuel.id_for_label }}" class="form-label">Rapport annuel</label>
+                                {{ form.rapport_annuel }}
+                                <div class="form-text">Format PDF recommandé</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.comptes_annuels.id_for_label }}" class="form-label">Comptes annuels</label>
+                                {{ form.comptes_annuels }}
+                                <div class="form-text">Format PDF recommandé</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    {{ form.transparent_finances }}
+                                    <label class="form-check-label" for="{{ form.transparent_finances.id_for_label }}">
+                                        Transparence financière
+                                    </label>
+                                </div>
+                                <div class="form-text">Nous rendons compte de l'utilisation des fonds</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    {{ form.transparent_actions }}
+                                    <label class="form-check-label" for="{{ form.transparent_actions.id_for_label }}">
+                                        Transparence des actions
+                                    </label>
+                                </div>
+                                <div class="form-text">Nous communiquons sur nos actions et résultats</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Projets & Actions -->
+                <div class="card shadow-sm mb-4" id="projets">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightbulb text-warning me-2"></i>Projets & Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.projets_phares.id_for_label }}" class="form-label">Projets phares</label>
+                                {{ form.projets_phares }}
+                                <div class="form-text">Décrivez vos principaux projets réalisés</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.actions_en_cours.id_for_label }}" class="form-label">Actions en cours</label>
+                                {{ form.actions_en_cours }}
+                                <div class="form-text">Décrivez vos actions actuelles</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.partenariats.id_for_label }}" class="form-label">Partenariats</label>
+                                {{ form.partenariats }}
+                                <div class="form-text">Listez vos principaux partenaires</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons de soumission -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'espace_association' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-1"></i>Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i>Enregistrer les modifications
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-label {
+    font-weight: 500;
+    color: #2c6e9b;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #2c6e9b;
+    box-shadow: 0 0 0 0.2rem rgba(44, 110, 155, 0.25);
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.list-group-item {
+    border: none;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+    color: #2c6e9b;
+}
+
+.list-group-item.active {
+    background-color: #2c6e9b;
+    border-color: #2c6e9b;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.badge {
+    font-size: 0.8rem;
+}
+</style>
+
+<script>
+// Scroll doux vers les sections
+document.querySelectorAll('.list-group-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href').substring(1);
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+            targetElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// Validation du formulaire
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.needs-validation');
+    
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+});
+</script>
+{% endblock %}

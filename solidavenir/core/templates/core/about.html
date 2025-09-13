@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}À Propos - Solid'Avenir{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- En-tête de la page -->
+    <div class="row mb-5">
+        <div class="col-lg-12">
+            <h1 class="display-4 fw-bold text-center mb-4 section-title">À Propos de Solid'Avenir</h1>
+            <p class="lead text-center">Notre mission est de révolutionner le financement participatif en Afrique de l'Ouest en alliant innovation technologique et impact social.</p>
+        </div>
+    </div>
+
+    <!-- Notre histoire -->
+<div class="row mb-5">
+    <div class="col-lg-6">
+        <h2 class="mb-4 section-title">Notre Histoire</h2>
+        <p>Solid’Avenir est né d’une conviction : la solidarité est une force immense en Afrique de l’Ouest, et tout particulièrement au Mali. Les familles, les communautés et la diaspora ont toujours voulu s’entraider, mais le manque de confiance et de transparence a fini par décourager beaucoup de bonnes volontés.</p>
+        <p>Dans le même temps, de nombreux entrepreneurs, artisans et associations, porteurs d’initiatives crédibles, n’arrivent pas à trouver de financement pour faire avancer leurs projets. Le potentiel est là, l’envie est là, mais la réalité bloque l’élan collectif.</p>
+        <p>C’est pour répondre à cette situation que nous avons créé Solid’Avenir : une plateforme qui restaure la confiance, sécurise chaque contribution et rend chaque euro ou franc CFA traçable grâce à la technologie Hedera Hashgraph. Notre ambition est simple : faciliter la solidarité, libérer l’énergie économique, et montrer que, ensemble, nous pouvons bâtir un avenir plus fort et plus juste.</p>
+    </div>
+    <div class="col-lg-6">
+        <img src="{% static 'images/about-history.jpg' %}" alt="Notre histoire" class="img-fluid rounded shadow">
+    </div>
+</div>
+
+
+<!-- Notre mission, vision & but -->
+<div class="row mb-5 bg-light p-5 rounded">
+    <div class="col-lg-12 text-center mb-4">
+        <h2 class="section-title">Notre Mission, Vision & But</h2>
+    </div>
+    <!-- Mission -->
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-bullseye feature-icon"></i>
+                <h3 class="card-title h4">Mission</h3>
+                <p class="card-text">
+                    Offrir une plateforme de financement participatif hybride qui restaure la confiance,
+                    sécurise les contributions et garantit que chaque fonds collecté soit utilisé à bon escient,
+                    grâce à la transparence de la technologie Hedera Hashgraph.
+                </p>
+            </div>
+        </div>
+    </div>
+    <!-- Vision -->
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-eye feature-icon"></i>
+                <h3 class="card-title h4">Vision</h3>
+                <p class="card-text">
+                    Devenir le moteur d’une nouvelle solidarité et d’un entrepreneuriat inclusif en Afrique de l’Ouest,
+                    où chaque citoyen, chaque femme entrepreneure et chaque diaspora peut contribuer en toute sérénité
+                    à bâtir un avenir durable et équitable.
+                </p>
+            </div>
+        </div>
+    </div>
+    <!-- But -->
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-flag feature-icon"></i>
+                <h3 class="card-title h4">But</h3>
+                <p class="card-text">
+                    Faciliter la solidarité et dynamiser l’économie en créant un climat de confiance,
+                    en donnant une chance aux projets viables et en soutenant les causes sociales essentielles.
+                    Notre objectif : transformer la générosité et l’innovation en véritables leviers de développement.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Objectifs à court, moyen et long terme -->
+<div class="row mb-5">
+    <div class="col-lg-12">
+        <h2 class="text-center mb-5 section-title">Nos Objectifs</h2>
+        <div class="row">
+            <!-- Court terme -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <span class="display-4 fw-bold text-primary">1</span>
+                        <h3 class="h5 mt-3">Court Terme</h3>
+                        <ul class="list-unstyled mt-3 text-start">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Mettre en avant les associations locales et de quartiers</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Donner une visibilité accrue aux initiatives humanitaires et sociales</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Susciter un climat de confiance et relancer l’élan solidaire</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Moyen terme -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <span class="display-4 fw-bold text-primary">2</span>
+                        <h3 class="h5 mt-3">Moyen Terme</h3>
+                        <ul class="list-unstyled mt-3 text-start">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Soutenir l’insertion des personnes en situation de handicap</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Accompagner les jeunes sans emploi dans la formation et l’insertion professionnelle</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Créer des passerelles avec les entreprises, philanthropes et programmes de bourses</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Long terme -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <span class="display-4 fw-bold text-primary">3</span>
+                        <h3 class="h5 mt-3">Long Terme</h3>
+                        <ul class="list-unstyled mt-3 text-start">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Bâtir un modèle de financement durable (crowdfunding, microfinance, investissement)</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Élargir la solidarité du Mali vers toute l’Afrique</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Devenir une plateforme de référence pour l’entraide et le développement inclusif</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Public cible -->
+<div class="row mb-5">
+    <div class="col-lg-12">
+        <h2 class="text-center mb-5 section-title">Notre Public</h2>
+        <div class="row">
+            <!-- Entrepreneurs & Porteurs de projets -->
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h3 class="h5 mb-3 text-primary"><i class="bi bi-briefcase me-2"></i>Entrepreneurs</h3>
+                        <ul class="list-unstyled">
+                            <li>Startups innovantes</li>
+                            <li>Artisans et commerçants</li>
+                            <li>Femmes entrepreneures (commerce, artisanat, agriculture)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Associations & ONG -->
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h3 class="h5 mb-3 text-primary"><i class="bi bi-people me-2"></i>Associations & ONG</h3>
+                        <ul class="list-unstyled">
+                            <li>Associations de quartier</li>
+                            <li>ONG locales et internationales</li>
+                            <li>Organisations humanitaires</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Entreprises & Partenaires -->
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h3 class="h5 mb-3 text-primary"><i class="bi bi-building me-2"></i>Entreprises & Partenaires</h3>
+                        <ul class="list-unstyled">
+                            <li>Entreprises sociales et responsables</li>
+                            <li>Incubateurs et mutuelles</li>
+                            <li>Organisations de financement et sponsors</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Citoyens & Donateurs -->
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h3 class="h5 mb-3 text-primary"><i class="bi bi-heart me-2"></i>Citoyens & Donateurs</h3>
+                        <ul class="list-unstyled">
+                            <li>Personnes vulnérables (santé, éducation, urgences sociales)</li>
+                            <li>Familles solidaires</li>
+                            <li>Diaspora souhaitant soutenir l’économie locale</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Processus et procédures -->
+<div class="row mb-5">
+    <div class="col-lg-12">
+        <h2 class="text-center mb-5 section-title">Notre Processus</h2>
+        <div class="row">
+            <!-- Volet Entrepreneurial -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h3 class="h5 mb-0">Volet Entrepreneurial</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            Nous accompagnons les porteurs de projets pour leur permettre de réussir tout en garantissant la transparence et la bonne utilisation des fonds :
+                        </p>
+                        <ol>
+                            <li><strong>Validation rapide</strong> pour les projets expérimentés, afin de faciliter leur accès au financement.</li>
+                            <li><strong>Parcours en 3 étapes</strong> pour les nouveaux porteurs : évaluation → accompagnement → validation.</li>
+                            <li><strong>Suivi hebdomadaire</strong> : chaque utilisation des fonds est contrôlée et documentée.</li>
+                            <li><strong>Focus sur les femmes entrepreneures</strong> pour favoriser l’inclusion et l’égalité des chances.</li>
+                        </ol>
+                        <p>
+                            Les contributeurs peuvent demander des rapports détaillés ou des visites sur le terrain pour s’assurer que leur soutien est utilisé comme prévu.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- Volet Solidaire -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h3 class="h5 mb-0">Volet Solidaire</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            Solid’Avenir Solidarité permet de structurer la solidarité en toute confiance, avec un processus transparent et sécurisé :
+                        </p>
+                        <ol>
+                            <li><strong>Signalement</strong> des besoins sociaux ou humanitaires.</li>
+                            <li><strong>Double validation</strong> avant tout décaissement pour garantir la légitimité du projet.</li>
+                            <li><strong>Collecte</strong> des fonds auprès des donateurs.</li>
+                            <li><strong>Décaissement et suivi</strong> avec preuves (photos, factures, certificats) ancrées sur la blockchain Hedera.</li>
+                            <li><strong>Rapport d’impact</strong> final pour montrer aux contributeurs l’effet concret de leur aide.</li>
+                        </ol>
+                        <p>
+                            Chaque don est traçable en temps réel, et les contributeurs peuvent demander des visites ou des vérifications supplémentaires pour renforcer la confiance.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Valeur ajoutée -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <h3 class="h5 mb-3 text-primary">Notre Valeur Ajoutée</h3>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Transparence totale : nous ne manipulons pas les fonds, mais sécurisons et supervisons chaque transaction.</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Suivi en temps réel : chaque euro ou franc CFA est traçable.</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Scoring et validation des projets pour identifier les initiatives les plus viables.</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Médiation et support en cas de litige.</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Inclusion : priorité aux femmes entrepreneures et aux populations vulnérables.</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Commissions claires et justes, sans aucune opacité.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Technologie Hedera Hashgraph -->
+<div class="row mb-5 bg-light p-5 rounded">
+    <div class="col-lg-12 text-center mb-4">
+        <h2 class="section-title">Notre Innovation Technologique</h2>
+        <p class="lead">
+            Solid'Avenir utilise la technologie de Hedera Hashgraph pour que chaque don et investissement soit sûr, visible et rapide. Nous garantissons que votre contribution va exactement là où elle doit aller, sans intermédiaire ni perte.
+        </p>
+    </div>
+
+    <!-- Transparence Totale -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-shield-check feature-icon"></i>
+                <h3 class="card-title h5">Suivi Clair et Transparent</h3>
+                <p class="card-text">
+                    Chaque don ou investissement est enregistré de façon permanente et sécurisée. Les preuves d'utilisation (photos, factures, certificats) sont visibles par tous, ce qui permet de savoir exactement comment l'argent est utilisé, sans avoir besoin de connaissances techniques.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions Rapides -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-lightning-charge feature-icon"></i>
+                <h3 class="card-title h5">Contributions Instantanées</h3>
+                <p class="card-text">
+                    Vos dons arrivent rapidement aux porteurs de projets ou aux bénéficiaires. Le processus est simple, sans frais supplémentaires pour vous, et avec un impact minimal sur l'environnement.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inclusion -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-people-fill feature-icon"></i>
+                <h3 class="card-title h5">Accessible à Tous</h3>
+                <p class="card-text">
+                    La plateforme permet aux particuliers, entreprises, associations et même à la diaspora de contribuer facilement, que ce soit par mobile money ou en crypto. Tout le monde peut participer, sans barrières techniques.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bouton En savoir plus -->
+    <div class="col-12 text-center mt-4">
+        <a href="{%url 'savoir_plus' %}" class="btn btn-primary btn-lg">
+            En savoir plus sur notre technologie
+        </a>
+    </div>
+</div>
+
+   <!-- Valeurs -->
+<div class="row mb-5">
+    <div class="col-lg-12 text-center mb-4">
+        <h2 class="section-title">Nos Valeurs</h2>
+    </div>
+    <div class="col-md-3 col-6 mb-4 text-center">
+        <i class="bi bi-check-circle display-6 text-primary mb-3"></i>
+        <h5>Transparence</h5>
+        <p>Chaque contribution est visible et suivie de manière claire.</p>
+    </div>
+    <div class="col-md-3 col-6 mb-4 text-center">
+        <i class="bi bi-people display-6 text-primary mb-3"></i>
+        <h5>Inclusion</h5>
+        <p>Tout le monde peut participer, peu importe son profil ou sa situation.</p>
+    </div>
+    <div class="col-md-3 col-6 mb-4 text-center">
+        <i class="bi bi-shield display-6 text-primary mb-3"></i>
+        <h5>Confiance</h5>
+        <p>Nous sécurisons les flux et assurons que les fonds vont là où ils sont nécessaires.</p>
+    </div>
+    <div class="col-md-3 col-6 mb-4 text-center">
+        <i class="bi bi-graph-up-arrow display-6 text-primary mb-3"></i>
+        <h5>Innovation</h5>
+        <p>Nous utilisons la technologie pour faciliter la solidarité et le développement économique.</p>
+    </div>
+</div>
+
+<!-- CTA -->
+<div class="row mb-5">
+    <div class="col-lg-12 text-center bg-primary p-5 rounded text-white">
+        <h2 class="mb-4">Rejoignez Solid'Avenir et participez au changement</h2>
+        <p class="lead mb-4">
+            Que vous soyez porteur de projet, entreprise, association ou donateur, votre engagement contribue à soutenir des initiatives locales et à créer un impact réel et durable.
+        </p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{% url 'liste_projets' %}" class="btn btn-light btn-lg">Découvrir les projets</a>
+            <a href="{% url 'inscription' %}" class="btn btn-outline-light btn-lg">Créer un compte</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

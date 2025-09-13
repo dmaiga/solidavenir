@@ -10,20 +10,22 @@
     
     <!-- Styles personnalisés -->
     <style>
-        :root {
-            --primary-color: #2c6e9b;
-            --secondary-color: #f8b739;
-            --accent-color: #34a853;
-            --light-color: #f5f9fc;
-            --dark-color: #1a3c5a;
+       :root {
+            --primary-color: #2563eb;       /* Bleu confiance */
+            --secondary-color: #10b981;     /* Vert croissance */
+            --accent-color: #f59e0b;        /* Orange solidarité */
+            --transparency-color: #6366f1;  /* Violet transparence */
+            --future-color: #06b6d4;        /* Cyan avenir */
+            --light-color: #f8fafc;
+            --dark-color: #1e293b;
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
-            background-color: #f9f9f9;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            color: #334155;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            min-height: 100vh;
         }
-        
         .navbar {
             background-color: var(--primary-color) !important;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -106,10 +108,7 @@
             transition: transform 0.3s, box-shadow 0.3s;
         }
         
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
+        
         
         .section-title {
             color: var(--primary-color);
@@ -142,6 +141,13 @@
             color: var(--accent-color);
             margin-bottom: 1rem;
         }
+        body {
+    overflow-x: hidden; /* supprime le décalage horizontal */
+}
+
+.navbar-nav .nav-link {
+    font-size: 1.5rem; /* texte un peu plus grand */
+}
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -150,61 +156,90 @@
     <!-- Barre de navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
+            <!-- Logo -->
             <a class="navbar-brand" href="{% url 'accueil' %}">
-                <i class="bi bi-people-fill me-2"></i>Solid'Avenir
+                <i class="bi bi-shield-check me-2"></i>Solid'Avenir
             </a>
+
+            <!-- Bouton mobile -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
+            <!-- Contenu navbar -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <!-- Liens au milieu -->
+                <ul class="navbar-nav mx-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'accueil' %}">Accueil</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'liste_projets' %}">Découvrir les projets</a>
+                        <a class="nav-link" href="{% url 'about' %}">À Propos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'transparence' %}">Transparence</a>
+                        <a class="nav-link" href="{% url 'liste_projets' %}">Projets</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'contact' %}">Nous contacter</a>
+                        <a class="nav-link" href="{% url 'liste_associations' %}">Associations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'contact' %}">Contact</a>
                     </li>
                 </ul>
-                <ul class="navbar-nav">
+
+                <!-- Boutons extrême droite -->
+                <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
-                        {% if user.is_staff %}
+                        {% if user.is_staff or user.is_administrator %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'tableau_de_bord' %}">Espace administrateur</a>
+                                <a class="nav-link" href="{% url 'tableau_de_bord' %}">
+                                    <i class="bi bi-speedometer2 me-1"></i>Admin
+                                </a>
                             </li>
                         {% endif %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Mon compte
+                                <i class="bi bi-person-circle me-1"></i>Mon compte
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="{% url 'mes_projets' %}">Mes projets</a></li>
-                                <li><a class="dropdown-item" href="{% url 'mes_dons' %}">Mes contributions</a></li>
+                                {% if user.is_porteur_projet %}
+                                    <li><a class="dropdown-item" href="{% url 'mes_projets' %}">
+                                        <i class="bi bi-lightbulb me-2"></i>Mes projets
+                                    </a></li>
+                                {% endif %}
+                                {% if user.is_association %}
+                                    <li><a class="dropdown-item" href="{% url 'espace_association' %}">
+                                        <i class="bi bi-people me-2"></i>Espace association
+                                    </a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{% url 'mes_dons' %}">
+                                    <i class="bi bi-heart me-2"></i>Mes contributions
+                                </a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'modifier_profil' %}">Modifier mon profil</a></li>
-                                <li><a class="dropdown-item" href="{%url 'deconnexion'%}">Déconnexion</a></li>
+                                <li><a class="dropdown-item" href="{% url 'modifier_profil' %}">
+                                    <i class="bi bi-gear me-2"></i>Modifier mon profil
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'deconnexion' %}">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+                                </a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="btn btn-outline-light me-2" href="{% url 'inscription' %}">Créer un compte</a>
+                            <a class="btn btn-outline-light me-2" href="{% url 'inscription' %}">
+                                <i class="bi bi-person-plus me-1"></i>Créer un compte
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-light" href="{%url 'connexion'%}">Se connecter</a>
+                            <a class="btn btn-light" href="{% url 'connexion' %}">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Se connecter
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
-
-    
-
     <!-- Contenu principal -->
     <main class="container">
         {% if messages %}
@@ -218,66 +253,90 @@
             </div>
         {% endif %}
         
-        
         {% block content %}
         <!-- Le contenu spécifique à chaque page sera inséré ici -->
         {% endblock %}
     </main>
 
     <!-- Pied de page -->
+
+    <!-- Pied de page -->
     <footer class="footer">
         <div class="container">
             <div class="row">
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <h5 class="text-uppercase fw-bold">Solid'Avenir</h5>
-                    <p>Plateforme de levée de fonds participative pour entrepreneurs et projets sociaux en Afrique de l'Ouest, avec traçabilité garantie par la technologie Hedera Hashgraph.</p>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="text-uppercase fw-bold mb-3">Solid'Avenir</h5>
+                    <p class="mb-3">Plateforme de finance participative transparente pour un avenir solidaire, avec traçabilité blockchain garantie.</p>
+                    <div class="d-flex gap-2">
+                        <span class="badge badge-transparency">Transparence</span>
+                        <span class="badge badge-trust">Confiance</span>
+                        <span class="badge badge-solidarity">Solidarité</span>
+                        <span class="badge badge-future">Avenir</span>
+                    </div>
                 </div>
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <h5 class="text-uppercase fw-bold">Liens rapides</h5>
+                
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="text-uppercase fw-bold mb-3">Navigation</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'accueil' %}">Accueil</a></li>
-                        <li class="mb-2"><a href="{% url 'liste_projets' %}">Projets</a></li>
-                        <li class="mb-2"><a href="{% url 'transparence' %}">Transparence</a></li>
-                        <li class="mb-2"><a href="{% url 'contact' %}">Contact</a></li>
+                        <li class="mb-2"><a href="{% url 'accueil' %}"><i class="bi bi-house me-2"></i>Accueil</a></li>
+                        <li class="mb-2"><a href="{% url 'liste_projets' %}"><i class="bi bi-lightbulb me-2"></i>Projets</a></li>
+                        <li class="mb-2"><a href="{% url 'liste_associations' %}"><i class="bi bi-people me-2"></i>Associations</a></li>
+                        <li class="mb-2"><a href="{% url 'transparence' %}"><i class="bi bi-shield-check me-2"></i>Transactions</a></li>
+                        <li class="mb-2"><a href="{% url 'about' %}"><i class="bi bi-info-circle me-2"></i>À propos</a></li>
                     </ul>
                 </div>
+                
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="text-uppercase fw-bold">Espace membre</h5>
+                    <h5 class="text-uppercase fw-bold mb-3">Espace membre</h5>
                     <ul class="list-unstyled">
                         {% if user.is_authenticated %}
-                            <li class="mb-2"><a href="{% url 'mes_projets' %}">Mes projets</a></li>
-                            <li class="mb-2"><a href="{% url 'mes_dons' %}">Mes contributions</a></li>
-                            <li class="mb-2"><a href="{% url 'modifier_profil' %}">Mon profil</a></li>
+                            {% if user.is_porteur_projet %}
+                            <li class="mb-2"><a href="{% url 'mes_projets' %}"><i class="bi bi-folder me-2"></i>Mes projets</a></li>
+                            {% endif %}
+                            {% if user.is_association %}
+                            <li class="mb-2"><a href="{% url 'espace_association' %}"><i class="bi bi-building me-2"></i>Espace association</a></li>
+                            {% endif %}
+                            <li class="mb-2"><a href="{% url 'mes_dons' %}"><i class="bi bi-heart me-2"></i>Mes contributions</a></li>
+                            <li class="mb-2"><a href="{% url 'modifier_profil' %}"><i class="bi bi-person me-2"></i>Mon profil</a></li>
                         {% else %}
-                            <li class="mb-2"><a href="{% url 'inscription' %}">Créer un compte</a></li>
-                            <li class="mb-2"><a href="#">Se connecter</a></li>
+                            <li class="mb-2"><a href="{% url 'inscription' %}"><i class="bi bi-person-plus me-2"></i>Créer un compte</a></li>
+                            <li class="mb-2"><a href="{% url 'connexion' %}"><i class="bi bi-box-arrow-in-right me-2"></i>Se connecter</a></li>
                         {% endif %}
                     </ul>
                 </div>
+                
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="text-uppercase fw-bold">Engagement</h5>
-                    <p>Chez Solid'Avenir, chaque contribution est tracée, chaque dépense vérifiée, chaque preuve ancrée de façon immuable pour une confiance totale.</p>
+                    <h5 class="text-uppercase fw-bold mb-3">Engagement</h5>
+                    <p class="mb-3">Chaque transaction est tracée sur la blockchain Hedera Hashgraph pour une transparence totale et une confiance absolue.</p>
+                    <div class="d-flex gap-2">
+                        <a href="#" class="btn btn-sm btn-outline-light"><i class="bi bi-file-text"></i> CGU</a>
+                        <a href="#" class="btn btn-sm btn-outline-light"><i class="bi bi-shield"></i> Confidentialité</a>
+                    </div>
                 </div>
             </div>
-            <hr class="my-4 bg-light">
+            
+            <hr class="my-4 bg-light opacity-50">
+            
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="mb-0">&copy; {% now "Y" %} Solid'Avenir. Tous droits réservés.</p>
+                    <p class="mb-0">
+                        <i class="bi bi-heart-fill text-danger me-1"></i>
+                        &copy; {% now "Y" %} Solid'Avenir. Tous droits réservés.
+                    </p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <a href="#" class="text-white me-3">Conditions d'utilisation</a>
-                    <a href="#" class="text-white">Politique de confidentialité</a>
+                    <small class="text-muted">
+                        Fait avec passion pour un avenir meilleur
+                    </small>
                 </div>
             </div>
         </div>
     </footer>
-
-    <!-- Bootstrap JS et dépendances -->
+     <!-- Bootstrap JS et dépendances -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Icônes Bootstrap -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

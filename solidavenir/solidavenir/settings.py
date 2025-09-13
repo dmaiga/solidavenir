@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from django.utils.translation import gettext_lazy as _
-
+from decimal import Decimal
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -156,3 +156,18 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Expéditeur par défaut (utilisé si from_email n'est pas précisé)
 DEFAULT_FROM_EMAIL = 'info@solidAvenir.ml'
 EMAIL_HOST_USER = 'info@solidAvenir.ml'
+
+LOGIN_URL = 'connexion'   # correspond au name de ton url
+LOGIN_REDIRECT_URL = 'accueil'  # après connexion, on redirige vers accueil (ou autre)
+LOGOUT_REDIRECT_URL = 'accueil'
+
+import os
+
+# Configuration Hedera
+HEDERA_NETWORK = os.getenv('HEDERA_NETWORK', 'testnet')
+HEDERA_OPERATOR_ID = os.getenv('HEDERA_OPERATOR_ID')
+HEDERA_OPERATOR_KEY = os.getenv('HEDERA_OPERATOR_KEY')
+HEDERA_TREASURY_ACCOUNT = os.getenv('HEDERA_TREASURY_ACCOUNT', '0.0.98')  # Compte trésorerie par défaut
+
+# Taux de conversion (pour le testnet)
+FCFA_TO_HBAR_RATE = Decimal('0.8')  # 1 HBAR = 0.8 FCFA (valeur de test)

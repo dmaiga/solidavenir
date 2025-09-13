@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin - Solid'Avenir{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Styles personnalisés pour l'admin -->
+    <style>
+        :root {
+            --admin-primary: #1a3c5a;
+            --admin-secondary: #2c6e9b;
+            --admin-accent: #f8b739;
+            --admin-light: #f5f9fc;
+            --admin-dark: #0f2538;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .admin-sidebar {
+            background-color: var(--admin-dark);
+            color: white;
+            min-height: 100vh;
+            padding: 0;
+        }
+        
+        .admin-sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 1rem 1.5rem;
+            border-left: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .admin-sidebar .nav-link:hover,
+        .admin-sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left-color: var(--admin-accent);
+        }
+        
+        .admin-header {
+            background-color: white;
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem 0;
+        }
+        
+        .admin-content {
+            padding: 2rem;
+        }
+        
+        .admin-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .admin-card-header {
+            background-color: var(--admin-light);
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+        }
+        
+        .admin-card-body {
+            padding: 1.5rem;
+        }
+        
+        .btn-admin {
+            background-color: var(--admin-secondary);
+            border-color: var(--admin-secondary);
+            color: white;
+        }
+        
+        .btn-admin:hover {
+            background-color: var(--admin-primary);
+            border-color: var(--admin-primary);
+            color: white;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 admin-sidebar">
+                <div class="d-flex flex-column p-3">
+                    <a href="{% url 'tableau_de_bord' %}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                        <span class="fs-4">Solid'Avenir Admin</span>
+                    </a>
+                    <hr>
+                    <ul class="nav nav-pills flex-column mb-auto">
+                        <li class="nav-item">
+                            <a href="{% url 'tableau_de_bord' %}" class="nav-link {% if request.resolver_match.url_name == 'tableau_de_bord' %}active{% endif %}">
+                                Tableau de bord
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'liste_membres' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_membres' %}active{% endif %}">
+                                Gestion des membres
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'liste_projets' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_projets' %}active{% endif %}">
+                                Projets à valider
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'liste_transactions_validation' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_transactions_validation' %}active{% endif %}">
+                                Transactions
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'logs_audit' %}" class="nav-link {% if request.resolver_match.url_name == 'logs_audit' %}active{% endif %}">
+                                Logs d'audit
+                            </a>
+                        </li>
+                    </ul>
+                    <hr>
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                            <strong>{{ user.username }}</strong>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser">
+                            <li><a class="dropdown-item" href="{% url 'accueil' %}">Retour au site</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'deconnexion' %}">Déconnexion</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main content -->
+            <div class="col-md-9 col-lg-10">
+                <div class="admin-header">
+                    <div class="container-fluid">
+                        <h1 class="h3 mb-0">{% block page_title %}Administration{% endblock %}</h1>
+                    </div>
+                </div>
+
+                <div class="admin-content">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% block admin_content %}
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS et dépendances -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Icônes Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

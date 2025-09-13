@@ -208,29 +208,27 @@
                 </div>
             </div>
         </div>
-
-<!-- Actions rapides -->
-<div class="quick-actions">
-    <!-- Projets en attente -->
-    <a href="{% url 'admin:core_projet_changelist' %}?statut__exact=en_attente" class="quick-action">
+        <div class="quick-actions">
+    <!-- Change to a general page for project validation -->
+    <a href="{% url 'liste_transactions_validation' %}" class="quick-action">
         <div class="quick-action-icon">
             <i class="bi bi-clipboard-check"></i>
-        </div>
-        <div>Projets en attente</div>
-        <small class="text-muted">{{ stats.projets_attente }} en attente</small>
-    </a>
-    
-    <!-- Transactions à vérifier -->
-    <a href="{% url 'admin:core_transaction_changelist' %}?statut__exact=en_attente" class="quick-action">
-        <div class="quick-action-icon">
-            <i class="bi bi-currency-exchange"></i>
         </div>
         <div>Transactions à vérifier</div>
         <small class="text-muted">{{ stats.transactions_attente }} en attente</small>
     </a>
     
+    <!-- Add a link to view pending projects if you have such a view -->
+    <a href="{% url 'liste_projets' %}?statut=en_attente" class="quick-action">
+        <div class="quick-action-icon">
+            <i class="bi bi-folder-symlink"></i>
+        </div>
+        <div>Projets en attente</div>
+        <small class="text-muted">{{ stats.projets_attente }} en attente</small>
+    </a>
+    
     <!-- Porteurs de projet -->
-    <a href="{% url 'admin:core_user_changelist' %}?user_type__exact=porteur" class="quick-action">
+    <a href="{% url 'liste_membres' %}?type_utilisateur=porteur" class="quick-action">
         <div class="quick-action-icon">
             <i class="bi bi-people"></i>
         </div>
@@ -238,8 +236,8 @@
         <small class="text-muted">{{ stats.porteurs_total }} porteurs</small>
     </a>
     
-    <!-- Logs d'audit - CORRIGÉ -->
-    <a href="{% url 'admin:core_auditlog_changelist' %}" class="quick-action">
+    <!-- Logs d'audit -->
+    <a href="{% url 'logs_audit' %}" class="quick-action">
         <div class="quick-action-icon">
             <i class="bi bi-shield-check"></i>
         </div>
@@ -247,7 +245,8 @@
         <small class="text-muted">Historique complet</small>
     </a>
 </div>
-
+        
+        
         <!-- Statistiques principales -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -437,6 +436,68 @@
                 </div>
             </div>
         </div>
+        <!-- Section Associations en attente -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0">
+                    <i class="bi bi-people"></i> Associations en attente de validation
+                    <span class="badge bg-danger">{{ stats_associations.associations_attente }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if associations_attente %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Domaine</th>
+                                <th>Ville</th>
+                                <th>Date création</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for association in associations_attente %}
+                            <tr>
+                                <td>{{ association.nom }}</td>
+                                <td>{{ association.get_domaine_principal_display }}</td>
+                                <td>{{ association.ville }}</td>
+                                <td>{{ association.date_creation_profile|date:"d/m/Y" }}</td>
+                                <td>
+                                    <a href="{% url 'valider_association' association.id %}" 
+                                       class="btn btn-sm btn-success">
+                                        <i class="bi bi-check"></i> Valider
+                                    </a>
+                                    <a href="{% url 'rejeter_association' association.id %}" 
+                                       class="btn btn-sm btn-danger">
+                                        <i class="bi bi-x"></i> Rejeter
+                                    </a>
+                                    <a href="{% url 'preview_association_admin' association.id %}" 
+   target="_blank" class="btn btn-sm btn-info">
+    <i class="bi bi-eye"></i> Prévisualiser
+</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+               
+                {% else %}
+                <p class="text-muted text-center">Aucune association en attente de validation.</p>
+                <div class="text-center mt-3">
+                    <a href="{% url 'liste_associations_admin' %}" class="btn btn-primary">
+                        <i class="bi bi-list"></i> Voir toutes les associations
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 
         <!-- Logs d'audit -->
         <div class="card">

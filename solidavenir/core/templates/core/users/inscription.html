@@ -230,6 +230,8 @@
                         <div class="step" id="step2">2</div>
                         <div class="step-connector"></div>
                         <div class="step" id="step3">3</div>
+                        <div class="step-connector"></div>
+                        <div class="step" id="step4">4</div>
                     </div>
 
                     <!-- Formulaire d'inscription -->
@@ -245,7 +247,7 @@
                                     <div class="user-type-icon">
                                         <i class="bi bi-heart"></i>
                                     </div>
-                                    <h5>Donateur</h5>
+                                    <h5>Donateur/Philanthrope</h5>
                                     <p class="text-muted small">
                                         Je souhaite soutenir financièrement des projets qui me tiennent à cœur
                                     </p>
@@ -258,6 +260,26 @@
                                     <h5>Porteur de Projet</h5>
                                     <p class="text-muted small">
                                         Je souhaite proposer et gérer des projets de développement communautaire
+                                    </p>
+                                </div>
+                                
+                                <div class="user-type-card" data-user-type="investisseur">
+                                    <div class="user-type-icon">
+                                        <i class="bi bi-graph-up"></i>
+                                    </div>
+                                    <h5>Investisseur</h5>
+                                    <p class="text-muted small">
+                                        Je souhaite investir dans des projets avec un retour sur investissement
+                                    </p>
+                                </div>
+                                
+                                <div class="user-type-card" data-user-type="association">
+                                    <div class="user-type-icon">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <h5>Association/ONG</h5>
+                                    <p class="text-muted small">
+                                        Je représente une organisation à but non lucratif
                                     </p>
                                 </div>
                             </div>
@@ -337,12 +359,38 @@
                                 </div>
                             </div>
                             
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="ville" class="form-label">
+                                        Ville
+                                    </label>
+                                    <input type="text" name="ville" class="form-control" id="ville" 
+                                           value="{{ form.ville.value|default:'' }}">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="code_postal" class="form-label">
+                                        Code postal
+                                    </label>
+                                    <input type="text" name="code_postal" class="form-control" id="code_postal" 
+                                           value="{{ form.code_postal.value|default:'' }}">
+                                </div>
+                            </div>
+                            
                             <div class="mb-3">
                                 <label for="{{ form.adresse.id_for_label }}" class="form-label">
                                     Adresse
                                 </label>
                                 <textarea name="adresse" class="form-control" id="{{ form.adresse.id_for_label }}" 
                                           rows="3">{{ form.adresse.value|default:'' }}</textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="pays" class="form-label">
+                                    Pays
+                                </label>
+                                <input type="text" name="pays" class="form-control" id="pays" 
+                                       value="{{ form.pays.value|default:'' }}">
                             </div>
                             
                             <div class="form-navigation">
@@ -355,8 +403,197 @@
                             </div>
                         </div>
 
-                        <!-- Étape 3: Mot de passe et finalisation -->
+                        <!-- Étape 3: Informations spécifiques au type d'utilisateur -->
                         <div class="form-step" id="step3-form">
+                            <h4 class="mb-4 text-center">Informations spécifiques</h4>
+                            
+                            <!-- Champs pour porteurs de projet -->
+                            <div class="conditional-field" id="porteurFields">
+                                <h5 class="mb-3">Informations du projet</h5>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.organisation.id_for_label }}" class="form-label">
+                                            Organisation
+                                        </label>
+                                        <input type="text" name="organisation" class="form-control" id="{{ form.organisation.id_for_label }}" 
+                                               value="{{ form.organisation.value|default:'' }}">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.site_web.id_for_label }}" class="form-label">
+                                            Site web
+                                        </label>
+                                        <input type="url" name="site_web" class="form-control" id="{{ form.site_web.id_for_label }}" 
+                                               value="{{ form.site_web.value|default:'' }}">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.description_projet.id_for_label }}" class="form-label">
+                                        Description du projet
+                                    </label>
+                                    <textarea name="description_projet" class="form-control" id="{{ form.description_projet.id_for_label }}" 
+                                              rows="4">{{ form.description_projet.value|default:'' }}</textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.montant_recherche.id_for_label }}" class="form-label">
+                                        Montant recherché (€)
+                                    </label>
+                                    <input type="number" step="0.01" name="montant_recherche" class="form-control" id="{{ form.montant_recherche.id_for_label }}" 
+                                           value="{{ form.montant_recherche.value|default:'' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.type_financement.id_for_label }}" class="form-label">
+                                        Type de financement recherché
+                                    </label>
+                                    <select name="type_financement" class="form-select" id="{{ form.type_financement.id_for_label }}">
+                                        <option value="">Sélectionnez une option</option>
+                                        <option value="don" {% if form.type_financement.value == 'don' %}selected{% endif %}>Don pur</option>
+                                        <option value="pret" {% if form.type_financement.value == 'pret' %}selected{% endif %}>Prêt</option>
+                                        <option value="equity" {% if form.type_financement.value == 'equity' %}selected{% endif %}>Investissement en equity</option>
+                                        <option value="mixte" {% if form.type_financement.value == 'mixte' %}selected{% endif %}>Financement mixte</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Champs pour associations/ONG -->
+                            <div class="conditional-field" id="associationFields">
+                                <h5 class="mb-3">Informations de l'association</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.nom_association.id_for_label }}" class="form-label">
+                                        Nom de l'association
+                                    </label>
+                                    <input type="text" name="nom_association" class="form-control" id="{{ form.nom_association.id_for_label }}" 
+                                           value="{{ form.nom_association.value|default:'' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.causes_defendues.id_for_label }}" class="form-label">
+                                        Causes défendues
+                                    </label>
+                                    <textarea name="causes_defendues" class="form-control" id="{{ form.causes_defendues.id_for_label }}" 
+                                              rows="3">{{ form.causes_defendues.value|default:'' }}</textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.domaine_action.id_for_label }}" class="form-label">
+                                        Domaine d'action
+                                    </label>
+                                    <input type="text" name="domaine_action" class="form-control" id="{{ form.domaine_action.id_for_label }}" 
+                                           value="{{ form.domaine_action.value|default:'' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.date_creation_association.id_for_label }}" class="form-label">
+                                        Date de création de l'association
+                                    </label>
+                                    <input type="date" name="date_creation_association" class="form-control" id="{{ form.date_creation_association.id_for_label }}" 
+                                           value="{{ form.date_creation_association.value|default:'' }}">
+                                </div>
+                            </div>
+                            
+                            <!-- Champs pour investisseurs -->
+                            <div class="conditional-field" id="investisseurFields">
+                                <h5 class="mb-3">Préférences d'investissement</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.type_investisseur.id_for_label }}" class="form-label">
+                                        Type d'investisseur
+                                    </label>
+                                    <select name="type_investisseur" class="form-select" id="{{ form.type_investisseur.id_for_label }}">
+                                        <option value="">Sélectionnez une option</option>
+                                        <option value="particulier" {% if form.type_investisseur.value == 'particulier' %}selected{% endif %}>Particulier</option>
+                                        <option value="institutionnel" {% if form.type_investisseur.value == 'institutionnel' %}selected{% endif %}>Institutionnel</option>
+                                        <option value="business_angel" {% if form.type_investisseur.value == 'business_angel' %}selected{% endif %}>Business Angel</option>
+                                        <option value="fond_investissement" {% if form.type_investisseur.value == 'fond_investissement' %}selected{% endif %}>Fonds d'investissement</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.secteur_prefere.id_for_label }}" class="form-label">
+                                        Secteur préféré
+                                    </label>
+                                    <input type="text" name="secteur_prefere" class="form-control" id="{{ form.secteur_prefere.id_for_label }}" 
+                                           value="{{ form.secteur_prefere.value|default:'' }}">
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.montant_investissement_min.id_for_label }}" class="form-label">
+                                            Montant d'investissement minimum (€)
+                                        </label>
+                                        <input type="number" step="0.01" name="montant_investissement_min" class="form-control" id="{{ form.montant_investissement_min.id_for_label }}" 
+                                               value="{{ form.montant_investissement_min.value|default:'' }}">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.montant_investissement_max.id_for_label }}" class="form-label">
+                                            Montant d'investissement maximum (€)
+                                        </label>
+                                        <input type="number" step="0.01" name="montant_investissement_max" class="form-control" id="{{ form.montant_investissement_max.id_for_label }}" 
+                                               value="{{ form.montant_investissement_max.value|default:'' }}">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.expectative_rendement.id_for_label }}" class="form-label">
+                                        Expectative de rendement
+                                    </label>
+                                    <input type="text" name="expectative_rendement" class="form-control" id="{{ form.expectative_rendement.id_for_label }}" 
+                                           value="{{ form.expectative_rendement.value|default:'' }}">
+                                </div>
+                            </div>
+                            
+                            <!-- Champs pour donateurs -->
+                            <div class="conditional-field" id="donateurFields">
+                                <h5 class="mb-3">Préférences de don</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.causes_soutenues.id_for_label }}" class="form-label">
+                                        Causes que vous souhaitez soutenir
+                                    </label>
+                                    <textarea name="causes_soutenues" class="form-control" id="{{ form.causes_soutenues.id_for_label }}" 
+                                              rows="3">{{ form.causes_soutenues.value|default:'' }}</textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.montant_don_moyen.id_for_label }}" class="form-label">
+                                        Montant de don moyen (€)
+                                    </label>
+                                    <input type="number" step="0.01" name="montant_don_moyen" class="form-control" id="{{ form.montant_don_moyen.id_for_label }}" 
+                                           value="{{ form.montant_don_moyen.value|default:'' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.frequence_dons.id_for_label }}" class="form-label">
+                                        Fréquence des dons
+                                    </label>
+                                    <select name="frequence_dons" class="form-select" id="{{ form.frequence_dons.id_for_label }}">
+                                        <option value="">Sélectionnez une option</option>
+                                        <option value="ponctuel" {% if form.frequence_dons.value == 'ponctuel' %}selected{% endif %}>Ponctuel</option>
+                                        <option value="mensuel" {% if form.frequence_dons.value == 'mensuel' %}selected{% endif %}>Mensuel</option>
+                                        <option value="trimestriel" {% if form.frequence_dons.value == 'trimestriel' %}selected{% endif %}>Trimestriel</option>
+                                        <option value="annuel" {% if form.frequence_dons.value == 'annuel' %}selected{% endif %}>Annuel</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-navigation">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
+                                    <i class="bi bi-arrow-left"></i> Retour
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep(4)">
+                                    Suivant <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Étape 4: Mot de passe et finalisation -->
+                        <div class="form-step" id="step4-form">
                             <h4 class="mb-4 text-center">Sécurité du compte</h4>
                             
                             <div class="row">
@@ -387,27 +624,11 @@
                                 </div>
                             </div>
                             
-                            <!-- Champs conditionnels pour porteurs de projet -->
-                            <div class="conditional-field" id="porteurFields">
-                                <h5 class="mb-3">Informations professionnelles</h5>
-                                
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.organisation.id_for_label }}" class="form-label">
-                                            Organisation
-                                        </label>
-                                        <input type="text" name="organisation" class="form-control" id="{{ form.organisation.id_for_label }}" 
-                                               value="{{ form.organisation.value|default:'' }}">
-                                    </div>
-                                    
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.site_web.id_for_label }}" class="form-label">
-                                            Site web
-                                        </label>
-                                        <input type="url" name="site_web" class="form-control" id="{{ form.site_web.id_for_label }}" 
-                                               value="{{ form.site_web.value|default:'' }}">
-                                    </div>
-                                </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="newsletter" id="newsletterCheck" checked>
+                                <label class="form-check-label" for="newsletterCheck">
+                                    Je souhaite recevoir la newsletter de Solid'Avenir
+                                </label>
                             </div>
                             
                             <div class="form-check mb-4">
@@ -419,7 +640,7 @@
                             </div>
                             
                             <div class="form-navigation">
-                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(3)">
                                     <i class="bi bi-arrow-left"></i> Retour
                                 </button>
                                 <button type="submit" class="btn btn-success">
@@ -432,7 +653,7 @@
                     <div class="text-center mt-4">
                         <p class="text-muted">
                             Vous avez déjà un compte ? 
-                            <a href="#" class="text-primary">Connectez-vous</a>
+                            <a href="{% url 'connexion' %}" class="text-primary">Connectez-vous</a>
                         </p>
                     </div>
                 </div>
@@ -446,7 +667,7 @@
 {% block extra_js %}
 <script>
     let currentStep = 1;
-    const totalSteps = 3;
+    const totalSteps = 4;
     
     function showStep(step) {
         // Cacher toutes les étapes
@@ -517,10 +738,25 @@
             
             // Afficher/masquer les champs conditionnels
             const porteurFields = document.getElementById('porteurFields');
+            const associationFields = document.getElementById('associationFields');
+            const investisseurFields = document.getElementById('investisseurFields');
+            const donateurFields = document.getElementById('donateurFields');
+            
+            // Masquer tous les champs conditionnels
+            porteurFields.style.display = 'none';
+            associationFields.style.display = 'none';
+            investisseurFields.style.display = 'none';
+            donateurFields.style.display = 'none';
+            
+            // Afficher les champs correspondants au type d'utilisateur
             if (userType === 'porteur') {
-                porteurFields.classList.add('show');
-            } else {
-                porteurFields.classList.remove('show');
+                porteurFields.style.display = 'block';
+            } else if (userType === 'association') {
+                associationFields.style.display = 'block';
+            } else if (userType === 'investisseur') {
+                investisseurFields.style.display = 'block';
+            } else if (userType === 'donateur') {
+                donateurFields.style.display = 'block';
             }
         });
     });
@@ -565,20 +801,6 @@
         // Focus sur le premier champ
         const firstInput = document.querySelector('input');
         if (firstInput) firstInput.focus();
-        
-        // Initialiser Summernote si présent
-        if (typeof $ !== 'undefined' && $.fn.summernote) {
-            $('.summernote').summernote({
-                height: 200,
-                toolbar: [
-                    ['style', ['bold', 'italic', 'underline', 'clear']],
-                    ['font', ['strikethrough', 'superscript', 'subscript']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['insert', ['link', 'picture', 'video']],
-                    ['view', ['fullscreen', 'codeview', 'help']]
-                ]
-            });
-        }
     });
 </script>
 {% endblock %}

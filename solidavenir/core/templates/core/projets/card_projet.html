@@ -1,0 +1,46 @@
+
+<div class="card projet-card h-100">
+    {% if projet.cover_image %}
+        <img src="{{ projet.cover_image.url }}" class="card-img-top" alt="{{ projet.titre }}" 
+             style="height: 200px; object-fit: cover;">
+    {% else %}        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+             style="height: 200px;">
+            <i class="bi bi-image text-muted display-4"></i>
+        </div>
+    {% endif %}
+    
+    <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge bg-{{ projet.get_statut_display }} mb-2">
+                {{ projet.get_statut_display }}
+            </span>
+            <small class="text-muted">{{ projet.date_creation|date:"d/m/Y" }}</small>
+        </div>
+        
+        <h5 class="card-title">{{ projet.titre }}</h5>
+        <p class="card-text flex-grow-1">{{ projet.description_courte|truncatewords:20 }}</p>
+        
+        <!-- Barre de progression -->
+        <div class="mb-3">
+            <div class="d-flex justify-content-between small text-muted mb-1">
+                <span>{{ projet.pourcentage_financement }}% financé</span>
+                <span>{{ projet.jours_restants }} jours restants</span>
+            </div>
+            <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-success" style="width: {{ projet.pourcentage_financement }}%"></div>
+            </div>
+        </div>
+        
+        <!-- Montants -->
+       {% load custom_filters %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <strong class="text-primary">{{ projet.montant_collecte|format_montant }}</strong>
+    <span class="text-muted">sur {{ projet.montant_demande|format_montant }}</span>
+</div>
+        
+        <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-primary mt-auto">
+            Voir le projet
+        </a>
+    </div>
+</div>
