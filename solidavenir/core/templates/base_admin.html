@@ -8,6 +8,9 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <!-- Styles personnalisés pour l'admin -->
     <style>
         :root {
@@ -16,6 +19,10 @@
             --admin-accent: #f8b739;
             --admin-light: #f5f9fc;
             --admin-dark: #0f2538;
+            --admin-success: #28a745;
+            --admin-warning: #ffc107;
+            --admin-danger: #dc3545;
+            --admin-info: #17a2b8;
         }
         
         body {
@@ -28,13 +35,23 @@
             color: white;
             min-height: 100vh;
             padding: 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1000;
         }
         
         .admin-sidebar .nav-link {
             color: rgba(255, 255, 255, 0.8);
-            padding: 1rem 1.5rem;
+            padding: 0.8rem 1.5rem;
             border-left: 3px solid transparent;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .admin-sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
         }
         
         .admin-sidebar .nav-link:hover,
@@ -48,10 +65,15 @@
             background-color: white;
             border-bottom: 1px solid #dee2e6;
             padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 999;
         }
         
         .admin-content {
             padding: 2rem;
+            min-height: calc(100vh - 80px);
         }
         
         .admin-card {
@@ -59,6 +81,13 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+        }
+        
+        .admin-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
         
         .admin-card-header {
@@ -66,6 +95,7 @@
             border-bottom: 1px solid #dee2e6;
             padding: 1rem 1.5rem;
             font-weight: 600;
+            border-radius: 8px 8px 0 0 !important;
         }
         
         .admin-card-body {
@@ -76,12 +106,169 @@
             background-color: var(--admin-secondary);
             border-color: var(--admin-secondary);
             color: white;
+            transition: all 0.3s;
         }
         
         .btn-admin:hover {
             background-color: var(--admin-primary);
             border-color: var(--admin-primary);
             color: white;
+            transform: translateY(-1px);
+        }
+        
+        .stats-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .stats-card i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--admin-secondary);
+        }
+        
+        .stats-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--admin-primary);
+        }
+        
+        .stats-card .label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .badge-admin {
+            padding: 0.5rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: var(--admin-danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                min-height: auto;
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+                height: 60px;
+            }
+            
+            .admin-content {
+                padding: 1rem;
+                margin-bottom: 60px;
+            }
+            
+            .sidebar-content {
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+            }
+            
+            .sidebar-content ul {
+                display: flex;
+                flex-direction: row;
+            }
+            
+            .sidebar-content .nav-item {
+                flex-shrink: 0;
+            }
+            
+            .sidebar-content .nav-link {
+                padding: 0.5rem 1rem;
+                border-left: none;
+                border-bottom: 3px solid transparent;
+            }
+            
+            .sidebar-content .nav-link.active {
+                border-left: none;
+                border-bottom: 3px solid var(--admin-accent);
+            }
+            
+            .admin-header {
+                position: static;
+            }
+        }
+        
+        /* Table styles */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .admin-table th {
+            background-color: var(--admin-light);
+            padding: 0.75rem;
+            font-weight: 600;
+            text-align: left;
+        }
+        
+        .admin-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .admin-table tr:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+        
+        /* Action buttons */
+        .btn-action {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            margin-right: 0.25rem;
+        }
+        
+        /* Status badges */
+        .status-pending {
+            background-color: var(--admin-warning);
+            color: #000;
+        }
+        
+        .status-approved {
+            background-color: var(--admin-success);
+            color: white;
+        }
+        
+        .status-rejected {
+            background-color: var(--admin-danger);
+            color: white;
+        }
+        
+        /* Search box */
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box input {
+            padding-right: 40px;
+        }
+        
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
         }
     </style>
     
@@ -91,72 +278,99 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 admin-sidebar">
-                <div class="d-flex flex-column p-3">
-                    <a href="{% url 'tableau_de_bord' %}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-                        <span class="fs-4">Solid'Avenir Admin</span>
-                    </a>
-                    <hr>
+            <div class="col-md-3 col-lg-2 admin-sidebar p-0">
+                <div class="d-flex flex-column p-3 h-100 sidebar-content">
+                    <div class="d-none d-md-block">
+                        <a href="{% url 'tableau_de_bord' %}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                            <i class="fas fa-solid fa-hand-holding-heart fs-3 me-2"></i>
+                            <span class="fs-4">Solid'Avenir </span>
+                        </a>
+                        <hr>
+                    </div>
+                    
                     <ul class="nav nav-pills flex-column mb-auto">
                         <li class="nav-item">
                             <a href="{% url 'tableau_de_bord' %}" class="nav-link {% if request.resolver_match.url_name == 'tableau_de_bord' %}active{% endif %}">
+                                <i class="fas fa-tachometer-alt"></i>
                                 Tableau de bord
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'liste_membres' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_membres' %}active{% endif %}">
+                                <i class="fas fa-users"></i>
                                 Gestion des membres
+                                {% if pending_members_count and pending_members_count > 0 %}
+                                    <span class="notification-badge">{{ pending_members_count }}</span>
+                                {% endif %}
                             </a>
                         </li>
                         <li>
-                            <a href="{% url 'liste_projets' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_projets' %}active{% endif %}">
+                            <a href="{% url 'liste_associations_admin' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_associations_admin' %}active{% endif %}">
+                                <i class="fas fa-building"></i>
+                                Associations à valider
+                                {% if pending_associations_count and pending_associations_count > 0 %}
+                                    <span class="notification-badge">{{ pending_associations_count }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'projets_attente' %}" class="nav-link {% if request.resolver_match.url_name == 'projets_attente' %}active{% endif %}">
+                                <i class="fas fa-project-diagram"></i>
                                 Projets à valider
+                                {% if pending_projects_count and pending_projects_count > 0 %}
+                                    <span class="notification-badge">{{ pending_projects_count }}</span>
+                                {% endif %}
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'liste_transactions_validation' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_transactions_validation' %}active{% endif %}">
+                                <i class="fas fa-money-bill-wave"></i>
                                 Transactions
+                                {% if pending_transactions_count and pending_transactions_count > 0 %}
+                                    <span class="notification-badge">{{ pending_transactions_count }}</span>
+                                {% endif %}
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'logs_audit' %}" class="nav-link {% if request.resolver_match.url_name == 'logs_audit' %}active{% endif %}">
+                                <i class="fas fa-clipboard-list"></i>
                                 Logs d'audit
                             </a>
                         </li>
+                        <li>
+                            <a href="{% url 'liste_emails' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_emails' %}active{% endif %}">
+                                <i class="fas fa-envelope"></i>
+                                Communication
+                            </a>
+                        </li>
                     </ul>
+                    
                     <hr>
-                    <div class="dropdown">
-                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                            <strong>{{ user.username }}</strong>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser">
-                            <li><a class="dropdown-item" href="{% url 'accueil' %}">Retour au site</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'deconnexion' %}">Déconnexion</a></li>
-                        </ul>
+                    
+                    <div class="mt-auto">
+                        <div class="dropdown">
+                            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle me-2"></i>
+                                <strong>{{ user.username }}</strong>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser">
+                                <li><a class="dropdown-item" href="{% url 'accueil' %}"><i class="fas fa-external-link-alt me-2"></i>Retour au site</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'deconnexion' %}"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Main content -->
-            <div class="col-md-9 col-lg-10">
-                <div class="admin-header">
-                    <div class="container-fluid">
-                        <h1 class="h3 mb-0">{% block page_title %}Administration{% endblock %}</h1>
-                    </div>
-                </div>
-
+            <div class="col-md-9 col-lg-10 p-0">
+                
                 <div class="admin-content">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+                  
 
-                    {% block admin_content %}
+                    {% block content %}
+                    <!-- Le contenu spécifique à chaque page sera inséré ici -->
                     {% endblock %}
                 </div>
             </div>
@@ -165,10 +379,36 @@
 
     <!-- Bootstrap JS et dépendances -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Icônes Bootstrap -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  
+    <!-- Chart.js for statistics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Script pour gérer les notifications de badge
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-dismiss alerts after 5 seconds
+            setTimeout(function() {
+                var alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+            
+            // Responsive sidebar toggle for mobile
+            if (window.innerWidth <= 768) {
+                const sidebar = document.querySelector('.admin-sidebar');
+                const content = document.querySelector('.admin-content');
+                
+                // You can add a toggle button functionality here if needed
+            }
+        });
+    </script>
 </body>
 </html>

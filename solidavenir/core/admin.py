@@ -83,28 +83,24 @@ class AuditLogAdmin(admin.ModelAdmin):
     
 from django.contrib import admin
 from .models import Association, AssociationImage
-
 @admin.register(Association)
 class AssociationAdmin(admin.ModelAdmin):
-    list_display = ['nom', 'user', 'domaine_principal', 'ville', 'valide', 'featured', 'date_creation_profile']
-    list_filter = ['valide', 'featured', 'domaine_principal', 'ville', 'statut_juridique']
-    list_editable = ['valide', 'featured']
+    list_display = ['nom', 'user', 'domaine_principal', 'ville']
+    list_filter = ['domaine_principal', 'ville', 'statut_juridique']
     search_fields = ['nom', 'user__username', 'user__email', 'ville']
-    readonly_fields = ['date_creation_profile', 'date_mise_a_jour', 'audit_uuid']
-    filter_horizontal = ['images_galerie']
-    
+
     fieldsets = (
         ('Informations générales', {
             'fields': ('user', 'nom', 'slug', 'slogan', 'description_courte', 'description_longue')
         }),
         ('Logo et images', {
-            'fields': ('logo', 'cover_image', 'images_galerie')
+            'fields': ('logo', 'cover_image')
         }),
         ('Domaines d\'action', {
             'fields': ('domaine_principal', 'domaines_secondaires', 'causes_defendues')
         }),
         ('Informations juridiques', {
-            'fields': ('statut_juridique', 'numero_rna', 'date_creation', 'date_publication_journal_officiel')
+            'fields': ('statut_juridique', 'date_creation_association')
         }),
         ('Contact et localisation', {
             'fields': ('adresse_siege', 'ville', 'code_postal', 'pays', 'telephone', 'email_contact', 'site_web')
@@ -113,35 +109,16 @@ class AssociationAdmin(admin.ModelAdmin):
             'fields': ('facebook', 'twitter', 'linkedin', 'instagram', 'youtube')
         }),
         ('Chiffres clés', {
-            'fields': ('nombre_adherents', 'nombre_beneficiaires', 'budget_annuel', 'pourcentage_frais_gestion')
+            'fields': ('nombre_adherents', 'nombre_beneficiaires')
         }),
         ('Transparence', {
-            'fields': ('rapport_annuel', 'comptes_annuels', 'transparent_finances', 'transparent_actions')
+            'fields': (  'transparent_finances', 'transparent_actions')
         }),
         ('Projets et actions', {
             'fields': ('projets_phares', 'actions_en_cours', 'partenariats')
         }),
-        ('Administration', {
-            'fields': ('valide', 'featured', 'audit_uuid', 'date_creation_profile', 'date_mise_a_jour')
-        }),
     )
-    
-    actions = ['valider_associations', 'mettre_en_vedette', 'retirer_vedette']
-    
-    def valider_associations(self, request, queryset):
-        updated = queryset.update(valide=True)
-        self.message_user(request, f"{updated} association(s) validée(s) avec succès.")
-    valider_associations.short_description = "Valider les associations sélectionnées"
-    
-    def mettre_en_vedette(self, request, queryset):
-        updated = queryset.update(featured=True)
-        self.message_user(request, f"{updated} association(s) mise(s) en vedette.")
-    mettre_en_vedette.short_description = "Mettre en vedette les associations sélectionnées"
-    
-    def retirer_vedette(self, request, queryset):
-        updated = queryset.update(featured=False)
-        self.message_user(request, f"{updated} association(s) retirée(s) de la vedette.")
-    retirer_vedette.short_description = "Retirer de la vedette les associations sélectionnées"
+
 
 @admin.register(AssociationImage)
 class AssociationImageAdmin(admin.ModelAdmin):
@@ -149,3 +126,16 @@ class AssociationImageAdmin(admin.ModelAdmin):
     list_filter = ['association']
     search_fields = ['association__nom', 'legende']
     ordering = ['association', 'ordre']
+
+from django.contrib import admin
+from .models import ContactSubmission
+
+@admin.register(ContactSubmission)
+class ContactSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('sujet', 'email', 'date_soumission', 'traite')
+    list_filter = ('traite', 'date_soumission')
+    search_fields = ('sujet', 'email', 'message')
+    readonly_fields = ('sujet', 'email', 'message', 'date_soumission')
+    
+    def has_add_permission(self, request):
+        return False  # Empêcher l'ajout manuel depuis l'admin

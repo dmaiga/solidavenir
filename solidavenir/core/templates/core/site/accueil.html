@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Solid'Avenir - Plateforme de financement participatif transparente et sécurisée{% endblock %}
+
+{% block extra_css %}
+<style>
+  .hero-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 5rem 0;
+        text-align: center;
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+  
+    
+    .feature-icon {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    
+    .project-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
+        height: 100%;
+    }
+    
+    
+    
+    .progress {
+        height: 10px;
+        border-radius: 5px;
+    }
+    
+    .category-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: var(--secondary-color);
+        color: var(--dark-color);
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+    
+    .trust-badge {
+        background: var(--light-color);
+        border-radius: 10px;
+        padding: 2rem;
+        text-align: center;
+        height: 100%;
+    }
+    
+    .trust-badge i {
+        font-size: 2.5rem;
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+    }
+    
+    .problem-solution {
+        background: #f8f9fa;
+        border-radius: 15px;
+        
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<!-- En-tête avec texte -->
+<header class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col text-center hero-content">
+                <h1 class="display-4 fw-bold mb-3">Révolutionnez le financement participatif en Afrique de l'Ouest</h1>
+                <p class="lead mb-4">Solid'Avenir élimine définitivement les risques de défaillance grâce à la blockchain Hedera. Chaque transaction est immuable, traçable et vérifiable par tous.</p>
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <a href="{% url 'liste_projets' %}" class="btn btn-warning btn-lg px-4 gap-3">Découvrir les projets</a>
+                    <a href="{% url 'creer_projet' %}" class="btn btn-outline-light btn-lg px-4">Lancer un projet</a>
+                    <a href="{% url 'savoir_plus' %}" class="btn btn-outline-info btn-lg px-4">
+                        En savoir plus <i class="bi bi-info-circle ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Section problème/solution -->
+<section class="container problem-solution">
+    <div class="row">
+        <div class="col-md-6">
+            <h2 class="text-danger mb-4"> Défaillances traditionnelles</h2>
+            <ul class="list-unstyled">
+                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong>Manque de transparence</strong> : Impossible de tracer l'utilisation des fonds</li>
+                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong>Risque de fraude</strong> : Projets fictifs ou détournements</li>
+                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong>Absence d'audit</strong> : Aucune vérification indépendante</li>
+                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong>Confiance limitée</strong> : Méfiance des contributeurs potentiels</li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h2 class="text-success mb-4"> Blockchain & Transparence</h2>
+            <ul class="list-unstyled">
+                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Traçabilité totale</strong> : Chaque FCFA est enregistré sur blockchain</li>
+                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Audit en temps réel</strong> : Vérification indépendante automatique</li>
+                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Preuves immuables</strong> : Aucune modification possible des transactions</li>
+                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Confiance absolue</strong> : Les contributeurs voient exactement où va leur argent</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- Section garanties de confiance -->
+<section class="container mb-5">
+    <h2 class="section-title text-center mb-4">Nos garanties de transparence</h2>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="p-4 border rounded h-100 shadow-sm">
+                <h4 class="mb-3">Technologie de Confiance</h4>
+                <p>
+                    Chaque don ou investissement est inscrit sur Hedera Hashgraph, 
+                    une technologie moderne qui garantit que les enregistrements sont infalsifiables et consultables par tous.
+                </p>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="p-4 border rounded h-100 shadow-sm">
+                <h4 class="mb-3">Suivi Automatisé</h4>
+                <p>
+                    Nos systèmes contrôlent en continu l’utilisation des fonds et produisent des alertes 
+                    en cas d’écart ou d’anomalie, pour assurer un usage conforme à l’objectif annoncé.
+                </p>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="p-4 border rounded h-100 shadow-sm">
+                <h4 class="mb-3">Accès Ouvert</h4>
+                <p>
+                    Toutes les transactions sont accessibles depuis la plateforme. 
+                    Chacun peut vérifier en toute indépendance l’origine et l’usage des fonds.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section projets populaires -->
+<section class="container mb-5">
+    <h2 class="section-title text-center mb-4"> Projets certifiés en cours</h2>
+    
+    <div class="row">
+        {% for projet in projets_populaires %}
+        <div class="col-md-4 mb-4">
+            <div class="card project-card">
+                <span class="category-badge">Projet vérifié</span>
+               {% if projet.cover_image %}
+                <img src="{{ projet.cover_image.url }}" class="card-img-top" alt="{{ projet.titre }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <!-- Image par défaut avec illustration et couleur de fond -->
+                <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #2c6e9b 0%, #1a3c5a 100%);">
+                    <div class="text-center text-white p-3">
+                        <i class="bi bi-image display-4 opacity-75 mb-2"></i>
+                        <p class="small mb-0">Image non disponible</p>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ projet.titre }}</h5>
+                    <p class="card-text">{{ projet.description_courte|truncatewords:50|safe }}</p>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success progress-bar-custom" 
+                             role="progressbar" 
+                             style="width: {{ projet.pourcentage_financement|default:0 }}%;"
+                             aria-valuenow="{{ projet.pourcentage_financement|default:0 }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between text-muted small mb-3">
+                        <span>{{ projet.pourcentage_financement|default:0 }}% atteint</span>
+                        <span>✅ Projet audité</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>{{ projet.total_collecte|default:0|floatformat:0 }} FCFA / {{ projet.montant_demande|floatformat:0 }} FCFA</strong>
+                        <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-primary btn-sm">Contribuer </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p>Aucun projet actif pour le moment.</p>
+            <a href="{% url 'creer_projet' %}" class="btn btn-primary">Soyez le premier à proposer un projet</a>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if projets_populaires %}
+    <div class="text-center mt-4">
+        <a href="{% url 'liste_projets' %}" class="btn btn-outline-primary">Voir tous les projets certifiés</a>
+        <a href="{% url 'transparence' %}" class="btn btn-info ms-2">Vérifier les transactions</a>
+    </div>
+    {% endif %}
+</section>
+<!-- Section comment ça marche -->
+<section class="bg-light py-5 mb-5">
+    <div class="container">
+        <h2 class="section-title text-center mb-5"> Comment nous garantissons la confiance</h2>
+        
+        <div class="row">
+            <div class="col-md-4 text-center mb-4">
+                <div class="feature-icon">
+                    <i class="bi bi-patch-check"></i>
+                </div>
+                <h4>1. Vérification rigoureuse</h4>
+                <p>Chaque projet est audité avant approbation. Seuls les initiatives légitimes et réalisables sont acceptées.</p>
+            </div>
+            
+            <div class="col-md-4 text-center mb-4">
+                <div class="feature-icon">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+                <h4>2. Financement tracé</h4>
+                <p>Chaque contribution est instantanément enregistrée sur la blockchain Hedera, créant une preuve immuable.</p>
+            </div>
+            
+            <div class="col-md-4 text-center mb-4">
+                <div class="feature-icon">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <h4>3. Suivi en temps réel</h4>
+                <p>Les porteurs de projets doivent justifier chaque dépense, visible et vérifiable par tous les contributeurs.</p>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{% url 'transparence' %}" class="btn btn-primary btn-lg">
+                <i class="bi bi-shield-check me-2"></i>Explorer notre transparence
+            </a>
+           <a href="{% url 'savoir_plus' %}" class="btn btn-outline-light btn-lg px-4 text-black" >En savoir plus</a>
+        
+        </div>
+    </div>
+</section>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Scripts spécifiques à la page d'accueil
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animation des statistiques
+        const counters = document.querySelectorAll('.stats-number');
+        const speed = 200;
+        
+        counters.forEach(counter => {
+            const target = counter.getAttribute('data-target');
+            if (target) {
+                const animate = () => {
+                    const value = +counter.innerText;
+                    const data = +target;
+                    const time = value / speed;
+                    
+                    if(value < data) {
+                        counter.innerText = Math.ceil(value + time);
+                        setTimeout(animate, 1);
+                    } else {
+                        counter.innerText = data;
+                    }
+                }
+                
+                counter.innerText = '0';
+                animate();
+            }
+        });
+    });
+</script>
+{% endblock %}

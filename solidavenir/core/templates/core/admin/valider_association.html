@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_admin.html' %}
 
 {% block title %}Valider Association - Admin{% endblock %}
 
@@ -21,7 +21,7 @@
                     <p><strong>Domaine:</strong> {{ association.get_domaine_principal_display }}</p>
                     <p><strong>Ville:</strong> {{ association.ville }}</p>
                     <p><strong>Contact:</strong> {{ association.user.email }}</p>
-                    <p><strong>Description:</strong> {{ association.description_courte }}</p>
+                    <p><strong>Description:</strong> {{ association.description_courte|safe }}</p>
                     
                     <hr>
                     

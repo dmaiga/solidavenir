@@ -105,12 +105,22 @@
 
 <div class="container py-5">
     <!-- En-tête -->
-    <div class="row mb-5">
-        <div class="col-12 text-center">
-            <h1 class="display-4 mb-3">Tous les projets</h1>
-            <p class="lead">Découvrez tous les projets actifs qui cherchent à se financer</p>
+  <div class="row mb-5">
+    <div class="col-12">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <div class="text-center text-md-start mb-3 mb-md-0">
+                <h1 class="display-4 fw-bold mb-2 text-primary">Tous les projets</h1>
+                <p class="lead fs-4">Découvrez des initiatives inspirantes et soutenez celles qui vous passionnent</p>
+            </div>
+            <div class="text-center text-md-end">
+                <a href="{% url 'creer_projet' %}" class="btn btn-primary btn-lg shadow-sm">
+                    <i class="bi bi-plus-circle me-2"></i>Lancer votre projet
+                </a>
+                <p class="text-muted mt-2 small">Partagez votre vision avec notre communauté</p>
+            </div>
         </div>
     </div>
+</div>
 
     <!-- Filtres et recherche -->
     <div class="row mb-4">
@@ -133,16 +143,20 @@
                                 {% endfor %}
                             </select>
                         </div>
+                        
                         <div class="col-md-3">
-                            <select class="form-select" name="statut">
-                                <option value="">Tous les statuts</option>
-                                {% for value, label in statuts %}
-                                <option value="{{ value }}" {% if request.GET.statut == value %}selected{% endif %}>
+                            <select class="form-select" name="type_financement">
+                                <option value="tous">Types de financement</option>
+                                  {% for value, label in types_financement %}
+                               <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>
                                     {{ label }}
                                 </option>
                                 {% endfor %}
                             </select>
+                           
                         </div>
+                        
+                       
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-primary w-100">
                                 <i class="bi bi-funnel"></i> Filtrer
@@ -196,9 +210,11 @@
                         <span class="text-muted small">
                             <i class="bi bi-people"></i> {{ projet.nombre_contributeur }} contributeurs
                         </span>
-                        <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-primary btn-sm">
-                            Voir le projet
-                        </a>
+<a href="{% url 'detail_projet' audit_uuid=projet.audit_uuid %}" 
+   class="btn btn-primary btn-sm">
+    Voir le projet
+</a>
+
                     </div>
                 </div>
                 

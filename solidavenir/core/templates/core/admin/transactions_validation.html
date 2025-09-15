@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_admin.html' %}
 {% load static humanize %}
 
 {% block title %}Solid'Avenir - {{ title }}{% endblock %}
@@ -52,7 +52,7 @@
                             <thead>
                                 <tr>
                                     <th>Date</th>
-                                    <th>Donateur</th>
+                                    <th>Contributeur</th>
                                     <th>Projet</th>
                                     <th>Montant</th>
                                     <th>Méthode</th>
@@ -63,7 +63,7 @@
                                 {% for transaction in transactions %}
                                 <tr>
                                     <td>{{ transaction.date_transaction|date:"d/m/Y H:i" }}</td>
-                                    <td>{{ transaction.donateur.get_full_name|default:transaction.donateur.username }}</td>
+                                    <td>{{ transaction.contributeur.get_full_name|default:transaction.contributeur.username }}</td>
                                     <td>{{ transaction.projet.titre }}</td>
                                     <td><strong>{{ transaction.montant|intcomma }} FCFA</strong></td>
                                     <td>{{ transaction.get_methode_paiement_display }}</td>

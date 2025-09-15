@@ -1,0 +1,48 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Projets en attente de validation</h2>
+    
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nom du projet</th>
+                    <th>Porteur</th>
+                    <th>Date de soumission</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for projet in liste_projet_admin %}
+                <tr>
+                    <td>{{ projet.titre }}</td>
+                    <td>{{ projet.porteur.get_full_name }}</td>
+                    <td>{{ projet.date_creation|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <span class="badge bg-warning">En attente</span>
+                    </td>
+                    <td>
+                        <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-sm btn-info">
+                            Voir
+                        </a>
+                        <a href="{% url 'valider_projet' projet.audit_uuid %}" class="btn btn-sm btn-success">
+                            Valider
+                        </a>
+                        <a href="#" class="btn btn-sm btn-danger">
+                            Rejeter
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">Aucun projet en attente de validation</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

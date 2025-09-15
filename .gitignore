@@ -2,7 +2,7 @@
 venv/
 env/
 
-# Base de données
+# Base de données (SQLite)
 *.sqlite3
 *.db
 
@@ -10,13 +10,26 @@ env/
 .env
 *.env.local
 
-# Fichiers de compilation
+# Fichiers Python compilés
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
 # Logs
 *.log
 
+# Node (si jamais tu utilises du JS/React)
+node_modules/
+
 # OS
 .DS_Store
 Thumbs.db
+
+# Static & Media (générés, pas besoin en Git)
+staticfiles/
+media/
+
+# Migrations 
+# **/migrations/*.py
+# !**/migrations/__init__.py

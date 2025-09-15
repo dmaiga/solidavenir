@@ -56,7 +56,7 @@ class User(AbstractUser):
         ('non_specifie', 'Non spécifié'),
     )
     
-    user_type = models.CharField(max_length=15, choices=USER_TYPES, default='donateur')
+    user_type = models.CharField(max_length=15, choices=USER_TYPES, default='porteur')
     type_financement = models.CharField(max_length=10, choices=FINANCEMENT_CHOICES, blank=True, null=True)
     
     # Photo de profil
@@ -89,10 +89,8 @@ class User(AbstractUser):
     
     # Hedera blockchain (optionnel pour MVP)
     hedera_account_id = models.CharField(max_length=50, blank=True, null=True)
-    hedera_private_key = models.BinaryField(blank=True, null=True)
     audit_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    hedera_public_key = models.TextField(blank=True, null=True)
-    hedera_account_created = models.BooleanField(default=False)
+    wallet_activated = models.BooleanField(default=False)
     # Champs pour porteurs de projet - Tous optionnels
     organisation = models.CharField(max_length=100, blank=True, null=True, 
                                   help_text="Nom de votre entreprise, startup, ou structure")
@@ -100,7 +98,7 @@ class User(AbstractUser):
     description_projet = models.TextField(blank=True, null=True, help_text="Décrivez brièvement votre projet")
     montant_recherche = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True,
                                           help_text="Montant approximatif recherché")
-    
+    date_creation_profile = models.DateTimeField(auto_now_add=True)
     # Champs pour associations/ONG - Tous optionnels
     nom_association = models.CharField(max_length=200, blank=True, null=True)
     causes_defendues = models.TextField(blank=True, null=True)
@@ -267,16 +265,12 @@ class User(AbstractUser):
         """Met à jour la date de dernière connexion"""
         self.date_derniere_connexion = timezone.now()
         self.save(update_fields=['date_derniere_connexion'])
+    def has_active_wallet(self):
+        return self.wallet_activated and bool(self.hedera_account_id)
     
-    def get_hedera_private_key(self):
-        """Récupère la clé privée (déchiffrée en production)"""
-        # En production, implémentez un système de chiffrement
-        return self.hedera_private_key
-    
-    def has_hedera_wallet(self):
-        return bool(self.hedera_account_id and self.hedera_private_key)
-    
-
+    def peut_contribuer(self):
+        """Vérifie si l'utilisateur peut faire des contributions"""
+        return self.user_type != 'admin' and self.is_authenticated
 # apps/projets/models.py
 
 # --- VALIDATEURS PERSONNALISÉS ---
@@ -344,11 +338,17 @@ class Projet(models.Model):
     )
 
     audit_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    titre = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True, blank=True)
+    titre = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=300, unique=True, blank=True)
     description = models.TextField()
     description_courte = models.CharField(max_length=300, help_text="Description résumée pour les listes")
-
+    identifiant_unique = models.CharField(
+        max_length=20, 
+        unique=True,
+        blank=True,
+        null=True,
+        help_text="Identifiant unique du projet, généré automatiquement"
+    )
     # Informations financières
     montant_demande = models.DecimalField(max_digits=15, decimal_places=0, validators=[MinValueValidator(0)])
     montant_minimal = models.DecimalField(
@@ -359,7 +359,10 @@ class Projet(models.Model):
     )
     montant_collecte = models.DecimalField(max_digits=15, decimal_places=0, default=0)
     type_financement = models.CharField(max_length=10, choices=TYPES_FINANCEMENT, default='don')
-
+    wallet_configure = models.BooleanField(
+        default=False,
+        help_text="Indique si le wallet est configuré pour les transactions"
+    )
     # Médias
     cover_image = models.ImageField(
         upload_to='covers/projets/',
@@ -375,7 +378,13 @@ class Projet(models.Model):
     duree_campagne = models.PositiveIntegerField(default=30, help_text="Durée de la campagne en jours")
 
     porteur = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'user_type': 'porteur'})
-
+    association = models.ForeignKey(
+        'Association',
+        on_delete=models.CASCADE,
+        related_name='projets',
+        null=True, blank=True,
+        help_text="Association porteuse du projet"
+    )
     # Validation admin
     valide_par = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
@@ -422,16 +431,11 @@ class Projet(models.Model):
     budget_detaille = models.FileField(upload_to='documents/projets/', blank=True, null=True, validators=[validate_file_size])
 
     # Blockchain
-    hedera_topic_id = models.CharField(max_length=150, blank=True, null=True)
-    transactions_hash = models.TextField(blank=True, null=True)
-
+    blockchain_tx_id = models.CharField(max_length=250, blank=True, null=True)
+    wallet_url = models.URLField(blank=True, null=True, help_text="URL vers la page de contribution sur le serveur Node.js")
     # Récompenses (intégrées directement dans le modèle)
     has_recompenses = models.BooleanField(default=False)
-    niveaux_financement_json = models.JSONField(
-        blank=True, 
-        null=True,
-        help_text="Structure JSON pour stocker les niveaux de financement et récompenses"
-    )
+    recompenses_description = models.TextField(blank=True, null=True, help_text="Description des récompenses pour contributeurs")
 
     class Meta:
         indexes = [
@@ -483,7 +487,10 @@ class Projet(models.Model):
         if user.is_administrator():
             return True
         return self.porteur == user and self.statut in ['brouillon', 'en_attente', 'actif']
-
+    @property
+    def est_associe_a_une_association(self):
+        """Vérifie si le projet est associé à une association"""
+        return self.association is not None
     # --- STATUTS UTILES ---
     @property
     def est_actif(self):
@@ -514,6 +521,7 @@ class Projet(models.Model):
         return self.montant_collecte >= self.montant_minimal
 
     def montant_actuel(self):
+        from django.db.models import Sum
         return self.transaction_set.filter(statut='confirme').aggregate(
             total=Sum('montant')
         )['total'] or 0
@@ -547,7 +555,10 @@ class Projet(models.Model):
     def incrementer_partages(self):
         self.partages += 1
         self.save(update_fields=['partages'])
-
+        
+    def generer_identifiant_unique(self):
+        if not self.identifiant_unique and self.id:
+            self.identifiant_unique = f"SOLID{self.id:06d}{timezone.now().strftime('%Y%m%d')}"
     # --- ACTIONS ---
     def demarrer_campagne(self, admin_user=None):
         """Passe le projet en statut 'actif' si en attente et fixe dates."""
@@ -584,41 +595,18 @@ class Projet(models.Model):
                 self.statut = 'echec'
             self.save(update_fields=['statut'])
 
-    # --- METHODES POUR LES RECOMPENSES ---
-    def ajouter_niveau_financement(self, montant, titre, description, livraison_estimee=None, quantite_limitee=None):
-        """Ajoute un niveau de financement au projet"""
-        if not self.niveaux_financement_json:
-            self.niveaux_financement_json = []
-        
-        niveau = {
-            'id': len(self.niveaux_financement_json) + 1,
-            'montant': float(montant),
-            'titre': titre,
-            'description': description,
-            'livraison_estimee': livraison_estimee.isoformat() if livraison_estimee else None,
-            'quantite_limitee': quantite_limitee,
-            'quantite_vendue': 0,
-            'actif': True
-        }
-        
-        self.niveaux_financement_json.append(niveau)
-        self.save()
-        return niveau
-
-    def get_niveaux_financement(self):
-        """Retourne la liste des niveaux de financement"""
-        return self.niveaux_financement_json or []
-
-    def get_niveau_par_montant(self, montant):
-        """Trouve un niveau de financement correspondant au montant"""
-        if not self.niveaux_financement_json:
-            return None
-            
-        for niveau in self.niveaux_financement_json:
-            if niveau['montant'] == float(montant) and niveau.get('actif', True):
-                return niveau
-        return None
-
+    
+    def peut_etre_modifie_par(self, user):
+        """Vérifie si l'utilisateur peut modifier ce projet"""
+        if not user.is_authenticated:
+            return False
+        if user.is_staff:
+            return True
+        if user == self.porteur:
+            return True
+        if hasattr(user, 'association_profile') and user.association_profile == self.association:
+            return True
+        return False
 
 
 from django.db import models
@@ -628,248 +616,137 @@ import uuid
 
 class Association(models.Model):
     DOMAINES_ACTION = (
-        ('environnement', 'Environnement & Écologie'),
-        ('education', 'Éducation & Formation'),
-        ('sante', 'Santé & Bien-être'),
-        ('social', 'Action Sociale & Solidarité'),
-        ('culture', 'Culture & Arts'),
-        ('droits_humains', 'Droits Humains'),
-        ('developpement', 'Développement International'),
-        ('animaux', 'Protection Animale'),
-        ('jeunesse', 'Jeunesse & Sports'),
-        ('autre', 'Autre domaine'),
+        ('education', 'Éducation'),
+        ('sante', 'Santé'),
+        ('environnement', 'Environnement'),
+        ('droits_humains', 'Droits humains'),
+        ('developpement', 'Développement communautaire'),
+        ('culture', 'Culture'),
+        ('urgence', 'Aide humanitaire'),
+        ('autre', 'Autre'),
     )
     
-    STATUTS_JURIDIQUES = (
-        ('agreement', 'Accord de Siège (Organisations Internationales)'),
-        ('ong', 'ONG Internationale'),
-        ('association', 'Association Malienne'),
+    STATUT_JURIDIQUE_CHOICES = (
+        ('association', 'Association'),
+        ('ong', 'ONG'),
         ('fondation', 'Fondation'),
-        ('giec', 'GIEC (Groupement d\'Intérêt Économique et Culturel)'),
-        ('cooperative', 'Coopérative'),
         ('autre', 'Autre statut'),
     )
     
-    # Référence à l'utilisateur
-    user = models.OneToOneField(
-        User, 
-        on_delete=models.CASCADE,
-        related_name='association_profile',
-        limit_choices_to={'user_type': 'association'}
-    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='association_profile')
     
-    # Identité
-    nom = models.CharField(max_length=200, unique=True)
-    slug = models.SlugField(max_length=200, unique=True, blank=True)
-    slogan = models.CharField(max_length=300, blank=True, null=True)
-    description_courte = models.TextField(max_length=500, help_text="Description concise pour les listes")
-    description_longue = models.TextField(help_text="Description détaillée de l'association")
+    # Informations de base
+    nom = models.CharField(max_length=200)
+    slogan = models.CharField(max_length=250, blank=True, null=True)
+    description_courte = models.TextField(max_length=200, blank=True, null=True)
+    description_longue = models.TextField(blank=True, null=True)
+    logo = models.ImageField(upload_to='associations/logos/', blank=True, null=True)
+    cover_image = models.ImageField(upload_to='associations/covers/', blank=True, null=True)
     
-    # Informations juridiques - SPÉCIFIQUES AU MALI
-    statut_juridique = models.CharField(max_length=20, choices=STATUTS_JURIDIQUES, default='association')
-    numero_agrement = models.CharField(
-        max_length=50, 
-        blank=True, 
-        null=True, 
-        verbose_name="Numéro d'agrément",
-        help_text="Numéro d'agrément délivré par le gouvernement malien"
-    )
-    date_agrement = models.DateField(
-        blank=True, 
-        null=True,
-        verbose_name="Date d'agrément",
-        help_text="Date d'obtention de l'agrément"
-    )
-    date_creation = models.DateField(verbose_name="Date de création")
-    numero_rc = models.CharField(
-        max_length=50, 
-        blank=True, 
-        null=True, 
-        verbose_name="Numéro au Registre du Commerce",
-        help_text="Numéro d'immatriculation au RCCM"
-    )
-    numero_ifu = models.CharField(
-        max_length=50, 
-        blank=True, 
-        null=True, 
-        verbose_name="Numéro IFU/Numéro contribuable",
-        help_text="Identifiant Fiscal Unique"
-    )
-    
-    # Logo et visuels
-    logo = models.ImageField(
-        upload_to='associations/logos/',
-        blank=True,
-        null=True,
-        help_text="Logo de l'association (format carré recommandé)"
-    )
-    cover_image = models.ImageField(
-        upload_to='associations/covers/',
-        blank=True,
-        null=True,
-        help_text="Image de couverture (format 1200x400px recommandé)"
-    )
-    images_galerie = models.ManyToManyField(
-        'AssociationImage',
-        blank=True,
-        related_name='associations'
-    )
-    
-    # Domaines d'action
-    domaine_principal = models.CharField(max_length=50, choices=DOMAINES_ACTION)
+    # Domaines d'action et statut
+    domaine_principal = models.CharField(max_length=50, choices=DOMAINES_ACTION, default='developpement')
     domaines_secondaires = models.CharField(
         max_length=200, 
         blank=True, 
         null=True,
         help_text="Domaines secondaires (séparés par des virgules)"
     )
-    causes_defendues = models.TextField(help_text="Causes principales défendues par l'association")
-    
+    causes_defendues = models.TextField(blank=True, null=True)
+    statut_juridique = models.CharField(max_length=50, choices=STATUT_JURIDIQUE_CHOICES, default='association')
+    # --- Agréments & enregistrement ---
+    numero_agrement = models.CharField(max_length=100, blank=True, null=True)
+    date_creation_association = models.DateField(blank=True, null=True)  
+    date_agrement = models.DateField(blank=True, null=True)
+
     # Contact et localisation
-    adresse_siege = models.TextField(verbose_name="Adresse du siège social")
-    ville = models.CharField(max_length=100, default="Bamako")
-    commune = models.CharField(max_length=100, blank=True, null=True, help_text="Commune d'implantation")
+    adresse_siege = models.TextField(blank=True, null=True)
+    ville = models.CharField(max_length=100, blank=True, null=True)
     code_postal = models.CharField(max_length=10, blank=True, null=True)
-    pays = models.CharField(max_length=100, default='Mali')
-    telephone = models.CharField(max_length=20)
-    email_contact = models.EmailField()
+    pays = models.CharField(max_length=100, blank=True, null=True)
+    telephone = models.CharField(max_length=20, blank=True, null=True)
+    email_contact = models.EmailField(blank=True, null=True)
     site_web = models.URLField(blank=True, null=True)
     
-    # Réseaux sociaux
+    # --- Réseaux sociaux ---
     facebook = models.URLField(blank=True, null=True)
     twitter = models.URLField(blank=True, null=True)
-    linkedin = models.URLField(blank=True, null=True)
     instagram = models.URLField(blank=True, null=True)
+    linkedin = models.URLField(blank=True, null=True)
     youtube = models.URLField(blank=True, null=True)
     
-    # Chiffres clés
-    nombre_adherents = models.PositiveIntegerField(default=0, verbose_name="Nombre d'adhérents")
-    nombre_beneficiaires = models.PositiveIntegerField(default=0, verbose_name="Nombre de bénéficiaires")
-    budget_annuel = models.DecimalField(
-        max_digits=15, 
-        decimal_places=2, 
-        blank=True, 
-        null=True,
-        verbose_name="Budget annuel (FCFA)"
-    )
-    pourcentage_frais_gestion = models.DecimalField(
-        max_digits=5, 
-        decimal_places=2, 
-        default=0,
-        verbose_name="Frais de gestion (%)",
-        help_text="""Pourcentage des ressources consacré aux frais de fonctionnement (hors missions).
-        <br>• < 15% : Excellent
-        <br>• 15-25% : Bon
-        <br>• 25-35% : Acceptable
-        <br>• > 35% : Élevé"""
-    )
-    
-    # Documents justificatifs pour le Mali
-    agrement_file = models.FileField(
-        upload_to='associations/agrements/',
-        blank=True,
-        null=True,
-        verbose_name="Copie de l'agrément",
-        validators=[FileExtensionValidator(allowed_extensions=['pdf'])]
-    )
-    statuts_file = models.FileField(
-        upload_to='associations/statuts/',
-        blank=True,
-        null=True,
-        verbose_name="Copie des statuts",
-        validators=[FileExtensionValidator(allowed_extensions=['pdf'])]
-    )
-    rapport_annuel = models.FileField(
-        upload_to='associations/rapports/',
-        blank=True,
-        null=True,
-        validators=[FileExtensionValidator(allowed_extensions=['pdf'])]
-    )
-    comptes_annuels = models.FileField(
-        upload_to='associations/comptes/',
-        blank=True,
-        null=True,
-        validators=[FileExtensionValidator(allowed_extensions=['pdf'])]
-    )
-    
-    # Projets et actions
-    projets_phares = models.TextField(blank=True, null=True, help_text="Projets principaux réalisés")
+    # Informations optionnelles (à compléter plus tard)
+    nombre_adherents = models.IntegerField(blank=True, null=True, help_text="Nombre approximatif d’adhérents")
+    nombre_beneficiaires = models.IntegerField(blank=True, null=True, help_text="Nombre approximatif de personnes aidées")
+    projets_phares = models.TextField(blank=True, null=True, help_text="Quelques-uns de vos projets importants")
     actions_en_cours = models.TextField(blank=True, null=True)
     partenariats = models.TextField(blank=True, null=True)
-    
-    # Transparence
-    transparent_finances = models.BooleanField(default=False, verbose_name="Transparence financière")
-    transparent_actions = models.BooleanField(default=False, verbose_name="Transparence des actions")
+    # Transparence (optionnel)
+    transparent_finances = models.BooleanField(default=False, help_text="Nous partageons nos informations financières")
+    transparent_actions = models.BooleanField(default=False, help_text="Nous rendons compte de nos actions")
     
     # Métadonnées
-    audit_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    date_creation_profile = models.DateTimeField(auto_now_add=True)
-    date_mise_a_jour = models.DateTimeField(auto_now=True)
+    date_creation = models.DateField(auto_now_add=True)
+    date_maj = models.DateTimeField(auto_now=True)
     valide = models.BooleanField(default=False, help_text="Profil validé par l'administration")
     featured = models.BooleanField(default=False, help_text="Mise en avant sur la plateforme")
-    
+    slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)
+
     class Meta:
-        ordering = ['-featured', 'nom']
         verbose_name = "Association"
         verbose_name_plural = "Associations"
     
     def __str__(self):
         return self.nom
     
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.nom)
-            original_slug = self.slug
-            counter = 1
-            while Association.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
-                self.slug = f"{original_slug}-{counter}"
-                counter += 1
-        super().save(*args, **kwargs)
-    
     def get_absolute_url(self):
-        return reverse('detail_association', kwargs={'slug': self.slug})
+        return reverse('association_detail', kwargs={'pk': self.pk})
+    
+    @property
+    def est_verifiee(self):
+        return self.verifiee
+    
+    def get_domaine_display(self):
+        return self.get_domaine_principal_display()
+    
+
+    def get_projets_actifs(self):
+        """Retourne les projets actifs liés à cette association"""
+        return self.projets.filter(statut="actif")
+
+    def get_total_collecte(self):
+        """Somme de tous les montants collectés des projets de cette association"""
+        return self.projets.aggregate(total=Sum("montant_collecte"))["total"] or 0
+
+    def get_nombre_contributeurs(self):
+        """Nombre de contributeurs uniques (via transactions confirmées)"""
+        from django.db.models import Count
+        try:
+            # Correction de la requête
+            return Transaction.objects.filter(
+                projet__association=self,
+                statut="confirme"
+            ).values('user').distinct().count()
+        except:
+            return 0
     
     def get_logo_url(self):
-        if self.logo:
+        """Retourne l'URL du logo ou une image par défaut si aucun logo n'est défini"""
+        if self.logo and hasattr(self.logo, 'url'):
             return self.logo.url
         return '/static/images/default-association-logo.png'
     
     def get_cover_url(self):
-        if self.cover_image:
+        """Retourne l'URL de l'image de couverture ou une image par défaut"""
+        if self.cover_image and hasattr(self.cover_image, 'url'):
             return self.cover_image.url
         return '/static/images/default-association-cover.jpg'
-    
-    def get_domaines_list(self):
-        """Retourne la liste des domaines d'action"""
-        domaines = [self.get_domaine_principal_display()]
-        if self.domaines_secondaires:
-            domaines.extend([d.strip() for d in self.domaines_secondaires.split(',')])
-        return domaines
-    
-    def get_projets_actifs(self):
-        """Retourne les projets actifs de l'association"""
-        return self.user.projet_set.filter(statut='actif')
-    
-    def get_total_collecte(self):
-        """Montant total collecté pour tous les projets"""
-        return self.user.projet_set.aggregate(
-            total=Sum('montant_collecte')
-        )['total'] or 0
-    
-    def get_nombre_donateurs(self):
-        """Nombre de donateurs uniques pour tous les projets"""
-        from django.db.models import Count
-        return self.user.projet_set.annotate(
-            donateurs_count=Count('transaction__donateur', distinct=True)
-        ).aggregate(total=Sum('donateurs_count'))['total'] or 0
     
     def get_completion_percentage(self):
         """Calcule le pourcentage de complétion du profil"""
         fields_to_check = [
-            'nom', 'description_courte', 'description_longue',
-            'logo', 'domaine_principal', 'causes_defendues',
-            'statut_juridique', 'adresse_siege', 'ville',
-            'telephone', 'email_contact'
+            'nom', 'description_courte', 'domaine_principal', 
+            'statut_juridique', 'adresse_siege', 'ville', 
+            'code_postal', 'pays', 'telephone', 'email_contact'
         ]
         
         completed = 0
@@ -878,10 +755,20 @@ class Association(models.Model):
             if value and str(value).strip():
                 completed += 1
         
-        total_score = len(fields_to_check)
+        # Bonus pour le logo
+        if self.logo:
+            completed += 2
+        
+        total_score = len(fields_to_check) + 2  # Total possible avec bonus logo
         percentage = (completed / total_score) * 100
         return min(round(percentage), 100)
-    
+    def save(self, *args, **kwargs):
+        # Générer automatiquement le slug à partir du nom si pas défini
+        if not self.slug and self.nom:
+            self.slug = slugify(self.nom)
+        super().save(*args, **kwargs)
+
+
 class AssociationImage(models.Model):
     """Modèle pour les images de galerie des associations"""
     association = models.ForeignKey(
@@ -909,6 +796,7 @@ class AssociationImage(models.Model):
 
 from decimal import Decimal
 import math
+
 class Transaction(models.Model):
     STATUTS = (
         ('en_attente', 'En attente'),
@@ -916,11 +804,10 @@ class Transaction(models.Model):
         ('erreur', 'Erreur'),
         ('rembourse', 'Remboursé'),
     )
-    
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     audit_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     montant = models.DecimalField(max_digits=15, decimal_places=0, validators=[MinValueValidator(0)])
-    montant_hbar = models.DecimalField(max_digits=15, decimal_places=8, null=True, blank=True)
-    taux_conversion = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
     
     date_transaction = models.DateTimeField(auto_now_add=True)
     hedera_transaction_hash = models.CharField(max_length=150, unique=True)
@@ -957,33 +844,9 @@ class Transaction(models.Model):
         if self.contributeur and not self.contributeur_anonymise:
             salt = getattr(settings, 'ANONYMIZATION_SALT', '')
             self.contributeur_anonymise = self.anonymiser_contributeur(salt)
-        
-        # Conversion automatique FCFA vers HBAR si nécessaire
-        if self.montant and not self.montant_hbar:
-            self.convertir_fcfa_vers_hbar()
             
         super().save(*args, **kwargs)
     
-    def convertir_fcfa_vers_hbar(self):
-        """Convertit le montant FCFA en HBAR"""
-        try:
-            taux = self.get_taux_conversion()
-            self.taux_conversion = taux
-            montant_hbar = Decimal(self.montant) / Decimal(taux)
-            self.montant_hbar = montant_hbar.quantize(Decimal('0.00000001'))
-        except Exception as e:
-            self.taux_conversion = Decimal('0.8')
-            montant_hbar = Decimal(self.montant) / self.taux_conversion
-            self.montant_hbar = montant_hbar.quantize(Decimal('0.00000001'))
-    
-    def get_taux_conversion(self):
-        """Récupère le taux de conversion FCFA/HBAR"""
-        try:
-            response = requests.get('https://api.taux-conversion.com/fcfa/hbar')
-            data = response.json()
-            return Decimal(data['taux'])
-        except:
-            return Decimal('0.8')
     
     def anonymiser_contributeur(self, salt):
         """Anonymisation du contributeur"""
@@ -994,8 +857,6 @@ class Transaction(models.Model):
         """Validation: Empêcher les admins de contribuer"""
         if self.contributeur and self.contributeur.user_type == 'admin':
             raise ValidationError("Les administrateurs ne peuvent pas effectuer de contributions.")
-
-
 
 
 
@@ -1020,14 +881,21 @@ class AuditLog(models.Model):
         ('refund', 'Remboursement'),
     )
     
+    STATUT_CHOICES = (
+        ('SUCCESS', 'Succès'),
+        ('FAILURE', 'Échec'),
+       
+    )
+    
     audit_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     utilisateur = models.ForeignKey(User, on_delete=models.CASCADE)
     action = models.CharField(max_length=10, choices=ACTION_TYPES)
     modele = models.CharField(max_length=50)  # Nom du modèle affecté
     objet_id = models.CharField(max_length=100)  # ID de l'objet affecté
-    details = models.JSONField()  #Détails de l'action en JSON
+    details = models.JSONField()  # Détails de l'action en JSON
     date_action = models.DateTimeField(auto_now_add=True)
     adresse_ip = models.GenericIPAddressField(null=True, blank=True)
+    statut = models.CharField(max_length=10, choices=STATUT_CHOICES, default='SUCCESS')  # Champ ajouté
     
     class Meta:
         indexes = [
@@ -1036,3 +904,77 @@ class AuditLog(models.Model):
             models.Index(fields=['modele', 'objet_id']),
         ]
         ordering = ['-date_action']
+    def __str__(self):
+        return f"{self.utilisateur.username} - {self.action} - {self.modele} - {self.date_action}"
+    
+
+
+
+class EmailLog(models.Model):
+    STATUTS = [
+        ('sent', 'Envoyé'),
+        ('failed', 'Échec'),
+        ('simulated', 'Simulé'),
+        ('pending', 'En attente'),
+    ]
+    
+    TYPES = [
+        ('project_approved', 'Projet approuvé'),
+        ('project_rejected', 'Projet rejeté'),
+        ('don_received', 'Don reçu'),
+        ('user_welcome', 'Bienvenue utilisateur'),
+        ('password_reset', 'Réinitialisation mot de passe'),
+        ('notification', 'Notification'),
+        ('other', 'Autre'),
+    ]
+    
+    destinataire = models.EmailField(verbose_name="Destinataire")
+    sujet = models.CharField(max_length=200, verbose_name="Sujet")
+    corps = models.TextField(verbose_name="Corps du message")
+    date_creation = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    date_envoi = models.DateTimeField(null=True, blank=True, verbose_name="Date d'envoi")
+    statut = models.CharField(max_length=10, choices=STATUTS, default='pending', verbose_name="Statut")
+    type_email = models.CharField(max_length=20, choices=TYPES, default='other', verbose_name="Type d'email")
+    erreur = models.TextField(blank=True, verbose_name="Message d'erreur")
+    utilisateur = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        verbose_name="Utilisateur concerné"
+    )
+    
+    class Meta:
+        ordering = ['-date_creation']
+        verbose_name = "Log d'email"
+        verbose_name_plural = "Logs d'emails"
+    
+    def __str__(self):
+        return f"{self.destinataire} - {self.sujet} ({self.statut})"
+    
+    def marquer_comme_envoye(self):
+        self.statut = 'sent'
+        self.date_envoi = timezone.now()
+        self.save()
+    
+    def marquer_comme_erreur(self, message_erreur):
+        self.statut = 'failed'
+        self.erreur = message_erreur
+        self.save()
+
+
+
+class ContactSubmission(models.Model):
+    sujet = models.CharField(max_length=100)
+    email = models.EmailField()
+    message = models.TextField()
+    date_soumission = models.DateTimeField(default=timezone.now)
+    traite = models.BooleanField(default=False)
+    
+    class Meta:
+        verbose_name = "Soumission de contact"
+        verbose_name_plural = "Soumissions de contact"
+        ordering = ['-date_soumission']
+    
+    def __str__(self):
+        return f"{self.sujet} - {self.email}"

@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact - Plateforme de Financement Participatif{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Colonne d'informations sur la plateforme -->
+        <div class="col-lg-7 mb-4 mb-lg-0">
+            <div >
+                <h1 class="display-5 fw-bold text-primary mb-4">Nous sommes à votre écoute</h1>
+                
+                <div class="mb-5">
+                    <h2 class="h3 mb-3">Notre engagement</h2>
+                    <p class="lead">Chez SolidAvenir, nous croyons en la puissance de la solidarité pour construire un avenir meilleur.</p>
+                    <p>Notre plateforme met en relation des porteurs de projets inspirants avec une communauté de donateurs engagés, permettant à des initiatives positives de voir le jour.</p>
+                </div>
+
+                <div class="mb-5">
+                    <h2 class="h3 mb-3">Notre philosophie</h2>
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-primary rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-hands-helping text-white"></i>
+                        </div>
+                        <div>
+                            <h4 class="h5">Collaboration ouverte</h4>
+                            <p class="mb-0">Nous sommes ouverts à toutes les suggestions et collaborations qui vont dans le sens de l'intérêt général.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-primary rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-shield-alt text-white"></i>
+                        </div>
+                        <div>
+                            <h4 class="h5">Transparence</h4>
+                            <p class="mb-0">Nous nous engageons à une gestion transparente des dons et une communication honnête avec notre communauté.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start">
+                        <div class="bg-primary rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-heart text-white"></i>
+                        </div>
+                        <div>
+                            <h4 class="h5">Solidarité</h4>
+                            <p class="mb-0">Notre mission est de créer des ponts entre ceux qui veulent aider et ceux qui ont besoin de soutien.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-light p-4 rounded">
+                    <h3 class="h4 mb-3">Questions fréquentes</h3>
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                    Comment proposer un projet ?
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Rendez-vous sur la page "Proposer un projet" après vous être connecté à votre compte. Notre équipe examinera votre proposition sous 72h.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    Comment fonctionnent les dons ?
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Les dons sont sécurisés et ne sont débités que si le projet atteint son objectif de financement. Vous recevrez un reçu fiscal pour chaque don.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne du formulaire de contact -->
+        <div class="col-lg-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Contactez-nous</h2>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted mb-4">
+                        Vous avez une question, une suggestion ou besoin d'assistance ? 
+                        Notre équipe est là pour vous aider. Remplissez ce formulaire et nous vous répondrons dans les plus brefs délais.
+                    </p>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Champ Sujet -->
+                        <div class="mb-3">
+                            <label for="{{ form.sujet.id_for_label }}" class="form-label">
+                                {{ form.sujet.label }}
+                                {% if form.sujet.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            <input 
+                                type="text" 
+                                class="form-control {% if form.sujet.errors %}is-invalid{% endif %}" 
+                                id="{{ form.sujet.id_for_label }}" 
+                                name="{{ form.sujet.name }}" 
+                                value="{{ form.sujet.value|default_if_none:'' }}"
+                                placeholder="Ex: Explication sur la blockchain"
+                            >
+                            {% if form.sujet.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.sujet.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Champ Email -->
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                {{ form.email.label }}
+                                {% if form.email.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            <input 
+                                type="email" 
+                                class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                                id="{{ form.email.id_for_label }}" 
+                                name="{{ form.email.name }}" 
+                                value="{{ form.email.value|default_if_none:'' }}"
+                                placeholder="votre@email.com"
+                            >
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Champ Message -->
+                        <div class="mb-3">
+                            <label for="{{ form.message.id_for_label }}" class="form-label">
+                                {{ form.message.label }}
+                                {% if form.message.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            <textarea 
+                                class="form-control {% if form.message.errors %}is-invalid{% endif %}" 
+                                id="{{ form.message.id_for_label }}" 
+                                name="{{ form.message.name }}" 
+                                rows="5"
+                                placeholder="Décrivez votre demande en détail..."
+                            >{{ form.message.value|default_if_none:'' }}</textarea>
+                            {% if form.message.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.message.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Champ CAPTCHA -->
+                        <div class="mb-4">
+                            <label for="{{ form.captcha_answer.id_for_label }}" class="form-label">
+                                {{ form.captcha_answer.label }}
+                                {% if form.captcha_answer.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            <small class="form-text text-muted d-block mb-2">
+                                Combien font <strong>{{ form.captcha_display_question }}</strong> ?
+                            </small>
+                            <input 
+                                type="text" 
+                                class="form-control {% if form.captcha_answer.errors %}is-invalid{% endif %}" 
+                                id="{{ form.captcha_answer.id_for_label }}" 
+                                name="{{ form.captcha_answer.name }}" 
+                                value="{{ form.captcha_answer.value|default_if_none:'' }}"
+                                placeholder="Votre réponse"
+                            >
+                            {{ form.captcha_question }}
+                            {% if form.captcha_answer.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.captcha_answer.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Envoyer le message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Informations de contact supplémentaires -->
+            <div class="mt-4">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="bg-primary rounded-circle p-3 d-inline-block mb-3">
+                                    <i class="fas fa-envelope fa-2x text-white"></i>
+                                </div>
+                                <h5 class="card-title">Email</h5>
+                                <p class="card-text">support@solidavenir.org</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="bg-primary rounded-circle p-3 d-inline-block mb-3">
+                                    <i class="fas fa-clock fa-2x text-white"></i>
+                                </div>
+                                <h5 class="card-title">Temps de réponse</h5>
+                                <p class="card-text">Sous 24-48 heures</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section engagement supplémentaire -->
+           
+        </div>
+    </div>
+     <div class="mt-5 bg-light p-4 rounded">
+                <h3 class="h4 mb-3">Notre engagement envers vous</h3>
+                <p>Nous nous engageons à:</p>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Répondre à toutes vos demandes dans les meilleurs délais</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Prendre en compte toutes vos suggestions pour améliorer notre plateforme</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Vous offrir un service personnalisé et adapté à vos besoins</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Assurer la confidentialité de vos données personnelles</li>
+                </ul>
+                <p class="mb-0">Nous sommes fiers de compter sur une communauté engagée et ouverte au dialogue. Votre feedback est essentiel pour faire évoluer notre plateforme dans le sens de l'intérêt collectif.</p>
+            </div>
+</div>
+{% endblock %}

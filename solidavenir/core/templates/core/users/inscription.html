@@ -1,659 +1,157 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Solid'Avenir - Créer un compte{% endblock %}
-
-{% block extra_css %}
-{{ form.media }}
-<style>
-    .auth-container {
-        min-height: 80vh;
-        display: flex;
-        align-items: center;
-        padding: 2rem 0;
-    }
-    
-    .auth-card {
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        padding: 2.5rem;
-        margin: 2rem 0;
-    }
-    
-    .auth-header {
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    
-    .auth-icon {
-        font-size: 3rem;
-        color: var(--primary-color);
-        margin-bottom: 1rem;
-    }
-    
-    .form-step {
-        display: none;
-    }
-    
-    .form-step.active {
-        display: block;
-    }
-    
-    .step-indicator {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 2rem;
-    }
-    
-    .step {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: #e9ecef;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 10px;
-        font-weight: 600;
-        color: #6c757d;
-    }
-    
-    .step.active {
-        background: var(--primary-color);
-        color: white;
-    }
-    
-    .step.completed {
-        background: var(--success-color);
-        color: white;
-    }
-    
-    .step-connector {
-        width: 40px;
-        height: 2px;
-        background: #e9ecef;
-        margin: 0 5px;
-        align-self: center;
-    }
-    
-    .user-type-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
-    }
-    
-    .user-type-card {
-        border: 2px solid #e9ecef;
-        border-radius: 10px;
-        padding: 1.5rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    
-    .user-type-card:hover {
-        border-color: var(--primary-color);
-        transform: translateY(-2px);
-    }
-    
-    .user-type-card.selected {
-        border-color: var(--primary-color);
-        background: rgba(var(--primary-rgb), 0.1);
-    }
-    
-    .user-type-icon {
-        font-size: 2rem;
-        color: var(--primary-color);
-        margin-bottom: 1rem;
-    }
-    
-    .form-navigation {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 2rem;
-    }
-    
-    .conditional-field {
-        display: none;
-    }
-    
-    .conditional-field.show {
-        display: block;
-        animation: fadeIn 0.3s ease;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .password-strength {
-        height: 5px;
-        background: #e9ecef;
-        border-radius: 3px;
-        margin-top: 0.5rem;
-        overflow: hidden;
-    }
-    
-    .password-strength-bar {
-        height: 100%;
-        width: 0%;
-        transition: width 0.3s ease;
-        border-radius: 3px;
-    }
-    
-    .strength-weak { background: var(--danger-color); width: 33%; }
-    .strength-medium { background: var(--warning-color); width: 66%; }
-    .strength-strong { background: var(--success-color); width: 100%; }
-    
-    .password-requirements {
-        font-size: 0.8rem;
-        color: #6c757d;
-        margin-top: 0.5rem;
-    }
-    
-    .form-label {
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: var(--dark-color);
-    }
-    
-    .form-control, .form-select {
-        border-radius: 8px;
-        padding: 0.75rem 1rem;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-    }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
-    }
-    
-    .text-danger {
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-    }
-    
-    .form-text {
-        font-size: 0.8rem;
-        color: #6c757d;
-    }
-    
-    /* Style pour Django Summernote */
-    .note-editor {
-        border-radius: 8px;
-        border: 2px solid #e9ecef;
-        margin-bottom: 1rem;
-    }
-    
-    .note-editor:focus-within {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
-    }
-    
-    .note-toolbar {
-        background: #f8f9fa;
-        border-bottom: 1px solid #e9ecef;
-        border-radius: 8px 8px 0 0;
-    }
-    
-    .note-editable {
-        border-radius: 0 0 8px 8px;
-        min-height: 150px;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-
-<div class="auth-container">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-10 col-lg-8">
-                <div class="auth-card">
-                    <!-- En-tête -->
-                    <div class="auth-header">
-                        <div class="auth-icon">
-                            <i class="bi bi-person-plus"></i>
+<div class="container py-5">
+    <div class="row">
+        <!-- Section d'information -->
+        <div class="col-lg-6 mb-4">
+            <div class="text-center text-lg-start">
+                <h1 class="display-5 fw-bold text-primary mb-3">Rejoignez notre communauté solidaire</h1>
+                <p class="lead mb-4">
+                    Une plateforme transparente pour financer des projets qui changent le monde, 
+                    avec une traçabilité blockchain garantie.
+                </p>
+                
+                <div class="benefits-list">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary rounded-circle p-2 me-3">
+                            <i class="fas fa-shield-alt text-white"></i>
                         </div>
-                        <h1 class="h2 fw-bold">Rejoindre Solid'Avenir</h1>
-                        <p class="text-muted">Créez votre compte pour soutenir ou proposer des projets</p>
+                        <div>
+                            <h5 class="mb-1">Transparence totale</h5>
+                            <p class="mb-0 text-muted">Chaque transaction est tracée sur la blockchain Hedera Hashgraph</p>
+                        </div>
                     </div>
-
-                    <!-- Indicateur d'étapes -->
-                    <div class="step-indicator">
-                        <div class="step active" id="step1">1</div>
-                        <div class="step-connector"></div>
-                        <div class="step" id="step2">2</div>
-                        <div class="step-connector"></div>
-                        <div class="step" id="step3">3</div>
-                        <div class="step-connector"></div>
-                        <div class="step" id="step4">4</div>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success rounded-circle p-2 me-3">
+                            <i class="fas fa-hand-holding-heart text-white"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Impact réel</h5>
+                            <p class="mb-0 text-muted">Soutenez des projets qui font la différence dans votre communauté</p>
+                        </div>
                     </div>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-info rounded-circle p-2 me-3">
+                            <i class="fas fa-users text-white"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Communauté engagée</h5>
+                            <p class="mb-0 text-muted">Connectez-vous avec des porteurs de projets et des donateurs passionnés</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-warning rounded-circle p-2 me-3">
+                            <i class="fas fa-lock text-white"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Sécurité garantie</h5>
+                            <p class="mb-0 text-muted">Plateforme sécurisée avec technologie blockchain de pointe</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-light border-0">
+                    <div class="card-body">
+                        <h6 class="card-title">💡 Pourquoi nous rejoindre ?</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li>✓ Financez des projets qui vous tiennent à cœur</li>
+                            <li>✓ Suivez l'impact réel de vos contributions</li>
+                            <li>✓ Rejoignez une communauté de acteurs du changement</li>
+                            <li>✓ Bénéficiez d'une transparence absolue grâce à la blockchain</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Formulaire d'inscription -->
+        <div class="col-lg-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-1">Créer votre compte</h2>
+                    <p class="mb-0 opacity-75">Rejoignez-nous en 2 minutes</p>
+                </div>
+                
+                <div class="card-body p-4">
+                    {% if messages %}
+                    <div class="alert-messages mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
 
-                    <!-- Formulaire d'inscription -->
-                    <form method="post" id="inscriptionForm" novalidate>
+                    <form method="post" novalidate class="needs-validation">
                         {% csrf_token %}
+                        {{ form.username }}
                         
-                        <!-- Étape 1: Type d'utilisateur -->
-                        <div class="form-step active" id="step1-form">
-                            <h4 class="mb-4 text-center">Quel type d'utilisateur êtes-vous ?</h4>
-                            
-                            <div class="user-type-cards">
-                                <div class="user-type-card" data-user-type="donateur">
-                                    <div class="user-type-icon">
-                                        <i class="bi bi-heart"></i>
-                                    </div>
-                                    <h5>Donateur/Philanthrope</h5>
-                                    <p class="text-muted small">
-                                        Je souhaite soutenir financièrement des projets qui me tiennent à cœur
-                                    </p>
-                                </div>
-                                
-                                <div class="user-type-card" data-user-type="porteur">
-                                    <div class="user-type-icon">
-                                        <i class="bi bi-lightbulb"></i>
-                                    </div>
-                                    <h5>Porteur de Projet</h5>
-                                    <p class="text-muted small">
-                                        Je souhaite proposer et gérer des projets de développement communautaire
-                                    </p>
-                                </div>
-                                
-                                <div class="user-type-card" data-user-type="investisseur">
-                                    <div class="user-type-icon">
-                                        <i class="bi bi-graph-up"></i>
-                                    </div>
-                                    <h5>Investisseur</h5>
-                                    <p class="text-muted small">
-                                        Je souhaite investir dans des projets avec un retour sur investissement
-                                    </p>
-                                </div>
-                                
-                                <div class="user-type-card" data-user-type="association">
-                                    <div class="user-type-icon">
-                                        <i class="bi bi-people"></i>
-                                    </div>
-                                    <h5>Association/ONG</h5>
-                                    <p class="text-muted small">
-                                        Je représente une organisation à but non lucratif
-                                    </p>
-                                </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Prénom</label>
+                                {{ form.first_name }}
                             </div>
                             
-                            <input type="hidden" name="user_type" id="id_user_type" value="">
-                            
-                            <div class="form-navigation">
-                                <div></div> <!-- Espaceur -->
-                                <button type="button" class="btn btn-primary" onclick="nextStep(2)">
-                                    Suivant <i class="bi bi-arrow-right"></i>
-                                </button>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Nom</label>
+                                {{ form.last_name }}
                             </div>
                         </div>
-
-                        <!-- Étape 2: Informations personnelles -->
-                        <div class="form-step" id="step2-form">
-                            <h4 class="mb-4 text-center">Informations personnelles</h4>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.username.id_for_label }}" class="form-label">
-                                        Nom d'utilisateur *
-                                    </label>
-                                    <input type="text" name="username" class="form-control" id="{{ form.username.id_for_label }}" 
-                                           value="{{ form.username.value|default:'' }}" required>
-                                    {% if form.username.errors %}
-                                    <div class="text-danger">{{ form.username.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.email.id_for_label }}" class="form-label">
-                                        Adresse email *
-                                    </label>
-                                    <input type="email" name="email" class="form-control" id="{{ form.email.id_for_label }}" 
-                                           value="{{ form.email.value|default:'' }}" required>
-                                    {% if form.email.errors %}
-                                    <div class="text-danger">{{ form.email.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="first_name" class="form-label">
-                                        Prénom
-                                    </label>
-                                    <input type="text" name="first_name" class="form-control" id="first_name" 
-                                           value="{{ form.first_name.value|default:'' }}">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="last_name" class="form-label">
-                                        Nom
-                                    </label>
-                                    <input type="text" name="last_name" class="form-control" id="last_name" 
-                                           value="{{ form.last_name.value|default:'' }}">
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.telephone.id_for_label }}" class="form-label">
-                                        Téléphone
-                                    </label>
-                                    <input type="text" name="telephone" class="form-control" id="{{ form.telephone.id_for_label }}" 
-                                           value="{{ form.telephone.value|default:'' }}">
-                                    <div class="form-text">Format: +223 XX XX XX XX</div>
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="date_naissance" class="form-label">
-                                        Date de naissance
-                                    </label>
-                                    <input type="date" name="date_naissance" class="form-control" id="date_naissance" 
-                                           value="{{ form.date_naissance.value|default:'' }}">
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="ville" class="form-label">
-                                        Ville
-                                    </label>
-                                    <input type="text" name="ville" class="form-control" id="ville" 
-                                           value="{{ form.ville.value|default:'' }}">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="code_postal" class="form-label">
-                                        Code postal
-                                    </label>
-                                    <input type="text" name="code_postal" class="form-control" id="code_postal" 
-                                           value="{{ form.code_postal.value|default:'' }}">
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="{{ form.adresse.id_for_label }}" class="form-label">
-                                    Adresse
-                                </label>
-                                <textarea name="adresse" class="form-control" id="{{ form.adresse.id_for_label }}" 
-                                          rows="3">{{ form.adresse.value|default:'' }}</textarea>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="pays" class="form-label">
-                                    Pays
-                                </label>
-                                <input type="text" name="pays" class="form-control" id="pays" 
-                                       value="{{ form.pays.value|default:'' }}">
-                            </div>
-                            
-                            <div class="form-navigation">
-                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(1)">
-                                    <i class="bi bi-arrow-left"></i> Retour
-                                </button>
-                                <button type="button" class="btn btn-primary" onclick="nextStep(3)">
-                                    Suivant <i class="bi bi-arrow-right"></i>
-                                </button>
-                            </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email *</label>
+                            {{ form.email }}
+                            <div class="form-text">Nous ne partagerons jamais votre email</div>
                         </div>
-
-                        <!-- Étape 3: Informations spécifiques au type d'utilisateur -->
-                        <div class="form-step" id="step3-form">
-                            <h4 class="mb-4 text-center">Informations spécifiques</h4>
-                            
-                            <!-- Champs pour porteurs de projet -->
-                            <div class="conditional-field" id="porteurFields">
-                                <h5 class="mb-3">Informations du projet</h5>
-                                
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.organisation.id_for_label }}" class="form-label">
-                                            Organisation
-                                        </label>
-                                        <input type="text" name="organisation" class="form-control" id="{{ form.organisation.id_for_label }}" 
-                                               value="{{ form.organisation.value|default:'' }}">
-                                    </div>
-                                    
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.site_web.id_for_label }}" class="form-label">
-                                            Site web
-                                        </label>
-                                        <input type="url" name="site_web" class="form-control" id="{{ form.site_web.id_for_label }}" 
-                                               value="{{ form.site_web.value|default:'' }}">
-                                    </div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.description_projet.id_for_label }}" class="form-label">
-                                        Description du projet
-                                    </label>
-                                    <textarea name="description_projet" class="form-control" id="{{ form.description_projet.id_for_label }}" 
-                                              rows="4">{{ form.description_projet.value|default:'' }}</textarea>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.montant_recherche.id_for_label }}" class="form-label">
-                                        Montant recherché (€)
-                                    </label>
-                                    <input type="number" step="0.01" name="montant_recherche" class="form-control" id="{{ form.montant_recherche.id_for_label }}" 
-                                           value="{{ form.montant_recherche.value|default:'' }}">
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.type_financement.id_for_label }}" class="form-label">
-                                        Type de financement recherché
-                                    </label>
-                                    <select name="type_financement" class="form-select" id="{{ form.type_financement.id_for_label }}">
-                                        <option value="">Sélectionnez une option</option>
-                                        <option value="don" {% if form.type_financement.value == 'don' %}selected{% endif %}>Don pur</option>
-                                        <option value="pret" {% if form.type_financement.value == 'pret' %}selected{% endif %}>Prêt</option>
-                                        <option value="equity" {% if form.type_financement.value == 'equity' %}selected{% endif %}>Investissement en equity</option>
-                                        <option value="mixte" {% if form.type_financement.value == 'mixte' %}selected{% endif %}>Financement mixte</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <!-- Champs pour associations/ONG -->
-                            <div class="conditional-field" id="associationFields">
-                                <h5 class="mb-3">Informations de l'association</h5>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.nom_association.id_for_label }}" class="form-label">
-                                        Nom de l'association
-                                    </label>
-                                    <input type="text" name="nom_association" class="form-control" id="{{ form.nom_association.id_for_label }}" 
-                                           value="{{ form.nom_association.value|default:'' }}">
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.causes_defendues.id_for_label }}" class="form-label">
-                                        Causes défendues
-                                    </label>
-                                    <textarea name="causes_defendues" class="form-control" id="{{ form.causes_defendues.id_for_label }}" 
-                                              rows="3">{{ form.causes_defendues.value|default:'' }}</textarea>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.domaine_action.id_for_label }}" class="form-label">
-                                        Domaine d'action
-                                    </label>
-                                    <input type="text" name="domaine_action" class="form-control" id="{{ form.domaine_action.id_for_label }}" 
-                                           value="{{ form.domaine_action.value|default:'' }}">
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.date_creation_association.id_for_label }}" class="form-label">
-                                        Date de création de l'association
-                                    </label>
-                                    <input type="date" name="date_creation_association" class="form-control" id="{{ form.date_creation_association.id_for_label }}" 
-                                           value="{{ form.date_creation_association.value|default:'' }}">
-                                </div>
-                            </div>
-                            
-                            <!-- Champs pour investisseurs -->
-                            <div class="conditional-field" id="investisseurFields">
-                                <h5 class="mb-3">Préférences d'investissement</h5>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.type_investisseur.id_for_label }}" class="form-label">
-                                        Type d'investisseur
-                                    </label>
-                                    <select name="type_investisseur" class="form-select" id="{{ form.type_investisseur.id_for_label }}">
-                                        <option value="">Sélectionnez une option</option>
-                                        <option value="particulier" {% if form.type_investisseur.value == 'particulier' %}selected{% endif %}>Particulier</option>
-                                        <option value="institutionnel" {% if form.type_investisseur.value == 'institutionnel' %}selected{% endif %}>Institutionnel</option>
-                                        <option value="business_angel" {% if form.type_investisseur.value == 'business_angel' %}selected{% endif %}>Business Angel</option>
-                                        <option value="fond_investissement" {% if form.type_investisseur.value == 'fond_investissement' %}selected{% endif %}>Fonds d'investissement</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.secteur_prefere.id_for_label }}" class="form-label">
-                                        Secteur préféré
-                                    </label>
-                                    <input type="text" name="secteur_prefere" class="form-control" id="{{ form.secteur_prefere.id_for_label }}" 
-                                           value="{{ form.secteur_prefere.value|default:'' }}">
-                                </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.montant_investissement_min.id_for_label }}" class="form-label">
-                                            Montant d'investissement minimum (€)
-                                        </label>
-                                        <input type="number" step="0.01" name="montant_investissement_min" class="form-control" id="{{ form.montant_investissement_min.id_for_label }}" 
-                                               value="{{ form.montant_investissement_min.value|default:'' }}">
-                                    </div>
-                                    
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.montant_investissement_max.id_for_label }}" class="form-label">
-                                            Montant d'investissement maximum (€)
-                                        </label>
-                                        <input type="number" step="0.01" name="montant_investissement_max" class="form-control" id="{{ form.montant_investissement_max.id_for_label }}" 
-                                               value="{{ form.montant_investissement_max.value|default:'' }}">
-                                    </div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.expectative_rendement.id_for_label }}" class="form-label">
-                                        Expectative de rendement
-                                    </label>
-                                    <input type="text" name="expectative_rendement" class="form-control" id="{{ form.expectative_rendement.id_for_label }}" 
-                                           value="{{ form.expectative_rendement.value|default:'' }}">
-                                </div>
-                            </div>
-                            
-                            <!-- Champs pour donateurs -->
-                            <div class="conditional-field" id="donateurFields">
-                                <h5 class="mb-3">Préférences de don</h5>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.causes_soutenues.id_for_label }}" class="form-label">
-                                        Causes que vous souhaitez soutenir
-                                    </label>
-                                    <textarea name="causes_soutenues" class="form-control" id="{{ form.causes_soutenues.id_for_label }}" 
-                                              rows="3">{{ form.causes_soutenues.value|default:'' }}</textarea>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.montant_don_moyen.id_for_label }}" class="form-label">
-                                        Montant de don moyen (€)
-                                    </label>
-                                    <input type="number" step="0.01" name="montant_don_moyen" class="form-control" id="{{ form.montant_don_moyen.id_for_label }}" 
-                                           value="{{ form.montant_don_moyen.value|default:'' }}">
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.frequence_dons.id_for_label }}" class="form-label">
-                                        Fréquence des dons
-                                    </label>
-                                    <select name="frequence_dons" class="form-select" id="{{ form.frequence_dons.id_for_label }}">
-                                        <option value="">Sélectionnez une option</option>
-                                        <option value="ponctuel" {% if form.frequence_dons.value == 'ponctuel' %}selected{% endif %}>Ponctuel</option>
-                                        <option value="mensuel" {% if form.frequence_dons.value == 'mensuel' %}selected{% endif %}>Mensuel</option>
-                                        <option value="trimestriel" {% if form.frequence_dons.value == 'trimestriel' %}selected{% endif %}>Trimestriel</option>
-                                        <option value="annuel" {% if form.frequence_dons.value == 'annuel' %}selected{% endif %}>Annuel</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="form-navigation">
-                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
-                                    <i class="bi bi-arrow-left"></i> Retour
-                                </button>
-                                <button type="button" class="btn btn-primary" onclick="nextStep(4)">
-                                    Suivant <i class="bi bi-arrow-right"></i>
-                                </button>
-                            </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Je suis *</label>
+                            {{ form.user_type }}
                         </div>
-
-                        <!-- Étape 4: Mot de passe et finalisation -->
-                        <div class="form-step" id="step4-form">
-                            <h4 class="mb-4 text-center">Sécurité du compte</h4>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.password1.id_for_label }}" class="form-label">
-                                        Mot de passe *
-                                    </label>
-                                    <input type="password" name="password1" class="form-control" id="{{ form.password1.id_for_label }}" required>
-                                    <div class="password-strength">
-                                        <div class="password-strength-bar" id="passwordStrengthBar"></div>
-                                    </div>
-                                    <div class="password-requirements">
-                                        <small>Le mot de passe doit contenir au moins 8 caractères</small>
-                                    </div>
-                                    {% if form.password1.errors %}
-                                    <div class="text-danger">{{ form.password1.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.password2.id_for_label }}" class="form-label">
-                                        Confirmation du mot de passe *
-                                    </label>
-                                    <input type="password" name="password2" class="form-control" id="{{ form.password2.id_for_label }}" required>
-                                    {% if form.password2.errors %}
-                                    <div class="text-danger">{{ form.password2.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" name="newsletter" id="newsletterCheck" checked>
-                                <label class="form-check-label" for="newsletterCheck">
-                                    Je souhaite recevoir la newsletter de Solid'Avenir
-                                </label>
-                            </div>
-                            
-                            <div class="form-check mb-4">
-                                <input class="form-check-input" type="checkbox" id="termsCheck" required>
-                                <label class="form-check-label" for="termsCheck">
+                        
+                        <div id="association-field" class="mb-3" style="display: none;">
+                            <label class="form-label fw-semibold">Nom de votre association *</label>
+                            {{ form.nom_association }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Mot de passe *</label>
+                            {{ form.password1 }}
+                            <div class="form-text">Minimum 8 caractères avec chiffres et lettres</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Confirmer le mot de passe *</label>
+                            {{ form.password2 }}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.consentement_rgpd }}
+                                <label class="form-check-label" for="{{ form.consentement_rgpd.id_for_label }}">
                                     J'accepte les <a href="#" target="_blank">conditions d'utilisation</a> 
-                                    et la <a href="#" target="_blank">politique de confidentialité</a>
+                                    et la <a href="" target="_blank">politique de confidentialité</a> *
                                 </label>
                             </div>
-                            
-                            <div class="form-navigation">
-                                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(3)">
-                                    <i class="bi bi-arrow-left"></i> Retour
-                                </button>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-check-lg"></i> Créer mon compte
-                                </button>
-                            </div>
                         </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 btn-lg fw-semibold py-3">
+                            🚀 Rejoindre la communauté
+                        </button>
                     </form>
                     
-                    <div class="text-center mt-4">
-                        <p class="text-muted">
-                            Vous avez déjà un compte ? 
-                            <a href="{% url 'connexion' %}" class="text-primary">Connectez-vous</a>
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <p class="mb-0">Déjà membre ? 
+                            <a href="{% url 'connexion' %}" class="fw-semibold text-decoration-none">
+                                Connectez-vous ici
+                            </a>
                         </p>
                     </div>
                 </div>
@@ -662,145 +160,21 @@
     </div>
 </div>
 
-{% endblock %}
-
-{% block extra_js %}
 <script>
-    let currentStep = 1;
-    const totalSteps = 4;
+document.addEventListener('DOMContentLoaded', function() {
+    const userTypeSelect = document.getElementById('{{ form.user_type.id_for_label }}');
+    const associationField = document.getElementById('association-field');
     
-    function showStep(step) {
-        // Cacher toutes les étapes
-        document.querySelectorAll('.form-step').forEach(el => {
-            el.classList.remove('active');
-        });
-        
-        // Afficher l'étape courante
-        document.getElementById(`step${step}-form`).classList.add('active');
-        
-        // Mettre à jour l'indicateur d'étapes
-        document.querySelectorAll('.step').forEach((el, index) => {
-            el.classList.remove('active', 'completed');
-            if (index + 1 < step) {
-                el.classList.add('completed');
-            } else if (index + 1 === step) {
-                el.classList.add('active');
-            }
-        });
-        
-        currentStep = step;
-    }
-    
-    function nextStep(step) {
-        if (validateStep(currentStep)) {
-            showStep(step);
+    function toggleAssociationField() {
+        if (userTypeSelect.value === 'association') {
+            associationField.style.display = 'block';
+        } else {
+            associationField.style.display = 'none';
         }
     }
     
-    function prevStep(step) {
-        showStep(step);
-    }
-    
-    function validateStep(step) {
-        // Validation basique pour l'étape 1
-        if (step === 1) {
-            const userType = document.getElementById('id_user_type').value;
-            if (!userType) {
-                alert('Veuillez sélectionner un type d\'utilisateur');
-                return false;
-            }
-        }
-        
-        // Validation pour l'étape 2
-        if (step === 2) {
-            const username = document.getElementById('{{ form.username.id_for_label }}').value;
-            const email = document.getElementById('{{ form.email.id_for_label }}').value;
-            
-            if (!username || !email) {
-                alert('Veuillez remplir tous les champs obligatoires');
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
-    // Gestion du choix du type d'utilisateur
-    document.querySelectorAll('.user-type-card').forEach(card => {
-        card.addEventListener('click', function() {
-            document.querySelectorAll('.user-type-card').forEach(c => {
-                c.classList.remove('selected');
-            });
-            this.classList.add('selected');
-            
-            const userType = this.getAttribute('data-user-type');
-            document.getElementById('id_user_type').value = userType;
-            
-            // Afficher/masquer les champs conditionnels
-            const porteurFields = document.getElementById('porteurFields');
-            const associationFields = document.getElementById('associationFields');
-            const investisseurFields = document.getElementById('investisseurFields');
-            const donateurFields = document.getElementById('donateurFields');
-            
-            // Masquer tous les champs conditionnels
-            porteurFields.style.display = 'none';
-            associationFields.style.display = 'none';
-            investisseurFields.style.display = 'none';
-            donateurFields.style.display = 'none';
-            
-            // Afficher les champs correspondants au type d'utilisateur
-            if (userType === 'porteur') {
-                porteurFields.style.display = 'block';
-            } else if (userType === 'association') {
-                associationFields.style.display = 'block';
-            } else if (userType === 'investisseur') {
-                investisseurFields.style.display = 'block';
-            } else if (userType === 'donateur') {
-                donateurFields.style.display = 'block';
-            }
-        });
-    });
-    
-    // Vérification de la force du mot de passe
-    const passwordInput = document.getElementById('{{ form.password1.id_for_label }}');
-    const strengthBar = document.getElementById('passwordStrengthBar');
-    
-    if (passwordInput && strengthBar) {
-        passwordInput.addEventListener('input', function() {
-            const password = this.value;
-            let strength = 0;
-            
-            if (password.length >= 8) strength += 1;
-            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 1;
-            if (password.match(/\d/)) strength += 1;
-            if (password.match(/[^a-zA-Z\d]/)) strength += 1;
-            
-            strengthBar.className = 'password-strength-bar';
-            if (strength === 0) {
-                strengthBar.style.width = '0%';
-            } else if (strength === 1) {
-                strengthBar.classList.add('strength-weak');
-            } else if (strength === 2) {
-                strengthBar.classList.add('strength-medium');
-            } else {
-                strengthBar.classList.add('strength-strong');
-            }
-        });
-    }
-    
-    // Validation du formulaire avant soumission
-    document.getElementById('inscriptionForm').addEventListener('submit', function(e) {
-        if (!document.getElementById('termsCheck').checked) {
-            e.preventDefault();
-            alert('Veuillez accepter les conditions d\'utilisation');
-        }
-    });
-    
-    // Initialisation
-    document.addEventListener('DOMContentLoaded', function() {
-        // Focus sur le premier champ
-        const firstInput = document.querySelector('input');
-        if (firstInput) firstInput.focus();
-    });
+    toggleAssociationField();
+    userTypeSelect.addEventListener('change', toggleAssociationField);
+});
 </script>
 {% endblock %}

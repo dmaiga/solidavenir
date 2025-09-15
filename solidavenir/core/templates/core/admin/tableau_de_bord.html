@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_admin.html' %}
 {% load static humanize %}
 {% load custom_filters %}
 {% block title %}Solid'Avenir - Tableau de bord administrateur{% endblock %}
@@ -23,7 +23,7 @@
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
+        gap: 1rem;
         margin-bottom: 2rem;
     }
     
@@ -228,12 +228,12 @@
     </a>
     
     <!-- Porteurs de projet -->
-    <a href="{% url 'liste_membres' %}?type_utilisateur=porteur" class="quick-action">
+    <a href="{% url 'liste_membres' %}" class="quick-action">
         <div class="quick-action-icon">
             <i class="bi bi-people"></i>
         </div>
-        <div>Gérer les porteurs</div>
-        <small class="text-muted">{{ stats.porteurs_total }} porteurs</small>
+        <div>Gérer les membres</div>
+        <small class="text-muted">{{ stats.utilisateurs_total }} porteurs</small>
     </a>
     
     <!-- Logs d'audit -->
@@ -261,7 +261,7 @@
                 <div class="stat-number">{{ stats.utilisateurs_total }}</div>
                 <div class="stat-label">Utilisateurs</div>
                 <div class="stat-trend">
-                    {{ stats.porteurs_total }} porteurs • {{ stats.donateurs_total }} donateurs
+                {{ stats.donateurs_total }} donateurs • {{ stats.porteurs_total }} porteurs • {{ stats.donateurs_total }} donateurs
                 </div>
             </div>
             
@@ -360,7 +360,7 @@
                                     <strong>{{ transaction.montant|floatformat:0|intcomma }} FCFA</strong>
                                     <br>
                                     <small class="text-muted">
-                                        {{ transaction.donateur_anonymise }}
+                                        {{ transaction.contributeur_anonymise }}
                                         • {{ transaction.date_transaction|timesince }}
                                     </small>
                                 </div>

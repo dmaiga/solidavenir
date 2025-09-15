@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_admin.html' %}
 {% load static humanize %}
 
 {% block title %}Solid'Avenir - {{ title }}{% endblock %}
@@ -7,157 +7,257 @@
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
+            <!-- En-tête avec titre et bouton d'export -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">{{ title }}</h1>
+                <div>
+                    <a href="{% url 'liste_membres' %}?export=csv" class="btn btn-outline-primary">
+                        <i class="bi bi-download me-1"></i>Exporter CSV
+                    </a>
+                </div>
+            </div>
+
             <!-- Statistiques -->
             <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card bg-primary text-white">
+                <div class="col-xl-2 col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
-                            <h3>{{ stats.total }}</h3>
-                            <p>Membres total</p>
+                            <h2 class="text-primary mb-1">{{ stats.total|intcomma }}</h2>
+                            <p class="text-muted mb-0">Total membres</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-success text-white">
+                <div class="col-xl-2 col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
-                            <h3>{{ stats.porteurs }}</h3>
-                            <p>Porteurs</p>
+                            <h2 class="text-success mb-1">{{ stats.porteurs|intcomma }}</h2>
+                            <p class="text-muted mb-0">Porteurs</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-info text-white">
+                <div class="col-xl-2 col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
-                            <h3>{{ stats.donateurs }}</h3>
-                            <p>Donateurs</p>
+                            <h2 class="text-info mb-1">{{ stats.donateurs|intcomma }}</h2>
+                            <p class="text-muted mb-0">Donateurs</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-warning text-white">
+                <div class="col-xl-2 col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
-                            <h3>{{ stats.actifs }}</h3>
-                            <p>Comptes actifs</p>
+                            <h2 class="text-warning mb-1">{{ stats.association|intcomma }}</h2>
+                            <p class="text-muted mb-0">Associations</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <h2 class="text-danger mb-1">{{ stats.investisseur|intcomma }}</h2>
+                            <p class="text-muted mb-0">Investisseurs</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <h2 class="text-success mb-1">{{ stats.actifs|intcomma }}</h2>
+                            <p class="text-muted mb-0">Comptes actifs</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="h4 mb-0">{{ title }}</h2>
+            <!-- Carte principale -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-filter me-2"></i>Filtres et recherche
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <!-- Filtres -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h5 class="card-title">Filtres</h5>
-                            <form method="get" class="row g-3">
-                                <div class="col-md-3">
-                                    {{ form.type_utilisateur.label_tag }}
-                                    {{ form.type_utilisateur }}
-                                </div>
-                                <div class="col-md-2">
-                                    {{ form.actif.label_tag }}
-                                    {{ form.actif }}
-                                </div>
-                                <div class="col-md-3">
-                                    {{ form.date_debut.label_tag }}
-                                    {{ form.date_debut }}
-                                </div>
-                                <div class="col-md-3">
-                                    {{ form.date_fin.label_tag }}
-                                    {{ form.date_fin }}
-                                </div>
-                                <div class="col-md-4">
-                                    {{ form.recherche.label_tag }}
-                                    {{ form.recherche }}
-                                </div>
-                                <div class="col-12">
-                                    <button type="submit" class="btn btn-primary">Filtrer</button>
-                                    <a href="{% url 'liste_membres' %}" class="btn btn-secondary">Réinitialiser</a>
-                                </div>
-                            </form>
+                    <!-- Formulaire de filtres -->
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">{{ form.user_type.label }}</label>
+                            {{ form.user_type }}
                         </div>
-                    </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">{{ form.actif.label }}</label>
+                            {{ form.actif }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">{{ form.date_debut.label }}</label>
+                            {{ form.date_debut }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">{{ form.date_fin.label }}</label>
+                            {{ form.date_fin }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">{{ form.recherche.label }}</label>
+                            {{ form.recherche }}
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-funnel me-1"></i>Appliquer les filtres
+                            </button>
+                            <a href="{% url 'liste_membres' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Réinitialiser
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
-                    <!-- Liste des membres -->
+            <!-- Carte des résultats -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-people me-2"></i>Liste des membres
+                        <span class="badge bg-primary ms-2">{{ membres.paginator.count }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>Nom</th>
+                                    <th>Nom complet</th>
                                     <th>Email</th>
                                     <th>Type</th>
                                     <th>Inscription</th>
                                     <th>Statut</th>
-                                    <th>Actions</th>
+                                    <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for membre in membres %}
                                 <tr>
                                     <td>
-                                        <strong>{{ membre.get_full_name|default:membre.username }}</strong>
-                                        {% if membre.organisation %}
-                                        <br><small class="text-muted">{{ membre.organisation }}</small>
-                                        {% endif %}
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                                     style="width: 40px; height: 40px;">
+                                                    {{ membre.first_name|first|default:membre.username|first|upper }}
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <strong>{{ membre.get_full_name|default:membre.username }}</strong>
+                                                {% if membre.organisation %}
+                                                <br>
+                                                <small class="text-muted">{{ membre.organisation }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
                                     </td>
                                     <td>{{ membre.email }}</td>
                                     <td>
-                                        <span class="badge {% if membre.user_type == 'porteur' %}bg-success{% elif membre.user_type == 'donateur' %}bg-info{% else %}bg-warning{% endif %}">
+                                        <span class="badge 
+                                            {% if membre.user_type == 'porteur' %}bg-success
+                                            {% elif membre.user_type == 'donateur' %}bg-info
+                                            {% elif membre.user_type == 'association' %}bg-warning
+                                            {% elif membre.user_type == 'investisseur' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
                                             {{ membre.get_user_type_display }}
                                         </span>
                                     </td>
-                                    <td>{{ membre.date_joined|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <small>{{ membre.date_joined|date:"d/m/Y" }}</small>
+                                        <br>
+                                        <small class="text-muted">{{ membre.date_joined|timesince }}</small>
+                                    </td>
                                     <td>
                                         <span class="badge {% if membre.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                            <i class="bi {% if membre.is_active %}bi-check-circle{% else %}bi-x-circle{% endif %} me-1"></i>
                                             {{ membre.is_active|yesno:"Actif,Inactif" }}
                                         </span>
                                     </td>
-                                    <td>
-                                        <a href="{% url 'detail_membre' membre.id %}" 
-                                           class="btn btn-sm btn-primary">Détails</a>
+                                    <td class="text-end">
+                                        <div class="btn-group">
+                                            <a href="{% url 'detail_membre' membre.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="mailto:{{ membre.email }}" 
+                                               class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-envelope"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
-                                        Aucun membre trouvé
+                                    <td colspan="6" class="text-center py-5">
+                                        <i class="bi bi-people display-4 text-muted d-block mb-3"></i>
+                                        <p class="text-muted">Aucun membre ne correspond à vos critères de recherche</p>
+                                        <a href="{% url 'liste_membres' %}" class="btn btn-primary">
+                                            Réinitialiser les filtres
+                                        </a>
                                     </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
-
-                    <!-- Pagination -->
-                    {% if membres.has_other_pages %}
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center">
+                </div>
+                
+                <!-- Pagination -->
+                {% if membres.has_other_pages %}
+                <div class="card-footer">
+                    <nav aria-label="Navigation des pages">
+                        <ul class="pagination justify-content-center mb-0">
                             {% if membres.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ membres.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Précédent</a>
+                                <a class="page-link" href="?page={{ membres.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
                             </li>
                             {% endif %}
                             
                             {% for i in membres.paginator.page_range %}
-                            <li class="page-item {% if membres.number == i %}active{% endif %}">
-                                <a class="page-link" href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a>
-                            </li>
+                                {% if membres.number == i %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ i }}</span>
+                                </li>
+                                {% elif i > membres.number|add:'-3' and i < membres.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a>
+                                </li>
+                                {% endif %}
                             {% endfor %}
                             
                             {% if membres.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ membres.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Suivant</a>
+                                <a class="page-link" href="?page={{ membres.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
                             </li>
                             {% endif %}
                         </ul>
                     </nav>
-                    {% endif %}
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Script pour améliorer l'expérience utilisateur
+document.addEventListener('DOMContentLoaded', function() {
+    // Mise à jour automatique des statistiques lors du filtrage
+    const updateStats = function() {
+        // Ici vous pourriez ajouter une requête AJAX pour mettre à jour les stats en temps réel
+    };
+    
+    // Écouter les changements sur les filtres
+    document.querySelectorAll('select, input').forEach(element => {
+        element.addEventListener('change', updateStats);
+    });
+});
+</script>
 {% endblock %}

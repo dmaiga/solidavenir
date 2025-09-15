@@ -5,6 +5,24 @@
 
 {% block content %}
 <div class="container py-5">
+    {% if is_preview %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <strong>Mode Preview</strong> - Ce projet n'est pas encore publié. Seul vous pouvez le visualiser.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+{% if projet.statut == 'brouillon' %}
+<div class="alert alert-info alert-dismissible fade show" role="alert">
+    <strong>Projet en brouillon</strong> - Votre projet est en cours de préparation.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% elif projet.statut == 'en_attente' %}
+<div class="alert alert-info alert-dismissible fade show" role="alert">
+    <strong>En attente de validation</strong> - Votre projet est en cours de validation par notre équipe.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
    {% if user.is_porteur_projet%}
     <div class="col-auto">
             <div class="btn-group">
@@ -27,6 +45,18 @@
             </div>
         </div>
             {% endif %}
+
+   {% if user.is_association%}
+    <div class="col-auto">
+            <div class="btn-group">
+                <a href="{% url 'mes_projets' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+            
     <div class="row">
         <!-- Contenu principal -->
         <div class="col-lg-8">
@@ -42,8 +72,14 @@
                 {% endif %}
                 <div class="card-body">
                     <h1 class="card-title">{{ projet.titre }}</h1>
-                    <p class="text-muted">Porté par {{ projet.porteur.get_full_name|default:projet.porteur.username }}</p>
-                    
+<p class="text-muted">
+    {% if projet.est_associe_a_une_association %}
+        Porté par l’association <strong>{{ projet.association.nom }}</strong>
+    {% else %}
+        Porté par {{ projet.porteur.get_full_name|default:projet.porteur.username }}
+    {% endif %}
+</p>
+
                     <!-- Barre de progression -->
                     <div class="progress mb-3" style="height: 25px;">
                         <div class="progress-bar bg-success" role="progressbar" 
@@ -80,6 +116,16 @@
                     <p>{{ projet.description|safe|linebreaks }}</p>
                 </div>
             </div>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Contreparties pour les contributeurs</h5>
+        
+                </div>
+                <div class="card-body">
+                  <p>{{ recompenses|linebreaks }}</p>
+                </div>
+            </div>
+            
 
             <!-- Derniers dons -->
             <div class="card mb-4">
@@ -112,92 +158,28 @@
             <h3 class="mb-0">Soutenir ce projet</h3>
         </div>
         <div class="card-body">
-            {% if projet.statut == 'actif' %}
-                {% if user.is_authenticated %}
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.montant.id_for_label }}" class="form-label">
-                                Montant du don (FCFA)
-                            </label>
-                            <input type="number" 
-                                   class="form-control {% if form.montant.errors %}is-invalid{% endif %}" 
-                                   id="{{ form.montant.id_for_label }}" 
-                                   name="{{ form.montant.name }}" 
-                                   value="{{ form.montant.value|default_if_none:'' }}"
-                                   min="1000" 
-                                   step="500"
-                                   required>
-                            {% if form.montant.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.montant.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            <div class="form-text">Montant minimum : 1 000 FCFA</div>
-                        </div>
-                        
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" 
-                                   class="form-check-input" 
-                                   id="{{ form.don_anonyme.id_for_label }}" 
-                                   name="{{ form.don_anonyme.name }}"
-                                   {% if form.don_anonyme.value %}checked{% endif %}>
-                            <label class="form-check-label" for="{{ form.don_anonyme.id_for_label }}">
-                                Rendre mon don anonyme
-                            </label>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary w-100 py-2">
-                            <i class="bi bi-heart me-2"></i> Faire un don
-                        </button>
-                    </form>
-                    
-                    <!-- Information sur le solde -->
-                    <div class="mt-3 p-3 bg-light rounded">
-                        <small class="text-muted">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Votre solde Hedera: <strong>{{ user_balance|default:"N/A" }} HBAR</strong>
-                        </small>
-                    </div>
+            {% if user.is_authenticated and projet.est_actif %}
+  {% if user_has_wallet %}
+    {# Afficher le formulaire de contribution normal #}
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary">Contribuer</button>
+    </form>
+  {% else %}
+    {# L'utilisateur n'a pas de wallet configuré #}
+    <div class="alert alert-info">
+      <p>Pour contribuer à ce projet, vous devez configurer votre wallet.</p>
+      <a href="{% url 'configurer_wallet' %}" class="btn btn-outline-primary">
+        Configurer mon wallet
+      </a>
+    </div>
+  {% endif %}
 
-                    {% if not user.hedera_account_id %}
-                        <div class="alert alert-warning mt-3">
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                            <strong>Action requise:</strong> Vous devez 
-                            <a href="{% url 'creer_compte_hedera' %}?next={% url 'detail_projet' projet.audit_uuid %}" class="alert-link">
-                                configurer votre compte Hedera
-                            </a> 
-                            avant de pouvoir procéder à une transaction
-                        </div>
-                    {% endif %}
-
-                {% else %}
-                    <div class="text-center">
-                        <p>Connectez-vous pour soutenir ce projet</p>
-                        <a href="{% url 'connexion' %}?next={% url 'detail_projet' projet.audit_uuid %}" 
-                           class="btn btn-primary w-100 mb-2">
-                            Se connecter
-                        </a>
-                        <a href="{% url 'inscription' %}" class="btn btn-outline-primary w-100">
-                            Créer un compte
-                        </a>
-                    </div>
-                {% endif %}
             {% else %}
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle me-2"></i>
-                    Ce projet n'accepte plus de dons.
+                    Ce projet n'accepte pas encore dons.
                     {% if projet.statut == 'termine' %}
                         Le projet a atteint son objectif de financement.
                     {% elif projet.statut == 'annule' %}
@@ -207,123 +189,227 @@
             {% endif %}
         </div>
     </div>
-
-    <!-- Informations du porteur -->
+<!-- Informations du porteur -->
 <div class="card mt-4">
     <div class="card-header bg-light">
         <h4 class="mb-0">
-            <i class="bi bi-person-badge me-2"></i>À propos du porteur de projet
+            <i class="bi bi-person-badge me-2"></i>
+            {% if projet.est_associe_a_une_association %}
+                À propos de l'association
+            {% else %}
+                À propos du porteur de projet
+            {% endif %}
         </h4>
     </div>
     <div class="card-body">
         <div class="text-center mb-4">
             <!-- Photo de profil ou avatar -->
-            {% if projet.porteur.photo_profil %}
-                <img src="{{ projet.porteur.photo_profil.url }}" 
-                     alt="Photo de {{ projet.porteur.get_full_name|default:projet.porteur.username }}"
-                     class="rounded-circle mb-3" 
-                     style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--primary-color);">
+            {% if projet.est_associe_a_une_association %}
+                {# Afficher le logo de l'association #}
+                {% if projet.association.logo %}
+                    <img src="{{ projet.association.logo.url }}" 
+                         alt="Logo de {{ projet.association.nom }}"
+                         class="rounded-circle mb-3" 
+                         style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--primary-color);">
+                {% else %}
+                    <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width: 100px; height: 100px; font-size: 2.5rem; border: 3px solid var(--primary-color);">
+                        {{ projet.association.nom|first|upper }}
+                    </div>
+                {% endif %}
+                
+                <h5 class="mb-1">{{ projet.association.nom }}</h5>
+                
+                {% if projet.association.slogan %}
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-quote me-1"></i>{{ projet.association.slogan }}
+                    </p>
+                {% endif %}
+                
+                <!-- Badge type d'utilisateur -->
+                <span class="badge bg-secondary mb-3">
+                    <i class="bi bi-building me-1"></i>
+                    Association
+                </span>
+                
             {% else %}
-                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" 
-                     style="width: 100px; height: 100px; font-size: 2.5rem; border: 3px solid var(--primary-color);">
-                    {{ projet.porteur.get_full_name|default:projet.porteur.username|first|upper }}
-                </div>
+                {# Afficher la photo du porteur de projet #}
+                {% if projet.porteur.photo_profil %}
+                    <img src="{{ projet.porteur.photo_profil.url }}" 
+                         alt="Photo de {{ projet.porteur.get_full_name|default:projet.porteur.username }}"
+                         class="rounded-circle mb-3" 
+                         style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--primary-color);">
+                {% else %}
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width: 100px; height: 100px; font-size: 2.5rem; border: 3px solid var(--primary-color);">
+                        {{ projet.porteur.get_full_name|default:projet.porteur.username|first|upper }}
+                    </div>
+                {% endif %}
+                
+                <h5 class="mb-1">{{ projet.porteur.get_full_name|default:projet.porteur.username }}</h5>
+                
+                {% if projet.porteur.organisation %}
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-building me-1"></i>{{ projet.porteur.organisation }}
+                    </p>
+                {% endif %}
+                
+                <!-- Badge type d'utilisateur -->
+                <span class="badge bg-primary mb-3">
+                    <i class="bi bi-{{ projet.porteur.get_user_type_icon }} me-1"></i>
+                    {{ projet.porteur.get_user_type_display }}
+                </span>
             {% endif %}
-            
-            <h5 class="mb-1">{{ projet.porteur.get_full_name|default:projet.porteur.username }}</h5>
-            
-            {% if projet.porteur.organisation %}
-                <p class="text-muted mb-2">
-                    <i class="bi bi-building me-1"></i>{{ projet.porteur.organisation }}
-                </p>
-            {% endif %}
-            
-            <!-- Badge type d'utilisateur -->
-            <span class="badge bg-primary mb-3">
-                <i class="bi bi-{{ projet.porteur.get_user_type_icon }} me-1"></i>
-                {{ projet.porteur.get_user_type_display }}
-            </span>
         </div>
 
         <!-- Informations de contact (si visibles) -->
         <div class="row text-center mb-3">
-            {% if projet.porteur.ville %}
-                <div class="col-6">
-                    <small class="text-muted">
-                        <i class="bi bi-geo-alt me-1"></i>
-                        {{ projet.porteur.ville }}
-                        {% if projet.porteur.pays %}, {{ projet.porteur.pays }}{% endif %}
-                    </small>
-                </div>
-            {% endif %}
-            
-            {% if projet.porteur.date_inscription %}
-                <div class="col-6">
-                    <small class="text-muted">
-                        <i class="bi bi-calendar me-1"></i>
-                        Membre depuis {{ projet.porteur.date_inscription|date:"F Y" }}
-                    </small>
-                </div>
+            {% if projet.est_associe_a_une_association %}
+                {% if projet.association.ville %}
+                    <div class="col-6">
+                        <small class="text-muted">
+                            <i class="bi bi-geo-alt me-1"></i>
+                            {{ projet.association.ville }}
+                            {% if projet.association.pays %}, {{ projet.association.pays }}{% endif %}
+                        </small>
+                    </div>
+                {% endif %}
+                
+                {% if projet.association.date_creation %}
+                    <div class="col-6">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar me-1"></i>
+                            Créée en {{ projet.association.date_creation|date:"Y" }}
+                        </small>
+                    </div>
+                {% endif %}
+            {% else %}
+                {% if projet.porteur.ville %}
+                    <div class="col-6">
+                        <small class="text-muted">
+                            <i class="bi bi-geo-alt me-1"></i>
+                            {{ projet.porteur.ville }}
+                            {% if projet.porteur.pays %}, {{ projet.porteur.pays }}{% endif %}
+                        </small>
+                    </div>
+                {% endif %}
+                
+                {% if projet.porteur.date_inscription %}
+                    <div class="col-6">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar me-1"></i>
+                            Membre depuis {{ projet.porteur.date_inscription|date:"F Y" }}
+                        </small>
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
+         </div>
 
-        <!-- Bio du porteur -->
-        {% if projet.porteur.bio %}
-            <div class="mb-3">
-                <h6 class="text-primary">
-                    <i class="bi bi-chat-quote me-1"></i>Présentation
-                </h6>
-                <p class="mb-0" style="font-size: 0.9rem;">
-                    "{{ projet.porteur.bio|truncatewords:30 }}"
-                </p>
-            </div>
+        <!-- Bio du porteur ou description de l'association -->
+        {% if projet.est_associe_a_une_association %}
+            {% if projet.association.description_courte %}
+                <div class="mb-3">
+                    <h6 class="text-primary">
+                        <i class="bi bi-chat-quote me-1"></i>Présentation
+                    </h6>
+                    <p class="mb-0" style="font-size: 0.9rem;">
+                        "{{ projet.association.description_courte|truncatewords:30 }}"
+                    </p>
+                    <a href="{% url 'association_detail' projet.association.id %}" class="small text-primary">
+                        En savoir plus
+                    </a>
+                </div>
+            {% endif %}
+        {% else %}
+            {% if projet.porteur.bio %}
+                <div class="mb-3">
+                    <h6 class="text-primary">
+                        <i class="bi bi-chat-quote me-1"></i>Présentation
+                    </h6>
+                    <p class="mb-0" style="font-size: 0.9rem;">
+                        "{{ projet.porteur.bio|truncatewords:30 }}"
+                    </p>
+                </div>
+            {% endif %}
         {% endif %}
 
-        <!-- Statistiques du porteur -->
+        <!-- Statistiques -->
         <div class="border-top pt-3">
             <h6 class="text-primary mb-3">
                 <i class="bi bi-graph-up me-1"></i>Activité sur Solid'Avenir
             </h6>
             
             <div class="row text-center">
-                <div class="col-4">
-                    <div class="stat-number text-primary fw-bold">
-                        {{ projet.porteur.get_nombre_projets_lances }}
+                {% if projet.est_associe_a_une_association %}
+                    <div class="col-4">
+                        <div class="stat-number text-primary fw-bold">
+                            {{ projet.association.projets.count }}
+                        </div>
+                        <div class="stat-label small text-muted">Projets</div>
                     </div>
-                    <div class="stat-label small text-muted">Projets</div>
-                </div>
-                <div class="col-4">
-                    <div class="stat-number text-success fw-bold">
-                        {{ projet.porteur.get_total_collecte|floatformat:0 }} FCFA
+                    <div class="col-4">
+                        <div class="stat-number text-success fw-bold">
+                            {{ projet.association.get_total_collecte|floatformat:0 }} FCFA
+                        </div>
+                        <div class="stat-label small text-muted">Collectés</div>
                     </div>
-                    <div class="stat-label small text-muted">Collectés</div>
-                </div>
-                <div class="col-4">
-                    <div class="stat-number text-info fw-bold">
-                        {{ projet.porteur.get_taux_reussite }}%
+                    <div class="col-4">
+                        <div class="stat-number text-info fw-bold">
+                            {{ projet.association.get_nombre_contributeurs }}
+                        </div>
+                        <div class="stat-label small text-muted">Contributeurs</div>
                     </div>
-                    <div class="stat-label small text-muted">Réussite</div>
-                </div>
+                {% else %}
+                    <div class="col-4">
+                        <div class="stat-number text-primary fw-bold">
+                            {{ projet.porteur.get_nombre_projets_lances }}
+                        </div>
+                        <div class="stat-label small text-muted">Projets</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-number text-success fw-bold">
+                            {{ projet.porteur.get_total_collecte|floatformat:0 }} FCFA
+                        </div>
+                        <div class="stat-label small text-muted">Collectés</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-number text-info fw-bold">
+                            {{ projet.porteur.get_taux_reussite }}%
+                        </div>
+                        <div class="stat-label small text-muted">Réussite</div>
+                    </div>
+                {% endif %}
             </div>
         </div>
 
         <!-- Actions -->
         <div class="text-center mt-4">
-                       
-            {% if projet.porteur.site_web %}
-                <a href="{{ projet.porteur.site_web }}" target="_blank" class="btn btn-outline-secondary btn-sm me-2">
-                    <i class="bi bi-globe me-1"></i>Site web
+            {% if projet.est_associe_a_une_association %}
+                {% if projet.association.site_web %}
+                    <a href="{{ projet.association.site_web }}" target="_blank" class="btn btn-outline-secondary btn-sm me-2">
+                        <i class="bi bi-globe me-1"></i>Site web
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'association_detail' projet.association.id %}" class="btn btn-outline-info btn-sm">
+                    <i class="bi bi-building me-1"></i>Voir l'association
+                </a>
+            {% else %}
+                {% if projet.porteur.site_web %}
+                    <a href="{{ projet.porteur.site_web }}" target="_blank" class="btn btn-outline-secondary btn-sm me-2">
+                        <i class="bi bi-globe me-1"></i>Site web
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'projets_utilisateur' projet.porteur.id %}" class="btn btn-outline-info btn-sm">
+                    <i class="bi bi-folder me-1"></i>Voir tous ses projets
                 </a>
             {% endif %}
-            
-           <a href="{% url 'projets_utilisateur' projet.porteur.id %}" class="btn btn-outline-info btn-sm">
-                <i class="bi bi-folder me-1"></i>Voir tous ses projets
-            </a>
         </div>
     </div>
 </div>
 
-</div>
 
     <!-- Projets similaires -->
     {% if projets_similaires %}

@@ -167,7 +167,23 @@ import os
 HEDERA_NETWORK = os.getenv('HEDERA_NETWORK', 'testnet')
 HEDERA_OPERATOR_ID = os.getenv('HEDERA_OPERATOR_ID')
 HEDERA_OPERATOR_KEY = os.getenv('HEDERA_OPERATOR_KEY')
-HEDERA_TREASURY_ACCOUNT = os.getenv('HEDERA_TREASURY_ACCOUNT', '0.0.98')  # Compte trésorerie par défaut
-
+HEDERA_TREASURY_ACCOUNT = os.getenv('HEDERA_TREASURY_ACCOUNT', '0.0.98')  
+# settings.py
+HEDERA_SERVICE_URL = os.getenv('HEDERA_SERVICE_URL', 'http://localhost:3001')
 # Taux de conversion (pour le testnet)
-FCFA_TO_HBAR_RATE = Decimal('0.8')  # 1 HBAR = 0.8 FCFA (valeur de test)
+FCFA_TO_HBAR_RATE = Decimal('0.8')  
+
+# Configuration Email
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Affiche les emails dans la console
+
+# Pour la production (à décommenter quand vous voudrez envoyer de vrais emails)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'  # ou votre serveur SMTP
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'votre-email@gmail.com'
+# EMAIL_HOST_PASSWORD = 'votre-mot-de-passe-application'
+
+# Adresse email par défaut
+DEFAULT_FROM_EMAIL = 'noreply@solidavenir.com'
+SERVER_EMAIL = 'server@solidavenir.com'

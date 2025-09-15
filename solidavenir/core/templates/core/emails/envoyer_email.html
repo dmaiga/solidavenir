@@ -1,0 +1,84 @@
+{% extends 'base_admin.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">
+                            <i class="bi bi-envelope me-2"></i>Envoyer un email
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.destinataire.id_for_label }}" class="form-label">
+                                    {{ form.destinataire.label }}
+                                </label>
+                                {{ form.destinataire }}
+                                {% if form.destinataire.errors %}
+                                    <div class="text-danger">{{ form.destinataire.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.sujet.id_for_label }}" class="form-label">
+                                    {{ form.sujet.label }}
+                                </label>
+                                {{ form.sujet }}
+                                {% if form.sujet.errors %}
+                                    <div class="text-danger">{{ form.sujet.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.type_email.id_for_label }}" class="form-label">
+                                    {{ form.type_email.label }}
+                                </label>
+                                {{ form.type_email }}
+                                {% if form.type_email.errors %}
+                                    <div class="text-danger">{{ form.type_email.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.message.id_for_label }}" class="form-label">
+                                    {{ form.message.label }}
+                                </label>
+                                {{ form.message }}
+                                {% if form.message.errors %}
+                                    <div class="text-danger">{{ form.message.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="{% url 'liste_emails' %}" class="btn btn-secondary me-md-2">
+                                    <i class="bi bi-list me-1"></i>Voir les emails
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send me-1"></i>Envoyer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+{% endblock %}

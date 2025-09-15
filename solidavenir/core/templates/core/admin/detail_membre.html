@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_admin.html' %}
 {% load static %}
 
 {% block title %}{{ title }}{% endblock %}
@@ -10,7 +10,7 @@
             <h1 class="display-6">{{ title }}</h1>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Administration</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'tableau_de_bord' %}">Administration</a></li>
                     <li class="breadcrumb-item"><a href="{% url 'liste_membres' %}">Membres</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Profil</li>
                 </ol>
