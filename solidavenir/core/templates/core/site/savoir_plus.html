@@ -1,19 +1,19 @@
 {% extends 'base.html' %}
 
 {% block title %}Technologie & Transparence - Solid'Avenir{% endblock %}
-
+{%load static%}
 {% block content %}
 <div class="container my-5">
     <!-- En-tête -->
     <div class="row mb-5">
         <div class="col-lg-12 text-center">
-            <h1 class="display-4 fw-bold mb-4 section-title">Notre Technologie: La Transparence Garantie</h1>
+            <h1 class="display-4 fw-bold section-title">Notre Technologie: La Transparence Garantie</h1>
             <p class="lead">Chez Solid'Avenir, nous utilisons une technologie de pointe pour garantir que chaque contribution soit utilisée exactement comme prévu, avec une transparence totale.</p>
         </div>
     </div>
 
     <!-- Analogie pour expliquer la technologie -->
-    <div class="row mb-5 bg-light p-4 rounded">
+    <div class="row mb-5 bg-light  rounded">
         <div class="col-lg-12">
             <h2 class="mb-4 section-title">Imaginez un grand livre de comptes public et infalsifiable</h2>
             <div class="row">
@@ -27,7 +27,8 @@
                     <p>Contrairement aux systèmes traditionnels où seule une organisation contrôle les données, ici <strong>tout le monde peut vérifier</strong> sans avoir à nous faire confiance aveuglément.</p>
                 </div>
                 <div class="col-md-6 text-center">
-                    <img src="" alt="Analogie de transparence" class="img-fluid rounded" style="max-height: 250px;">
+               
+                    <img src="{% static 'images/about/savoir.jpg' %}" alt="Analogie de transparence" class="img-fluid rounded" style="max-height: 250px;">
                     <p class="mt-2 fst-italic">Chaque action est enregistrée de manière permanente et vérifiable</p>
                 </div>
             </div>
@@ -111,9 +112,13 @@
                     </div>
                 </div>
                 
-                <div class="col-md-6">
-                    <img src="" alt="Processus de transparence" class="img-fluid rounded shadow">
-                </div>
+                <div class="col-md-6 d-flex align-items-center justify-content-center">
+    <img src="{% static 'images/about/don.jpg' %}" 
+         alt="Processus de transparence" 
+         class="img-fluid rounded shadow" 
+         style="max-height: 350px;">
+</div>
+
             </div>
         </div>
     </div>
