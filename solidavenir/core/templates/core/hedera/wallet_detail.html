@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Portefeuille{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Mon Portefeuille</h2>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Solde du compte</h5>
+        </div>
+        <div class="card-body">
+            {% if solde is not None %}
+                <h3 class="text-success">{{ solde }} <small class="text-muted">HBAR</small></h3>
+            {% else %}
+                <div class="alert alert-warning">
+                    Impossible de récupérer le solde actuel. Veuillez réessayer plus tard.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Informations du compte</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>ID du compte Hedera:</strong></p>
+                    <p class="text-monospace">{{ user.hedera_account_id }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Clé publique:</strong></p>
+                    <p class="text-monospace text-truncate">{{ user.hedera_public_key }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'accueil' %}" class="btn btn-secondary">Retour à l'accueil</a>
+    </div>
+</div>
+{% endblock %}

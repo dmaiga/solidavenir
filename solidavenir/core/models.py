@@ -25,6 +25,7 @@ from django.db import models
 import uuid
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
+import requests
 
 def validate_profile_image_size(value):
     """Valide que l'image de profil ne dépasse pas 5 Mo"""
@@ -89,6 +90,9 @@ class User(AbstractUser):
     
     # Hedera blockchain (optionnel pour MVP)
     hedera_account_id = models.CharField(max_length=50, blank=True, null=True)
+    hedera_private_key = models.TextField(blank=True, null=True) 
+    hedera_public_key = models.TextField(blank=True, null=True) 
+    
     audit_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     wallet_activated = models.BooleanField(default=False)
     # Champs pour porteurs de projet - Tous optionnels
@@ -271,6 +275,39 @@ class User(AbstractUser):
     def peut_contribuer(self):
         """Vérifie si l'utilisateur peut faire des contributions"""
         return self.user_type != 'admin' and self.is_authenticated
+    
+    def ensure_wallet(self):
+        """Crée un wallet automatiquement s'il n'existe pas"""
+        if not self.hedera_account_id or not self.wallet_activated:
+            try:
+                # Appeler le service Node.js pour créer un wallet
+                response = requests.post(
+                    'http://localhost:3001/create-wallet',
+                    json={'initialBalance': 50},
+                    timeout=10
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if result['success']:
+                        # Stocker les informations du wallet
+                        self.hedera_account_id = result['accountId']
+                        # ⚠️ IMPORTANT: Stocker la clé privée de manière sécurisée
+                        # Dans un environnement de production, utilisez un service de gestion de secrets
+                        self.hedera_public_key = result['publicKey']
+                        self.hedera_private_key = result['privateKey']
+                        self.wallet_activated = True
+                        self.save()
+                        return True
+            except Exception as e:
+                print(f"Erreur création wallet: {e}")
+                return False
+        return True
+    
+    @property
+    def has_active_wallet(self):
+        """Vérifie si l'utilisateur a un wallet actif"""
+        return self.wallet_activated and bool(self.hedera_account_id)
 # apps/projets/models.py
 
 # --- VALIDATEURS PERSONNALISÉS ---
@@ -350,6 +387,10 @@ class Projet(models.Model):
         help_text="Identifiant unique du projet, généré automatiquement"
     )
     # Informations financières
+    #hedera
+    hedera_account_id = models.CharField(max_length=100, blank=True, null=True)
+    hedera_private_key = models.CharField(max_length=500, blank=True, null=True)
+
     montant_demande = models.DecimalField(max_digits=15, decimal_places=0, validators=[MinValueValidator(0)])
     montant_minimal = models.DecimalField(
         max_digits=15,

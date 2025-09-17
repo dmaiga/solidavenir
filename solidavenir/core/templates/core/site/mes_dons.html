@@ -68,7 +68,7 @@
                                     <th scope="col" class="text-end">Montant</th>
                                     <th scope="col">Statut</th>
                                     <th scope="col">Transaction</th>
-                                    <th scope="col">Actions</th>
+                                  
                                 </tr>
                             </thead>
                             <tbody>
@@ -95,11 +95,7 @@
                                         <span class="text-muted">N/A</span>
                                         {% endif %}
                                     </td>
-                                    <td>
-                                        <a href="{% url 'confirmation_don' contribution.audit_uuid %}" class="btn btn-sm btn-outline-primary" title="Voir les détails">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </td>
+                                    
                                 </tr>
                                 {% endfor %}
                             </tbody>

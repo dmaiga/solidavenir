@@ -275,9 +275,9 @@
             
             <div class="stat-card">
                 <div class="stat-number">{{ stats.montant_total|floatformat:0|intcomma }}</div>
-                <div class="stat-label">FCFA collectés</div>
+                <div class="stat-label">ℏ HBAR collectés</div>
                 <div class="stat-trend trend-up">
-                    {{ stats.montant_jour|floatformat:0|intcomma }} FCFA aujourd'hui
+                    {{ stats.montant_jour|floatformat:0|intcomma }} ℏ HBAR aujourd'hui
                 </div>
             </div>
         </div>
@@ -331,7 +331,7 @@
                                             • {{ projet.date_creation|date:"d/m/Y" }}
                                         </small>
                                         <br>
-                                        <strong>{{ projet.montant_demande|floatformat:0|intcomma }} FCFA</strong>
+                                        <strong>{{ projet.montant_demande|floatformat:0|intcomma }} ℏ HBAR</strong>
                                     </div>
                                     <a href="{% url 'valider_projet' projet.audit_uuid %}" class="btn btn-sm btn-primary">
                                         Examiner
@@ -357,7 +357,7 @@
                         <div class="transaction-item">
                             <div class="d-flex justify-content-between">
                                 <div>
-                                    <strong>{{ transaction.montant|floatformat:0|intcomma }} FCFA</strong>
+                                    <strong>{{ transaction.montant|floatformat:0|intcomma }} ℏ HBAR</strong>
                                     <br>
                                     <small class="text-muted">
                                         {{ transaction.contributeur_anonymise }}
@@ -396,7 +396,7 @@
                                     {% for donateur in top_donateurs %}
                                     <tr>
                                         <td>{{ donateur.get_full_name|default:donateur.username }}</td>
-                                        <td>{{ donateur.total_dons|floatformat:0|intcomma }} FCFA</td>
+                                        <td>{{ donateur.total_dons|floatformat:0|intcomma }} ℏ HBAR</td>
                                         <td>{{ donateur.nombre_dons }}</td>
                                     </tr>
                                     {% endfor %}
@@ -425,8 +425,8 @@
                                     {% for projet in projets_populaires %}
                                     <tr>
                                         <td>{{ projet.titre|truncatewords:3 }}</td>
-                                        <td>{{ projet.montant_collectes|floatformat:0|intcomma }} FCFA</td>
-                                        <td>{{ projet.montant_demande|floatformat:0|intcomma }} FCFA</td>
+                                        <td>{{ projet.montant_collectes|floatformat:0|intcomma }} ℏ HBAR</td>
+                                        <td>{{ projet.montant_demande|floatformat:0|intcomma }} ℏ HBAR</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -537,7 +537,7 @@
                 labels: {{ donnees_graphique.labels|safe }},
                 datasets: [
                     {
-                        label: 'Montant collecté (FCFA)',
+                        label: 'Montant collecté (ℏ HBAR)',
                         data: {{ donnees_graphique.montants|safe }},
                         borderColor: 'rgb(59, 130, 246)',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -569,7 +569,7 @@
                         position: 'left',
                         title: {
                             display: true,
-                            text: 'Montant (FCFA)'
+                            text: 'Montant (ℏ HBAR)'
                         }
                     },
                     y1: {

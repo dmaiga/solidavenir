@@ -59,35 +59,29 @@
             </div>
 
             <!-- Compte Hedera pour les donateurs -->
-            {% if user.user_type == 'donateur' %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Compte Hedera</h5>
-                </div>
-                <div class="card-body">
-                    {% if user.hedera_account_id %}
-                        <p class="mb-2"><strong>Account ID:</strong></p>
-                        <code class="d-block mb-3 p-2 bg-light rounded">{{ user.hedera_account_id }}</code>
-                        
-                        <div class="d-grid">
-                            <a href="{% url 'configurer_hedera' %}" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-cog me-2"></i>Modifier la configuration
-                            </a>
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Vous devez configurer un compte Hedera pour effectuer des dons.
-                        </div>
-                        <div class="d-grid">
-                            <a href="{% url 'configurer_hedera' %}" class="btn btn-primary">
-                                <i class="fas fa-plus-circle me-2"></i>Configurer le compte Hedera
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
+            <!-- Compte Hedera pour les donateurs -->
+{% if user.user_type == 'donateur' %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Compte Hedera</h5>
+    </div>
+    <div class="card-body">
+        {% if user.hedera_account_id %}
+            <p class="mb-2"><strong>Account ID:</strong></p>
+            <code class="d-block mb-3 p-2 bg-light rounded">{{ user.hedera_account_id }}</code>
+
+            {% if solde is not None %}
+                <p><strong>Solde:</strong> {{ solde }} HBAR</p>
+            {% else %}
+                <p class="text-muted">Impossible de récupérer le solde pour le moment.</p>
             {% endif %}
+        {% else %}
+            <p class="text-muted">Wallet non configuré.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
 
             <!-- Statistiques rapides -->
             <div class="card">
@@ -127,14 +121,7 @@
                 </span>
             </div>
 
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
+           
 
             <!-- Informations personnelles -->
             <div class="card mb-4">

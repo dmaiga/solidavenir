@@ -93,13 +93,13 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col text-center hero-content">
-                <h1 class="display-4 fw-bold mb-3">Révolutionnez le financement participatif en Afrique de l'Ouest</h1>
-                <p class="lead mb-4">Solid'Avenir élimine définitivement les risques de défaillance grâce à la blockchain Hedera. Chaque transaction est immuable, traçable et vérifiable par tous.</p>
+                <h1 class="display-4 fw-bold mb-3" data-key="home.hero.title">Révolutionnez le financement participatif en Afrique de l'Ouest</h1>
+                <p class="lead mb-4" data-key="home.hero.subtitle">Solid'Avenir élimine définitivement les risques de défaillance grâce à la blockchain Hedera. Chaque transaction est immuable, traçable et vérifiable par tous.</p>
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                    <a href="{% url 'liste_projets' %}" class="btn btn-warning btn-lg px-4 gap-3">Découvrir les projets</a>
-                    <a href="{% url 'creer_projet' %}" class="btn btn-outline-light btn-lg px-4">Lancer un projet</a>
+                    <a href="{% url 'liste_projets' %}" class="btn btn-warning btn-lg px-4 gap-3" data-key="home.hero.discover">Découvrir les projets</a>
+                    <a href="{% url 'creer_projet' %}" class="btn btn-outline-light btn-lg px-4" data-key="home.hero.launch">Lancer un projet</a>
                     <a href="{% url 'savoir_plus' %}" class="btn btn-outline-info btn-lg px-4">
-                        En savoir plus <i class="bi bi-info-circle ms-1"></i>
+                        <span data-key="home.hero.learn_more">En savoir plus</span> <i class="bi bi-info-circle ms-1"></i>
                     </a>
                 </div>
             </div>
@@ -111,21 +111,21 @@
 <section class="container problem-solution">
     <div class="row">
         <div class="col-md-6">
-            <h2 class="text-danger mb-4"> Défaillances traditionnelles</h2>
+            <h2 class="text-danger mb-4" data-key="home.problems.title"> Défaillances traditionnelles</h2>
             <ul class="list-unstyled">
-                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong>Manque de transparence</strong> : Impossible de tracer l'utilisation des fonds</li>
-                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong>Risque de fraude</strong> : Projets fictifs ou détournements</li>
-                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong>Absence d'audit</strong> : Aucune vérification indépendante</li>
-                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong>Confiance limitée</strong> : Méfiance des contributeurs potentiels</li>
+                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong data-key="home.problems.transparency">Manque de transparence</strong> : <span data-key="home.problems.transparency_desc">Impossible de tracer l'utilisation des fonds</span></li>
+                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong data-key="home.problems.fraud">Risque de fraude</strong> : <span data-key="home.problems.fraud_desc">Projets fictifs ou détournements</span></li>
+                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong data-key="home.problems.audit">Absence d'audit</strong> : <span data-key="home.problems.audit_desc">Aucune vérification indépendante</span></li>
+                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong data-key="home.problems.trust">Confiance limitée</strong> : <span data-key="home.problems.trust_desc">Méfiance des contributeurs potentiels</span></li>
             </ul>
         </div>
         <div class="col-md-6">
-            <h2 class="text-success mb-4"> Blockchain & Transparence</h2>
+            <h2 class="text-success mb-4" data-key="home.solutions.title"> Blockchain & Transparence</h2>
             <ul class="list-unstyled">
-                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Traçabilité totale</strong> : Chaque FCFA est enregistré sur blockchain</li>
-                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Audit en temps réel</strong> : Vérification indépendante automatique</li>
-                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Preuves immuables</strong> : Aucune modification possible des transactions</li>
-                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Confiance absolue</strong> : Les contributeurs voient exactement où va leur argent</li>
+                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong data-key="home.solutions.traceability">Traçabilité totale</strong> : <span data-key="home.solutions.traceability_desc">Chaque FCFA est enregistré sur blockchain</span></li>
+                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong data-key="home.solutions.real_time">Audit en temps réel</strong> : <span data-key="home.solutions.real_time_desc">Vérification indépendante automatique</span></li>
+                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong data-key="home.solutions.proof">Preuves immuables</strong> : <span data-key="home.solutions.proof_desc">Aucune modification possible des transactions</span></li>
+                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong data-key="home.solutions.confidence">Confiance absolue</strong> : <span data-key="home.solutions.confidence_desc">Les contributeurs voient exactement où va leur argent</span></li>
             </ul>
         </div>
     </div>
@@ -133,13 +133,13 @@
 
 <!-- Section garanties de confiance -->
 <section class="container mb-5">
-    <h2 class="section-title text-center mb-4">Nos garanties de transparence</h2>
+    <h2 class="section-title text-center mb-4" data-key="home.guarantees.title">Nos garanties de transparence</h2>
     
     <div class="row">
         <div class="col-md-4 mb-4">
             <div class="p-4 border rounded h-100 shadow-sm">
-                <h4 class="mb-3">Technologie de Confiance</h4>
-                <p>
+                <h4 class="mb-3" data-key="home.guarantees.tech_title">Technologie de Confiance</h4>
+                <p data-key="home.guarantees.tech_desc">
                     Chaque don ou investissement est inscrit sur Hedera Hashgraph, 
                     une technologie moderne qui garantit que les enregistrements sont infalsifiables et consultables par tous.
                 </p>
@@ -148,20 +148,20 @@
         
         <div class="col-md-4 mb-4">
             <div class="p-4 border rounded h-100 shadow-sm">
-                <h4 class="mb-3">Suivi Automatisé</h4>
-                <p>
-                    Nos systèmes contrôlent en continu l’utilisation des fonds et produisent des alertes 
-                    en cas d’écart ou d’anomalie, pour assurer un usage conforme à l’objectif annoncé.
+                <h4 class="mb-3" data-key="home.guarantees.tracking_title">Suivi Automatisé</h4>
+                <p data-key="home.guarantees.tracking_desc">
+                    Nos systèmes contrôlent en continu l'utilisation des fonds et produisent des alertes 
+                    en cas d'écart ou d'anomalie, pour assurer un usage conforme à l'objectif annoncé.
                 </p>
             </div>
         </div>
         
         <div class="col-md-4 mb-4">
             <div class="p-4 border rounded h-100 shadow-sm">
-                <h4 class="mb-3">Accès Ouvert</h4>
-                <p>
+                <h4 class="mb-3" data-key="home.guarantees.access_title">Accès Ouvert</h4>
+                <p data-key="home.guarantees.access_desc">
                     Toutes les transactions sont accessibles depuis la plateforme. 
-                    Chacun peut vérifier en toute indépendance l’origine et l’usage des fonds.
+                    Chacun peut vérifier en toute indépendance l'origine et l'usage des fonds.
                 </p>
             </div>
         </div>
@@ -170,13 +170,13 @@
 
 <!-- Section projets populaires -->
 <section class="container mb-5">
-    <h2 class="section-title text-center mb-4"> Projets certifiés en cours</h2>
+    <h2 class="section-title text-center mb-4" data-key="home.projects.title"> Projets certifiés en cours</h2>
     
     <div class="row">
         {% for projet in projets_populaires %}
         <div class="col-md-4 mb-4">
             <div class="card project-card">
-                <span class="category-badge">Projet vérifié</span>
+                <span class="category-badge" data-key="home.projects.verified">Projet vérifié</span>
                {% if projet.cover_image %}
                 <img src="{{ projet.cover_image.url }}" class="card-img-top" alt="{{ projet.titre }}" style="height: 200px; object-fit: cover;">
                 {% else %}
@@ -184,7 +184,7 @@
                 <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #2c6e9b 0%, #1a3c5a 100%);">
                     <div class="text-center text-white p-3">
                         <i class="bi bi-image display-4 opacity-75 mb-2"></i>
-                        <p class="small mb-0">Image non disponible</p>
+                        <p class="small mb-0" data-key="home.projects.no_image">Image non disponible</p>
                     </div>
                 </div>
                 {% endif %}
@@ -202,68 +202,69 @@
                     </div>
 
                     <div class="d-flex justify-content-between text-muted small mb-3">
-                        <span>{{ projet.pourcentage_financement|default:0 }}% atteint</span>
-                        <span>✅ Projet audité</span>
+                        <span>{{ projet.pourcentage_financement|default:0 }}% <span data-key="home.projects.reached">atteint</span></span>
+                        <span>✅ <span data-key="home.projects.audited">Projet audité</span></span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <strong>{{ projet.total_collecte|default:0|floatformat:0 }} FCFA / {{ projet.montant_demande|floatformat:0 }} FCFA</strong>
-                        <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-primary btn-sm">Contribuer </a>
+                        <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-primary btn-sm" data-key="home.projects.contribute">Contribuer </a>
                     </div>
                 </div>
             </div>
         </div>
         {% empty %}
         <div class="col-12 text-center">
-            <p>Aucun projet actif pour le moment.</p>
-            <a href="{% url 'creer_projet' %}" class="btn btn-primary">Soyez le premier à proposer un projet</a>
+            <p data-key="home.projects.none">Aucun projet actif pour le moment.</p>
+            <a href="{% url 'creer_projet' %}" class="btn btn-primary" data-key="home.projects.be_first">Soyez le premier à proposer un projet</a>
         </div>
         {% endfor %}
     </div>
     
     {% if projets_populaires %}
     <div class="text-center mt-4">
-        <a href="{% url 'liste_projets' %}" class="btn btn-outline-primary">Voir tous les projets certifiés</a>
-        <a href="{% url 'transparence' %}" class="btn btn-info ms-2">Vérifier les transactions</a>
+        <a href="{% url 'liste_projets' %}" class="btn btn-outline-primary" data-key="home.projects.see_all">Voir tous les projets certifiés</a>
+        <a href="{% url 'transparence' %}" class="btn btn-info ms-2" data-key="home.projects.check_transactions">Vérifier les transactions</a>
     </div>
     {% endif %}
 </section>
 <!-- Section comment ça marche -->
 <section class="bg-light py-5 mb-5">
     <div class="container">
-        <h2 class="section-title text-center mb-5"> Comment nous garantissons la confiance</h2>
+        <h2 class="section-title text-center mb-5" data-key="home.how_it_works.title"> Comment nous garantissons la confiance</h2>
         
         <div class="row">
             <div class="col-md-4 text-center mb-4">
                 <div class="feature-icon">
                     <i class="bi bi-patch-check"></i>
                 </div>
-                <h4>1. Vérification rigoureuse</h4>
-                <p>Chaque projet est audité avant approbation. Seuls les initiatives légitimes et réalisables sont acceptées.</p>
+                <h4 data-key="home.how_it_works.step1_title">1. Vérification rigoureuse</h4>
+                <p data-key="home.how_it_works.step1_desc">Chaque projet est audité avant approbation. Seuls les initiatives légitimes et réalisables sont acceptées.</p>
             </div>
             
             <div class="col-md-4 text-center mb-4">
                 <div class="feature-icon">
                     <i class="bi bi-cash-coin"></i>
                 </div>
-                <h4>2. Financement tracé</h4>
-                <p>Chaque contribution est instantanément enregistrée sur la blockchain Hedera, créant une preuve immuable.</p>
+                <h4 data-key="home.how_it_works.step2_title">2. Financement tracé</h4>
+                <p data-key="home.how_it_works.step2_desc">Chaque contribution est instantanément enregistrée sur la blockchain Hedera, créant une preuve immuable.</p>
             </div>
             
             <div class="col-md-4 text-center mb-4">
                 <div class="feature-icon">
                     <i class="bi bi-graph-up"></i>
                 </div>
-                <h4>3. Suivi en temps réel</h4>
-                <p>Les porteurs de projets doivent justifier chaque dépense, visible et vérifiable par tous les contributeurs.</p>
+                <h4 data-key="home.how_it_works.step3_title">3. Suivi en temps réel</h4>
+                <p data-key="home.how_it_works.step3_desc">Les porteurs de projets doivent justifier chaque dépense, visible et vérifiable par tous les contributeurs.</p>
             </div>
         </div>
         
         <div class="text-center mt-4">
             <a href="{% url 'transparence' %}" class="btn btn-primary btn-lg">
-                <i class="bi bi-shield-check me-2"></i>Explorer notre transparence
+                <i class="bi bi-shield-check me-2"></i><span data-key="home.how_it_works.explore">Explorer notre transparence</span>
             </a>
-           <a href="{% url 'savoir_plus' %}" class="btn btn-outline-light btn-lg px-4 text-black" >En savoir plus</a>
-        
+           <a href="{% url 'savoir_plus' %}" class="btn btn-outline-light btn-lg px-4 text-black" >
+               <span data-key="home.hero.learn_more">En savoir plus</span>
+           </a>
         </div>
     </div>
 </section>
@@ -299,6 +300,122 @@
                 animate();
             }
         });
+        
+        // Ajouter les traductions pour cette page
+        if (typeof translations !== 'undefined') {
+            // Fusionner les traductions existantes avec les nouvelles
+            Object.assign(translations.fr, {
+                'home.hero.title': 'Révolutionnez le financement participatif en Afrique de l\'Ouest',
+                'home.hero.subtitle': 'Solid\'Avenir élimine définitivement les risques de défaillance grâce à la blockchain Hedera. Chaque transaction est immuable, traçable et vérifiable par tous.',
+                'home.hero.discover': 'Découvrir les projets',
+                'home.hero.launch': 'Lancer un projet',
+                'home.hero.learn_more': 'En savoir plus',
+                
+                'home.problems.title': 'Défaillances traditionnelles',
+                'home.problems.transparency': 'Manque de transparence',
+                'home.problems.transparency_desc': 'Impossible de tracer l\'utilisation des fonds',
+                'home.problems.fraud': 'Risque de fraude',
+                'home.problems.fraud_desc': 'Projets fictifs ou détournements',
+                'home.problems.audit': 'Absence d\'audit',
+                'home.problems.audit_desc': 'Aucune vérification indépendante',
+                'home.problems.trust': 'Confiance limitée',
+                'home.problems.trust_desc': 'Méfiance des contributeurs potentiels',
+                
+                'home.solutions.title': 'Blockchain & Transparence',
+                'home.solutions.traceability': 'Traçabilité totale',
+                'home.solutions.traceability_desc': 'Chaque FCFA est enregistré sur blockchain',
+                'home.solutions.real_time': 'Audit en temps réel',
+                'home.solutions.real_time_desc': 'Vérification indépendante automatique',
+                'home.solutions.proof': 'Preuves immuables',
+                'home.solutions.proof_desc': 'Aucune modification possible des transactions',
+                'home.solutions.confidence': 'Confiance absolue',
+                'home.solutions.confidence_desc': 'Les contributeurs voient exactement où va leur argent',
+                
+                'home.guarantees.title': 'Nos garanties de transparence',
+                'home.guarantees.tech_title': 'Technologie de Confiance',
+                'home.guarantees.tech_desc': 'Chaque don ou investissement est inscrit sur Hedera Hashgraph, une technologie moderne qui garantit que les enregistrements sont infalsifiables et consultables par tous.',
+                'home.guarantees.tracking_title': 'Suivi Automatisé',
+                'home.guarantees.tracking_desc': 'Nos systèmes contrôlent en continu l\'utilisation des fonds et produisent des alertes en cas d\'écart ou d\'anomalie, pour assurer un usage conforme à l\'objectif annoncé.',
+                'home.guarantees.access_title': 'Accès Ouvert',
+                'home.guarantees.access_desc': 'Toutes les transactions sont accessibles depuis la plateforme. Chacun peut vérifier en toute indépendance l\'origine et l\'usage des fonds.',
+                
+                'home.projects.title': 'Projets certifiés en cours',
+                'home.projects.verified': 'Projet vérifié',
+                'home.projects.no_image': 'Image non disponible',
+                'home.projects.reached': 'atteint',
+                'home.projects.audited': 'Projet audité',
+                'home.projects.contribute': 'Contribuer',
+                'home.projects.none': 'Aucun projet actif pour le moment.',
+                'home.projects.be_first': 'Soyez le premier à proposer un projet',
+                'home.projects.see_all': 'Voir tous les projets certifiés',
+                'home.projects.check_transactions': 'Vérifier les transactions',
+                
+                'home.how_it_works.title': 'Comment nous garantissons la confiance',
+                'home.how_it_works.step1_title': '1. Vérification rigoureuse',
+                'home.how_it_works.step1_desc': 'Chaque projet est audité avant approbation. Seuls les initiatives légitimes et réalisables sont acceptées.',
+                'home.how_it_works.step2_title': '2. Financement tracé',
+                'home.how_it_works.step2_desc': 'Chaque contribution est instantanément enregistrée sur la blockchain Hedera, créant une preuve immuable.',
+                'home.how_it_works.step3_title': '3. Suivi en temps réel',
+                'home.how_it_works.step3_desc': 'Les porteurs de projets doivent justifier chaque dépense, visible et vérifiable par tous les contributeurs.',
+                'home.how_it_works.explore': 'Explorer notre transparence'
+            });
+            
+            Object.assign(translations.en, {
+                'home.hero.title': 'Revolutionize crowdfunding in West Africa',
+                'home.hero.subtitle': 'Solid\'Avenir definitively eliminates the risk of failure thanks to Hedera blockchain. Every transaction is immutable, traceable and verifiable by all.',
+                'home.hero.discover': 'Discover projects',
+                'home.hero.launch': 'Launch a project',
+                'home.hero.learn_more': 'Learn more',
+                
+                'home.problems.title': 'Traditional failures',
+                'home.problems.transparency': 'Lack of transparency',
+                'home.problems.transparency_desc': 'Impossible to track fund usage',
+                'home.problems.fraud': 'Risk of fraud',
+                'home.problems.fraud_desc': 'Fictitious projects or misappropriation',
+                'home.problems.audit': 'Absence of audit',
+                'home.problems.audit_desc': 'No independent verification',
+                'home.problems.trust': 'Limited trust',
+                'home.problems.trust_desc': 'Distrust from potential contributors',
+                
+                'home.solutions.title': 'Blockchain & Transparency',
+                'home.solutions.traceability': 'Complete traceability',
+                'home.solutions.traceability_desc': 'Every FCFA is recorded on blockchain',
+                'home.solutions.real_time': 'Real-time audit',
+                'home.solutions.real_time_desc': 'Automatic independent verification',
+                'home.solutions.proof': 'Immutable proofs',
+                'home.solutions.proof_desc': 'No modification of transactions possible',
+                'home.solutions.confidence': 'Absolute confidence',
+                'home.solutions.confidence_desc': 'Contributors see exactly where their money goes',
+                
+                'home.guarantees.title': 'Our transparency guarantees',
+                'home.guarantees.tech_title': 'Trust Technology',
+                'home.guarantees.tech_desc': 'Every donation or investment is recorded on Hedera Hashgraph, a modern technology that ensures records are unforgeable and accessible to all.',
+                'home.guarantees.tracking_title': 'Automated Tracking',
+                'home.guarantees.tracking_desc': 'Our systems continuously monitor fund usage and produce alerts in case of discrepancies or anomalies, to ensure usage complies with stated objectives.',
+                'home.guarantees.access_title': 'Open Access',
+                'home.guarantees.access_desc': 'All transactions are accessible from the platform. Everyone can independently verify the origin and use of funds.',
+                
+                'home.projects.title': 'Certified ongoing projects',
+                'home.projects.verified': 'Verified project',
+                'home.projects.no_image': 'Image not available',
+                'home.projects.reached': 'reached',
+                'home.projects.audited': 'Audited project',
+                'home.projects.contribute': 'Contribute',
+                'home.projects.none': 'No active projects at the moment.',
+                'home.projects.be_first': 'Be the first to propose a project',
+                'home.projects.see_all': 'See all certified projects',
+                'home.projects.check_transactions': 'Check transactions',
+                
+                'home.how_it_works.title': 'How we guarantee trust',
+                'home.how_it_works.step1_title': '1. Rigorous verification',
+                'home.how_it_works.step1_desc': 'Each project is audited before approval. Only legitimate and feasible initiatives are accepted.',
+                'home.how_it_works.step2_title': '2. Tracked funding',
+                'home.how_it_works.step2_desc': 'Every contribution is instantly recorded on the Hedera blockchain, creating immutable proof.',
+                'home.how_it_works.step3_title': '3. Real-time monitoring',
+                'home.how_it_works.step3_desc': 'Project leaders must justify every expense, visible and verifiable by all contributors.',
+                'home.how_it_works.explore': 'Explore our transparency'
+            });
+        }
     });
 </script>
 {% endblock %}

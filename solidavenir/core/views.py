@@ -551,7 +551,7 @@ def detail_projet(request, audit_uuid):
     # Récupérer des projets similaires (seulement pour les projets actifs)
     projets_similaires = Projet.objects.filter(statut='actif').exclude(audit_uuid=audit_uuid)[:3]
     
-    transactions = Transaction.objects.filter(projet=projet, statut='confirme').order_by('-date_transaction')[:10]
+    transactions = Transaction.objects.filter(projet=projet, statut='confirme').order_by('-date_transaction')[:5]
     
     # Vérifier si l'utilisateur a un wallet configuré
     user_has_wallet = False
@@ -587,7 +587,6 @@ def detail_projet(request, audit_uuid):
     
     # Déterminer si c'est un preview (projet non actif mais visible par le créateur/staff)
     is_preview = projet.statut not in ['actif', 'termine'] and user_can_preview
-    
     return render(request, 'core/projets/detail_projet.html', {
         'projet': projet,
         
@@ -607,31 +606,44 @@ def configurer_wallet(request):
     messages.info(request, "La fonctionnalité de configuration du wallet sera bientôt disponible.")
     return redirect('profil')
 
+import requests
 
 @login_required
 def creer_projet(request):
     """Création d'un nouveau projet avec description des récompenses"""
-    
-    # Déterminer si l'utilisateur est une association
+
     est_association = hasattr(request.user, 'association_profile')
     association = getattr(request.user, 'association_profile', None)
-    
+
     if request.method == 'POST':
         form = CreationProjetForm(request.POST, request.FILES, porteur=request.user)
-        
+
         if form.is_valid():
             try:
                 with transaction.atomic():
                     projet = form.save(commit=False)
-                    
-                    # Lier l'association si l'utilisateur est une association
+
+                    # Lier l'association si applicable
                     if est_association and association:
                         projet.association = association
+
+                    # 🔑 Création du wallet Hedera pour ce projet
+                    try:
+                        
+                        response = requests.post("http://localhost:3001/create-wallet", timeout=10)
+                        if response.status_code == 200:
+                            data = response.json()
+                            projet.hedera_account_id = data.get("accountId")
+                            projet.hedera_private_key = data.get("privateKey")
+                        else:
+                            raise Exception("Échec de création wallet Hedera")
+                    except Exception as e:
+                        logger.error(f"Erreur wallet Hedera: {str(e)}")
+                        messages.error(request, "Le projet a été créé mais sans compte Hedera.")
                     
-                    # Les récompenses sont déjà gérées dans la méthode save() du formulaire
                     projet.save()
-                    
-                    # Journalisation audit
+
+                    # Journalisation
                     AuditLog.objects.create(
                         utilisateur=request.user,
                         action='create',
@@ -641,8 +653,7 @@ def creer_projet(request):
                             'titre': projet.titre,
                             'montant': float(projet.montant_demande),
                             'statut': projet.statut,
-                            'has_recompenses': projet.has_recompenses,
-                            'recompenses_description': projet.recompenses_description,
+                            'wallet': projet.hedera_account_id,
                             'association': str(projet.association.id) if projet.association else None
                         },
                         adresse_ip=request.META.get('REMOTE_ADDR')
@@ -650,7 +661,7 @@ def creer_projet(request):
 
                 messages.success(
                     request,
-                    "Votre projet a été créé avec succès ! Il sera examiné par notre équipe dans les 48h."
+                    "Votre projet a été créé avec succès avec un compte Hedera dédié !"
                 )
                 return redirect('mes_projets')
 
@@ -773,10 +784,26 @@ def supprimer_projet(request, uuid):
 @login_required
 def profil(request):
     """Page de profil utilisateur"""
-    context = {'user': request.user}
     
+    # Récupérer le solde Hedera si le wallet est configuré
+    solde = None
+    if request.user.hedera_account_id:
+        try:
+            response = requests.get(
+                f'http://localhost:3001/balance/{request.user.hedera_account_id}',
+                timeout=5
+            )
+            if response.status_code == 200:
+                solde = response.json().get('balance')
+        except Exception as e:
+            print(f"Erreur récupération solde: {e}")
+
+    context = {'user': request.user,
+               'solde': solde
+               }
+
     # Statistiques pour les donateurs
-    if request.user.user_type == 'donateur':
+    if request.user.user_type == 'contributeur':
         dons = Transaction.objects.filter(
             donateur=request.user, 
             statut='confirme'
@@ -791,7 +818,7 @@ def profil(request):
         context['total_collecte'] = projets.aggregate(
             total=Sum('montant_collecte')
         )['total'] or 0
-    
+
     # Activités récentes (30 derniers jours)
     activites_recentes = AuditLog.objects.filter(
         utilisateur=request.user,
@@ -912,10 +939,10 @@ def detail_membre(request, user_id):
     
     if membre.user_type == 'donateur':
         stats['dons_total'] = Transaction.objects.filter(
-            donateur=membre, statut='confirme'
+            contributeur=membre, statut='confirme'
         ).count()
         stats['montant_donne'] = Transaction.objects.filter(
-            donateur=membre, statut='confirme'
+            contributeur=membre, statut='confirme'
         ).aggregate(total=Sum('montant'))['total'] or 0
     
     context = {
@@ -1886,3 +1913,115 @@ def liste_emails_view(request):
     """Vue pour afficher la liste des emails envoyés"""
     emails = EmailLog.objects.all().order_by('-date_creation')
     return render(request, 'core/emails/liste_email.html', {'emails': emails})
+
+
+import requests
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+
+from django.shortcuts import redirect
+from django.urls import reverse
+from django.contrib import messages
+from django.shortcuts import redirect
+import requests
+
+def get_hbar_to_fcfa():
+    """Retourne le prix actuel de 1 HBAR en USD (USD)"""
+    try:
+        response = requests.get(
+            "https://api.coingecko.com/api/v3/simple/price",
+            params={"ids": "hedera-hashgraph", "vs_currencies": "usd"},
+            timeout=10
+        )
+        data = response.json()
+        return data["hedera-hashgraph"]["usd"]
+    except Exception as e:
+        print(f"Erreur conversion HBAR-FCFA: {e}")
+        return None
+
+
+def convert_fcfa_to_hbar(fcfa_amount):
+    """Convertit un montant FCFA en HBAR"""
+    rate = get_hbar_to_fcfa()
+    if not rate:
+        raise ValueError("Impossible de récupérer le taux de conversion")
+    return fcfa_amount / rate
+
+
+
+@csrf_exempt
+def process_donation(request, project_id):
+    if request.method == 'POST':
+        try:
+            amount = request.POST.get('amount')
+            user = request.user
+            project = Projet.objects.get(id=project_id)
+
+            transfer_data = {
+                'fromAccountId': user.hedera_account_id,
+                'fromPrivateKey': user.hedera_private_key,
+                'toAccountId': project.hedera_account_id,
+                'amount': float(amount)
+            }
+
+            response = requests.post('http://localhost:3001/transfer', json=transfer_data, timeout=30)
+
+            if response.status_code == 200:
+                result = response.json()
+
+                transaction = Transaction.objects.create(
+                    user=user,
+                    montant=amount,
+                    hedera_transaction_hash=result['transactionId'],
+                    contributeur=user,
+                    projet=project,
+                    statut='confirme' if result['success'] else 'erreur'
+                )
+
+                # Mettre à jour le montant collecté du projet
+                if transaction.statut == 'confirme':
+                    project.montant_collecte = (
+                        project.transaction_set.filter(statut='confirme')
+                        .aggregate(total=Sum('montant'))['total'] or 0
+                    )
+                    project.save(update_fields=['montant_collecte'])
+
+                messages.success(request, f"Votre don de {amount} HBAR a bien été effectué ✅")
+                return redirect('detail_projet', audit_uuid=project.audit_uuid)
+
+            else:
+                messages.error(request, "Erreur lors du transfert ❌")
+                return redirect('detail_projet', audit_uuid=project.audit_uuid)
+
+        except Exception as e:
+            messages.error(request, f"Erreur: {str(e)}")
+            return redirect('detail_projet', audit_uuid=project.audit_uuid)
+
+    messages.warning(request, "Méthode non autorisée")
+    return redirect('detail_projet', audit_uuid=project.audit_uuid)
+
+
+def voir_wallet(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    # S'assurer que l'utilisateur a un wallet
+    request.user.ensure_wallet()
+    
+    # Obtenir le solde actuel
+    solde = None
+    try:
+        response = requests.get(
+            f'http://localhost:3001/balance/{request.user.hedera_account_id}',
+            timeout=5
+        )
+        if response.status_code == 200:
+            solde = response.json().get('balance')
+    except Exception as e:
+        print(f"Erreur récupération solde: {e}")
+    
+    return render(request, 'core/hedera/wallet_detail.html', {
+        'solde': solde,
+        'user': request.user
+    })

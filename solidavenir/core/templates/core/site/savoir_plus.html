@@ -7,29 +7,28 @@
     <!-- En-tête -->
     <div class="row mb-5">
         <div class="col-lg-12 text-center">
-            <h1 class="display-4 fw-bold section-title">Notre Technologie: La Transparence Garantie</h1>
-            <p class="lead">Chez Solid'Avenir, nous utilisons une technologie de pointe pour garantir que chaque contribution soit utilisée exactement comme prévu, avec une transparence totale.</p>
+            <h1 class="display-4 fw-bold section-title" data-key="tech.title">Notre Technologie: La Transparence Garantie</h1>
+            <p class="lead" data-key="tech.subtitle">Chez Solid'Avenir, nous utilisons une technologie de pointe pour garantir que chaque contribution soit utilisée exactement comme prévu, avec une transparence totale.</p>
         </div>
     </div>
 
     <!-- Analogie pour expliquer la technologie -->
     <div class="row mb-5 bg-light  rounded">
         <div class="col-lg-12">
-            <h2 class="mb-4 section-title">Imaginez un grand livre de comptes public et infalsifiable</h2>
+            <h2 class="mb-4 section-title" data-key="tech.analogy.title">Imaginez un grand livre de comptes public et infalsifiable</h2>
             <div class="row">
                 <div class="col-md-6">
-                    <p>Notre technologie fonctionne comme un <strong>grand registre public</strong> où chaque transaction est:</p>
+                    <p data-key="tech.analogy.intro">Notre technologie fonctionne comme un <strong data-key="tech.analogy.strong1">grand registre public</strong> où chaque transaction est:</p>
                     <ul>
-                        <li><strong>Visible par tous</strong> - Comme une vitrine transparente</li>
-                        <li><strong>Impossible à modifier</strong> - Comme une écriture à l'encre indélébile</li>
-                        <li><strong>Vérifiable à tout moment</strong> - Comme un reçu numéroté et daté</li>
+                        <li><strong data-key="tech.analogy.item1.strong">Visible par tous</strong> - <span data-key="tech.analogy.item1.text">Comme une vitrine transparente</span></li>
+                        <li><strong data-key="tech.analogy.item2.strong">Impossible à modifier</strong> - <span data-key="tech.analogy.item2.text">Comme une écriture à l'encre indélébile</span></li>
+                        <li><strong data-key="tech.analogy.item3.strong">Vérifiable à tout moment</strong> - <span data-key="tech.analogy.item3.text">Comme un reçu numéroté et daté</span></li>
                     </ul>
-                    <p>Contrairement aux systèmes traditionnels où seule une organisation contrôle les données, ici <strong>tout le monde peut vérifier</strong> sans avoir à nous faire confiance aveuglément.</p>
+                    <p data-key="tech.analogy.conclusion">Contrairement aux systèmes traditionnels où seule une organisation contrôle les données, ici <strong data-key="tech.analogy.strong2">tout le monde peut vérifier</strong> sans avoir à nous faire confiance aveuglément.</p>
                 </div>
                 <div class="col-md-6 text-center">
-               
                     <img src="{% static 'images/about/savoir.jpg' %}" alt="Analogie de transparence" class="img-fluid rounded" style="max-height: 250px;">
-                    <p class="mt-2 fst-italic">Chaque action est enregistrée de manière permanente et vérifiable</p>
+                    <p class="mt-2 fst-italic" data-key="tech.analogy.caption">Chaque action est enregistrée de manière permanente et vérifiable</p>
                 </div>
             </div>
         </div>
@@ -38,15 +37,15 @@
     <!-- Explication simple de Web3 et Hedera -->
     <div class="row mb-5">
         <div class="col-lg-12">
-            <h2 class="mb-4 section-title">Des termes techniques expliqués simplement</h2>
+            <h2 class="mb-4 section-title" data-key="tech.explanations.title">Des termes techniques expliqués simplement</h2>
             
             <div class="row">
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 border-0 shadow-sm">
                         <div class="card-body text-center p-4">
                             <i class="bi bi-globe display-4 text-primary mb-3"></i>
-                            <h3 class="h5">Web3</h3>
-                            <p class="card-text">La nouvelle génération d'internet où <strong>vous contrôlez vos données</strong> au lieu des grandes entreprises. Comme passer d'un système où une seule personne tient les comptes à un système où tout le monde a une copie vérifiable.</p>
+                            <h3 class="h5" data-key="tech.explanations.web3.title">Web3</h3>
+                            <p class="card-text" data-key="tech.explanations.web3.description">La nouvelle génération d'internet où <strong>vous contrôlez vos données</strong> au lieu des grandes entreprises. Comme passer d'un système où une seule personne tient les comptes à un système où tout le monde a une copie vérifiable.</p>
                         </div>
                     </div>
                 </div>
@@ -55,8 +54,8 @@
                     <div class="card h-100 border-0 shadow-sm">
                         <div class="card-body text-center p-4">
                             <i class="bi bi-diagram-3 display-4 text-primary mb-3"></i>
-                            <h3 class="h5">Décentralisé</h3>
-                            <p class="card-text">Au lieu de stocker les informations à un seul endroit (risque de perte ou manipulation), les données sont <strong>copiées et vérifiées par de nombreux ordinateurs</strong> indépendants à travers le monde. Comme un témoignage multiple et concordant.</p>
+                            <h3 class="h5" data-key="tech.explanations.decentralized.title">Décentralisé</h3>
+                            <p class="card-text" data-key="tech.explanations.decentralized.description">Au lieu de stocker les informations à un seul endroit (risque de perte ou manipulation), les données sont <strong>copiées et vérifiées par de nombreux ordinateurs</strong> indépendants à travers le monde. Comme un témoignage multiple et concordant.</p>
                         </div>
                     </div>
                 </div>
@@ -65,8 +64,8 @@
                     <div class="card h-100 border-0 shadow-sm">
                         <div class="card-body text-center p-4">
                             <i class="bi bi-shield-check display-4 text-primary mb-3"></i>
-                            <h3 class="h5">Hedera Hashgraph</h3>
-                            <p class="card-text">Notre technologie de registre qui combine <strong>vitesse, sécurité et faible impact environnemental</strong>. Plus rapide et plus écologique que les blockchains traditionnelles, elle nous permet de garantir la traçabilité sans frais élevés.</p>
+                            <h3 class="h5" data-key="tech.explanations.hedera.title">Hedera Hashgraph</h3>
+                            <p class="card-text" data-key="tech.explanations.hedera.description">Notre technologie de registre qui combine <strong>vitesse, sécurité et faible impact environnemental</strong>. Plus rapide et plus écologique que les blockchains traditionnelles, elle nous permet de garantir la traçabilité sans frais élevés.</p>
                         </div>
                     </div>
                 </div>
@@ -77,7 +76,7 @@
     <!-- Comment ça marche concrètement -->
     <div class="row mb-5">
         <div class="col-lg-12">
-            <h2 class="mb-4 section-title">Concrètement, comment ça se passe ?</h2>
+            <h2 class="mb-4 section-title" data-key="tech.process.title">Concrètement, comment ça se passe ?</h2>
             
             <div class="row">
                 <div class="col-md-6">
@@ -86,8 +85,8 @@
                             <span class="display-6 text-primary fw-bold">1</span>
                         </div>
                         <div class="flex-grow-1 ms-4">
-                            <h5>Vous faites un don ou investissez</h5>
-                            <p>Votre contribution est instantanément enregistrée sur le registre public avec un identifiant unique.</p>
+                            <h5 data-key="tech.process.step1.title">Vous faites un don ou investissez</h5>
+                            <p data-key="tech.process.step1.description">Votre contribution est instantanément enregistrée sur le registre public avec un identifiant unique.</p>
                         </div>
                     </div>
                     
@@ -96,8 +95,8 @@
                             <span class="display-6 text-primary fw-bold">2</span>
                         </div>
                         <div class="flex-grow-1 ms-4">
-                            <h5>Le porteur de projet utilise les fonds</h5>
-                            <p>Chaque dépense est documentée (factures, photos) et enregistrée sur le registre avec un lien vers votre contribution.</p>
+                            <h5 data-key="tech.process.step2.title">Le porteur de projet utilise les fonds</h5>
+                            <p data-key="tech.process.step2.description">Chaque dépense est documentée (factures, photos) et enregistrée sur le registre avec un lien vers votre contribution.</p>
                         </div>
                     </div>
                     
@@ -106,19 +105,18 @@
                             <span class="display-6 text-primary fw-bold">3</span>
                         </div>
                         <div class="flex-grow-1 ms-4">
-                            <h5>Vous suivez en temps réel</h5>
-                            <p>À tout moment, vous pouvez voir exactement comment chaque FCFA est utilisé, avec les preuves associées.</p>
+                            <h5 data-key="tech.process.step3.title">Vous suivez en temps réel</h5>
+                            <p data-key="tech.process.step3.description">À tout moment, vous pouvez voir exactement comment chaque FCFA est utilisé, avec les preuves associées.</p>
                         </div>
                     </div>
                 </div>
                 
                 <div class="col-md-6 d-flex align-items-center justify-content-center">
-    <img src="{% static 'images/about/don.jpg' %}" 
-         alt="Processus de transparence" 
-         class="img-fluid rounded shadow" 
-         style="max-height: 350px;">
-</div>
-
+                    <img src="{% static 'images/about/don.jpg' %}" 
+                         alt="Processus de transparence" 
+                         class="img-fluid rounded shadow" 
+                         style="max-height: 350px;">
+                </div>
             </div>
         </div>
     </div>
@@ -126,54 +124,54 @@
     <!-- Avantages pour les utilisateurs -->
     <div class="row mb-5 bg-light p-5 rounded">
         <div class="col-lg-12 text-center mb-4">
-            <h2 class="section-title">Les avantages pour vous</h2>
+            <h2 class="section-title" data-key="tech.benefits.title">Les avantages pour vous</h2>
         </div>
         
         <div class="col-md-4 mb-4 text-center">
             <div class="trust-badge">
                 <i class="bi bi-eye display-4 text-primary mb-3"></i>
-                <h4>Transparence totale</h4>
-                <p>Plus de doutes sur l'utilisation de votre argent. Chaque dépense est documentée et vérifiable.</p>
+                <h4 data-key="tech.benefits.transparency.title">Transparence totale</h4>
+                <p data-key="tech.benefits.transparency.description">Plus de doutes sur l'utilisation de votre argent. Chaque dépense est documentée et vérifiable.</p>
             </div>
         </div>
         
         <div class="col-md-4 mb-4 text-center">
             <div class="trust-badge">
                 <i class="bi bi-shield-check display-4 text-primary mb-3"></i>
-                <h4>Sécurité renforcée</h4>
-                <p>Les enregistrements sont infalsifiables et distribués à travers le monde, protégés contre toute manipulation.</p>
+                <h4 data-key="tech.benefits.security.title">Sécurité renforcée</h4>
+                <p data-key="tech.benefits.security.description">Les enregistrements sont infalsifiables et distribués à travers le monde, protégés contre toute manipulation.</p>
             </div>
         </div>
         
         <div class="col-md-4 mb-4 text-center">
             <div class="trust-badge">
                 <i class="bi bi-speedometer2 display-4 text-primary mb-3"></i>
-                <h4>Rapidité et efficacité</h4>
-                <p>Des transactions rapides avec des frais minimes, pour que votre argent aille principalement aux projets.</p>
+                <h4 data-key="tech.benefits.speed.title">Rapidité et efficacité</h4>
+                <p data-key="tech.benefits.speed.description">Des transactions rapides avec des frais minimes, pour que votre argent aille principalement aux projets.</p>
             </div>
         </div>
         
         <div class="col-md-4 mb-4 text-center">
             <div class="trust-badge">
                 <i class="bi bi-tree display-4 text-primary mb-3"></i>
-                <h4>Respect de l'environnement</h4>
-                <p>Notre technologie consomme très peu d'énergie comparée aux solutions traditionnelles.</p>
+                <h4 data-key="tech.benefits.environment.title">Respect de l'environnement</h4>
+                <p data-key="tech.benefits.environment.description">Notre technologie consomme très peu d'énergie comparée aux solutions traditionnelles.</p>
             </div>
         </div>
         
         <div class="col-md-4 mb-4 text-center">
             <div class="trust-badge">
                 <i class="bi bi-people display-4 text-primary mb-3"></i>
-                <h4>Contrôle partagé</h4>
-                <p>Plus de dépendance à un seul intermédiaire. Le système est vérifiable par tous.</p>
+                <h4 data-key="tech.benefits.control.title">Contrôle partagé</h4>
+                <p data-key="tech.benefits.control.description">Plus de dépendance à un seul intermédiaire. Le système est vérifiable par tous.</p>
             </div>
         </div>
         
         <div class="col-md-4 mb-4 text-center">
             <div class="trust-badge">
                 <i class="bi bi-globe2 display-4 text-primary mb-3"></i>
-                <h4>Accessibilité mondiale</h4>
-                <p>La diaspora peut contribuer et suivre les projets en temps réel, où qu'elle se trouve.</p>
+                <h4 data-key="tech.benefits.accessibility.title">Accessibilité mondiale</h4>
+                <p data-key="tech.benefits.accessibility.description">La diaspora peut contribuer et suivre les projets en temps réel, où qu'elle se trouve.</p>
             </div>
         </div>
     </div>
@@ -181,17 +179,17 @@
     <!-- FAQ -->
     <div class="row mb-5">
         <div class="col-lg-12">
-            <h2 class="mb-4 section-title">Questions fréquentes</h2>
+            <h2 class="mb-4 section-title" data-key="tech.faq.title">Questions fréquentes</h2>
             
             <div class="accordion" id="faqAccordion">
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="headingOne">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne" data-key="tech.faq.question1">
                             Dois-je comprendre la technologie pour utiliser Solid'Avenir ?
                         </button>
                     </h2>
                     <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body">
+                        <div class="accordion-body" data-key="tech.faq.answer1">
                             <strong>Absolument pas.</strong> Notre interface est conçue pour être simple et intuitive. La technologie complexe fonctionne en arrière-plan pour vous garantir tranquillité et confiance, sans que vous ayez besoin de comprendre son fonctionnement.
                         </div>
                     </div>
@@ -199,12 +197,12 @@
                 
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="headingTwo">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" data-key="tech.faq.question2">
                             Comment puis-je vérifier concrètement où va mon argent ?
                         </button>
                     </h2>
                     <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body">
+                        <div class="accordion-body" data-key="tech.faq.answer2">
                             Chaque contribution reçoit un <strong>identifiant unique</strong> que vous pouvez utiliser pour suivre exactement comment votre argent est dépensé. Vous verrez les preuves concrètes (factures, photos de réalisations) associées à votre don, accessibles depuis votre espace personnel.
                         </div>
                     </div>
@@ -212,12 +210,12 @@
                 
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="headingThree">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree" data-key="tech.faq.question3">
                             Est-ce que cette technologie coûte plus cher ?
                         </button>
                     </h2>
                     <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body">
+                        <div class="accordion-body" data-key="tech.faq.answer3">
                             Au contraire ! Hedera Hashgraph permet des transactions <strong>beaucoup moins chères</strong> que les systèmes traditionnels. Cela signifie que plus de votre argent va directement aux projets que vous soutenez, plutôt que de payer des frais administratifs élevés.
                         </div>
                     </div>
@@ -229,11 +227,143 @@
     <!-- CTA -->
     <div class="row mb-5">
         <div class="col-lg-12 text-center bg-primary p-5 rounded text-white">
-            <h2 class="mb-3">Prêt à contribuer en toute confiance ?</h2>
-            <p class="lead mb-4">Rejoignez notre communauté de contributeurs qui font la différence en toute transparence.</p>
-            <a href="{% url 'liste_projets' %}" class="btn btn-light btn-lg me-3">Découvrir les projets</a>
-            <a href="{% url 'inscription' %}" class="btn btn-outline-light btn-lg">Créer mon compte</a>
+            <h2 class="mb-3" data-key="tech.cta.title">Prêt à contribuer en toute confiance ?</h2>
+            <p class="lead mb-4" data-key="tech.cta.subtitle">Rejoignez notre communauté de contributeurs qui font la différence en toute transparence.</p>
+            <a href="{% url 'liste_projets' %}" class="btn btn-light btn-lg me-3" data-key="tech.cta.discover">Découvrir les projets</a>
+            <a href="{% url 'inscription' %}" class="btn btn-outline-light btn-lg" data-key="tech.cta.create_account">Créer mon compte</a>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ajouter les traductions pour cette page
+        if (typeof translations !== 'undefined') {
+            // Fusionner les traductions existantes avec les nouvelles
+            Object.assign(translations.fr, {
+                'tech.title': 'Notre Technologie: La Transparence Garantie',
+                'tech.subtitle': 'Chez Solid\'Avenir, nous utilisons une technologie de pointe pour garantir que chaque contribution soit utilisée exactement comme prévu, avec une transparence totale.',
+                
+                'tech.analogy.title': 'Imaginez un grand livre de comptes public et infalsifiable',
+                'tech.analogy.intro': 'Notre technologie fonctionne comme un',
+                'tech.analogy.strong1': 'grand registre public',
+                'tech.analogy.item1.strong': 'Visible par tous',
+                'tech.analogy.item1.text': 'Comme une vitrine transparente',
+                'tech.analogy.item2.strong': 'Impossible à modifier',
+                'tech.analogy.item2.text': 'Comme une écriture à l\'encre indélébile',
+                'tech.analogy.item3.strong': 'Vérifiable à tout moment',
+                'tech.analogy.item3.text': 'Comme un reçu numéroté et daté',
+                'tech.analogy.conclusion': 'Contrairement aux systèmes traditionnels où seule une organisation contrôle les données, ici',
+                'tech.analogy.strong2': 'tout le monde peut vérifier',
+                'tech.analogy.caption': 'Chaque action est enregistrée de manière permanente et vérifiable',
+                
+                'tech.explanations.title': 'Des termes techniques expliqués simplement',
+                'tech.explanations.web3.title': 'Web3',
+                'tech.explanations.web3.description': 'La nouvelle génération d\'internet où vous contrôlez vos données au lieu des grandes entreprises. Comme passer d\'un système où une seule personne tient les comptes à un système où tout le monde a une copie vérifiable.',
+                'tech.explanations.decentralized.title': 'Décentralisé',
+                'tech.explanations.decentralized.description': 'Au lieu de stocker les informations à un seul endroit (risque de perte ou manipulation), les données sont copiées et vérifiées par de nombreux ordinateurs indépendants à travers le monde. Comme un témoignage multiple et concordant.',
+                'tech.explanations.hedera.title': 'Hedera Hashgraph',
+                'tech.explanations.hedera.description': 'Notre technologie de registre qui combine vitesse, sécurité et faible impact environnemental. Plus rapide et plus écologique que les blockchains traditionnelles, elle nous permet de garantir la traçabilité sans frais élevés.',
+                
+                'tech.process.title': 'Concrètement, comment ça se passe ?',
+                'tech.process.step1.title': 'Vous faites un don ou investissez',
+                'tech.process.step1.description': 'Votre contribution est instantanément enregistrée sur le registre public avec un identifiant unique.',
+                'tech.process.step2.title': 'Le porteur de projet utilise les fonds',
+                'tech.process.step2.description': 'Chaque dépense est documentée (factures, photos) et enregistrée sur le registre avec un lien vers votre contribution.',
+                'tech.process.step3.title': 'Vous suivez en temps réel',
+                'tech.process.step3.description': 'À tout moment, vous pouvez voir exactement comment chaque FCFA est utilisé, avec les preuves associées.',
+                
+                'tech.benefits.title': 'Les avantages pour vous',
+                'tech.benefits.transparency.title': 'Transparence totale',
+                'tech.benefits.transparency.description': 'Plus de doutes sur l\'utilisation de votre argent. Chaque dépense est documentée et vérifiable.',
+                'tech.benefits.security.title': 'Sécurité renforcée',
+                'tech.benefits.security.description': 'Les enregistrements sont infalsifiables et distribués à travers le monde, protégés contre toute manipulation.',
+                'tech.benefits.speed.title': 'Rapidité et efficacité',
+                'tech.benefits.speed.description': 'Des transactions rapides avec des frais minimes, pour que votre argent aille principalement aux projets.',
+                'tech.benefits.environment.title': 'Respect de l\'environnement',
+                'tech.benefits.environment.description': 'Notre technologie consomme très peu d\'énergie comparée aux solutions traditionnelles.',
+                'tech.benefits.control.title': 'Contrôle partagé',
+                'tech.benefits.control.description': 'Plus de dépendance à un seul intermédiaire. Le système est vérifiable par tous.',
+                'tech.benefits.accessibility.title': 'Accessibilité mondiale',
+                'tech.benefits.accessibility.description': 'La diaspora peut contribuer et suivre les projets en temps réel, où qu\'elle se trouve.',
+                
+                'tech.faq.title': 'Questions fréquentes',
+                'tech.faq.question1': 'Dois-je comprendre la technologie pour utiliser Solid\'Avenir ?',
+                'tech.faq.answer1': 'Absolument pas. Notre interface est conçue pour être simple et intuitive. La technologie complexe fonctionne en arrière-plan pour vous garantir tranquillité et confiance, sans que vous ayez besoin de comprendre son fonctionnement.',
+                'tech.faq.question2': 'Comment puis-je vérifier concrètement où va mon argent ?',
+                'tech.faq.answer2': 'Chaque contribution reçoit un identifiant unique que vous pouvez utiliser pour suivre exactement comment votre argent est dépensé. Vous verrez les preuves concrètes (factures, photos de réalisations) associées à votre don, accessibles depuis votre espace personnel.',
+                'tech.faq.question3': 'Est-ce que cette technologie coûte plus cher ?',
+                'tech.faq.answer3': 'Au contraire ! Hedera Hashgraph permet des transactions beaucoup moins chères que les systèmes traditionnels. Cela signifie que plus de votre argent va directement aux projets que vous soutenez, plutôt que de payer des frais administratifs élevés.',
+                
+                'tech.cta.title': 'Prêt à contribuer en toute confiance ?',
+                'tech.cta.subtitle': 'Rejoignez notre communauté de contributeurs qui font la différence en toute transparence.',
+                'tech.cta.discover': 'Découvrir les projets',
+                'tech.cta.create_account': 'Créer mon compte'
+            });
+            
+            Object.assign(translations.en, {
+                'tech.title': 'Our Technology: Guaranteed Transparency',
+                'tech.subtitle': 'At Solid\'Avenir, we use cutting-edge technology to ensure that every contribution is used exactly as intended, with total transparency.',
+                
+                'tech.analogy.title': 'Imagine a public, unfalsifiable accounting ledger',
+                'tech.analogy.intro': 'Our technology works like a',
+                'tech.analogy.strong1': 'public registry',
+                'tech.analogy.item1.strong': 'Visible to all',
+                'tech.analogy.item1.text': 'Like a transparent showcase',
+                'tech.analogy.item2.strong': 'Impossible to modify',
+                'tech.analogy.item2.text': 'Like writing with indelible ink',
+                'tech.analogy.item3.strong': 'Verifiable at any time',
+                'tech.analogy.item3.text': 'Like a numbered and dated receipt',
+                'tech.analogy.conclusion': 'Unlike traditional systems where only one organization controls the data, here',
+                'tech.analogy.strong2': 'everyone can verify',
+                'tech.analogy.caption': 'Every action is recorded permanently and verifiably',
+                
+                'tech.explanations.title': 'Technical terms explained simply',
+                'tech.explanations.web3.title': 'Web3',
+                'tech.explanations.web3.description': 'The new generation of the internet where you control your data instead of big companies. Like moving from a system where one person keeps the accounts to a system where everyone has a verifiable copy.',
+                'tech.explanations.decentralized.title': 'Decentralized',
+                'tech.explanations.decentralized.description': 'Instead of storing information in one place (risk of loss or manipulation), data is copied and verified by many independent computers around the world. Like multiple consistent testimonies.',
+                'tech.explanations.hedera.title': 'Hedera Hashgraph',
+                'tech.explanations.hedera.description': 'Our ledger technology that combines speed, security and low environmental impact. Faster and more eco-friendly than traditional blockchains, it allows us to guarantee traceability without high fees.',
+                
+                'tech.process.title': 'Concretely, how does it work?',
+                'tech.process.step1.title': 'You make a donation or investment',
+                'tech.process.step1.description': 'Your contribution is instantly recorded on the public registry with a unique identifier.',
+                'tech.process.step2.title': 'The project leader uses the funds',
+                'tech.process.step2.description': 'Each expense is documented (invoices, photos) and recorded on the registry with a link to your contribution.',
+                'tech.process.step3.title': 'You track in real time',
+                'tech.process.step3.description': 'At any time, you can see exactly how every FCFA is used, with associated evidence.',
+                
+                'tech.benefits.title': 'Benefits for you',
+                'tech.benefits.transparency.title': 'Total transparency',
+                'tech.benefits.transparency.description': 'No more doubts about how your money is used. Every expense is documented and verifiable.',
+                'tech.benefits.security.title': 'Enhanced security',
+                'tech.benefits.security.description': 'Records are unforgeable and distributed worldwide, protected against any manipulation.',
+                'tech.benefits.speed.title': 'Speed and efficiency',
+                'tech.benefits.speed.description': 'Fast transactions with minimal fees, so your money goes primarily to the projects.',
+                'tech.benefits.environment.title': 'Environmental respect',
+                'tech.benefits.environment.description': 'Our technology consumes very little energy compared to traditional solutions.',
+                'tech.benefits.control.title': 'Shared control',
+                'tech.benefits.control.description': 'No more dependence on a single intermediary. The system is verifiable by everyone.',
+                'tech.benefits.accessibility.title': 'Global accessibility',
+                'tech.benefits.accessibility.description': 'The diaspora can contribute and track projects in real time, wherever they are.',
+                
+                'tech.faq.title': 'Frequently asked questions',
+                'tech.faq.question1': 'Do I need to understand the technology to use Solid\'Avenir?',
+                'tech.faq.answer1': 'Absolutely not. Our interface is designed to be simple and intuitive. The complex technology works in the background to give you peace of mind and confidence, without you needing to understand how it works.',
+                'tech.faq.question2': 'How can I concretely verify where my money goes?',
+                'tech.faq.answer2': 'Each contribution receives a unique identifier that you can use to track exactly how your money is spent. You will see concrete evidence (invoices, photos of achievements) associated with your donation, accessible from your personal space.',
+                'tech.faq.question3': 'Does this technology cost more?',
+                'tech.faq.answer3': 'On the contrary! Hedera Hashgraph allows transactions much cheaper than traditional systems. This means more of your money goes directly to the projects you support, rather than paying high administrative fees.',
+                
+                'tech.cta.title': 'Ready to contribute with confidence?',
+                'tech.cta.subtitle': 'Join our community of contributors making a difference with total transparency.',
+                'tech.cta.discover': 'Discover projects',
+                'tech.cta.create_account': 'Create my account'
+            });
+        }
+    });
+</script>
 {% endblock %}

@@ -4,6 +4,17 @@
 {% block title %}{{ projet.titre }} - Plateforme de Financement Participatif{% endblock %}
 
 {% block content %}
+{% if messages %}
+  <div class="mt-3">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
 <div class="container py-5">
     {% if is_preview %}
 <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -92,8 +103,8 @@
                     </div>
                     
                     <div class="d-flex justify-content-between mb-3">
-                        <span><strong>{{ projet.montant_collecte|floatformat:0 }} FCFA</strong> collectés</span>
-                        <span><strong>{{ projet.montant_demande|floatformat:0 }} FCFA</strong> demandés</span>
+                        <span><strong>{{ projet.montant_collecte|floatformat:0 }} ℏ HBAR</strong> collectés</span>
+                        <span><strong>{{ projet.montant_demande|floatformat:0 }} ℏ HBAR</strong> demandés</span>
                     </div>
                     
                     {% if projet.statut == 'actif' %}
@@ -125,32 +136,57 @@
                   <p>{{ recompenses|linebreaks }}</p>
                 </div>
             </div>
-            
 
-            <!-- Derniers dons -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h3>Derniers soutiens</h3>
-                </div>
-                <div class="card-body">
-                    {% if transactions %}
-                    <div class="list-group list-group-flush">
-                        {% for transaction in transactions %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>{{ transaction.donateur_anonymise }}</strong>
-                                <small class="text-muted d-block">{{ transaction.date_transaction|date:"d/m/Y H:i" }}</small>
-                            </div>
-                            <span class="badge bg-success rounded-pill">{{ transaction.montant|floatformat:0 }} FCFA</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <p class="text-muted text-center">Aucun don pour le moment. Soyez le premier à soutenir ce projet !</p>
-                    {% endif %}
-                </div>
-            </div>
+   <div class="card mb-4">
+    <div class="card-header">
+        <h3>Derniers soutiens</h3>
+        
+    </div>
+    <div class="card-body">
+        {% if transactions %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        
+                        <th>Date</th>
+                        <th>Transaction</th>
+                        <th class="text-end">Montant</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+
+                        <td>{{ transaction.date_transaction|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            {% if transaction.hedera_transaction_hash %}
+                            <a href="https://hashscan.io/testnet/transaction/{{ transaction.hedera_transaction_hash }}" 
+                               target="_blank" rel="noopener" class="text-decoration-none">
+                                <i class="bi bi-link-45deg"></i>
+                                {{ transaction.hedera_transaction_hash|truncatechars:15 }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">En attente...</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <span class="badge bg-success">{{ transaction.montant|floatformat:0 }} ℏ HBAR</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+        {% else %}
+        <p class="text-muted text-center">Aucun don pour le moment. Soyez le premier à soutenir ce projet !</p>
+        {% endif %}
+    </div>
+</div>
+
+        </div>
+
+<!-- Sidebar - Formulaire de don -->
 <!-- Sidebar - Formulaire de don -->
 <div class="col-lg-4">
     <div class="card donation-card shadow">
@@ -159,36 +195,62 @@
         </div>
         <div class="card-body">
             {% if user.is_authenticated and projet.est_actif %}
-  {% if user_has_wallet %}
-    {# Afficher le formulaire de contribution normal #}
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit" class="btn btn-primary">Contribuer</button>
-    </form>
-  {% else %}
-    {# L'utilisateur n'a pas de wallet configuré #}
-    <div class="alert alert-info">
-      <p>Pour contribuer à ce projet, vous devez configurer votre wallet.</p>
-      <a href="{% url 'configurer_wallet' %}" class="btn btn-outline-primary">
-        Configurer mon wallet
-      </a>
-    </div>
-  {% endif %}
-
+                {% if user.has_active_wallet %}
+                    {# Afficher le formulaire de contribution normal #}
+                    <form method="post" action="{% url 'process_donation' projet.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Montant (HBAR)</label>
+                            <input type="number" class="form-control" id="amount" name="amount" 
+                                   min="1" step="1" required placeholder="10">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-heart-fill me-2"></i>Contribuer
+                        </button>
+                    </form>
+                    
+                    <!-- Info wallet -->
+                    <div class="mt-3 p-2 bg-light rounded small">
+                        <i class="bi bi-wallet2 text-success me-1"></i>
+                        Votre wallet: {{ user.hedera_account_id|truncatechars:12 }}
+                        <br>
+                        <a href="{% url 'voir_wallet' %}" class="text-decoration-none small">
+                            Voir les détails
+                        </a>
+                    </div>
+                {% else %}
+                    {# Wallet en cours de création #}
+                    <div class="alert alert-info">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span>Configuration automatique de votre wallet...</span>
+                        </div>
+                        <p class="mt-2 mb-0 small">Veuillez rafraîchir la page dans quelques secondes.</p>
+                    </div>
+                {% endif %}
             {% else %}
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle me-2"></i>
-                    Ce projet n'accepte pas encore dons.
-                    {% if projet.statut == 'termine' %}
-                        Le projet a atteint son objectif de financement.
-                    {% elif projet.statut == 'annule' %}
-                        Le projet a été annulé.
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'connexion' %}?next={{ request.path }}" class="text-decoration-none">
+                            Connectez-vous
+                        </a> pour contribuer à ce projet.
+                    {% elif not projet.est_actif %}
+                        Ce projet n'accepte pas encore de dons.
+                        {% if projet.statut == 'termine' %}
+                            Le projet a atteint son objectif de financement.
+                        {% elif projet.statut == 'annule' %}
+                            Le projet a été annulé.
+                        {% endif %}
                     {% endif %}
                 </div>
             {% endif %}
         </div>
     </div>
+
+    
 <!-- Informations du porteur -->
 <div class="card mt-4">
     <div class="card-header bg-light">
@@ -335,53 +397,9 @@
         {% endif %}
 
         <!-- Statistiques -->
-        <div class="border-top pt-3">
-            <h6 class="text-primary mb-3">
-                <i class="bi bi-graph-up me-1"></i>Activité sur Solid'Avenir
-            </h6>
-            
-            <div class="row text-center">
-                {% if projet.est_associe_a_une_association %}
-                    <div class="col-4">
-                        <div class="stat-number text-primary fw-bold">
-                            {{ projet.association.projets.count }}
-                        </div>
-                        <div class="stat-label small text-muted">Projets</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="stat-number text-success fw-bold">
-                            {{ projet.association.get_total_collecte|floatformat:0 }} FCFA
-                        </div>
-                        <div class="stat-label small text-muted">Collectés</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="stat-number text-info fw-bold">
-                            {{ projet.association.get_nombre_contributeurs }}
-                        </div>
-                        <div class="stat-label small text-muted">Contributeurs</div>
-                    </div>
-                {% else %}
-                    <div class="col-4">
-                        <div class="stat-number text-primary fw-bold">
-                            {{ projet.porteur.get_nombre_projets_lances }}
-                        </div>
-                        <div class="stat-label small text-muted">Projets</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="stat-number text-success fw-bold">
-                            {{ projet.porteur.get_total_collecte|floatformat:0 }} FCFA
-                        </div>
-                        <div class="stat-label small text-muted">Collectés</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="stat-number text-info fw-bold">
-                            {{ projet.porteur.get_taux_reussite }}%
-                        </div>
-                        <div class="stat-label small text-muted">Réussite</div>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
+      
+                
+          
 
         <!-- Actions -->
         <div class="text-center mt-4">
@@ -459,6 +477,7 @@
     </div>
     {% endif %}
 </div>
+
 {% endblock %}
 
 {% block extra_css %}

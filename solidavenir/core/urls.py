@@ -48,5 +48,8 @@ urlpatterns = [
 
     path('envoyer-email/', views.envoyer_email_view, name='envoyer_email'),
     path('liste-emails/', views.liste_emails_view, name='liste_emails'),
-
+     path('donation/<int:project_id>/process/', views.process_donation, name='process_donation'),
+    
+    # URL pour voir le wallet
+    path('wallet/', views.voir_wallet, name='voir_wallet'),
 ]

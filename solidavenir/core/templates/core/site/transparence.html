@@ -71,7 +71,7 @@
         <div class="col-md-3 col-sm-6 mb-3">
             <div class="card bg-primary text-white text-center">
                 <div class="card-body">
-                    <h5 class="card-title">{{ stats.total_dons|intcomma }} FCFA</h5>
+                    <h5 class="card-title">{{ stats.total_dons|intcomma }} ℏ HBAR</h5>
                     <p class="card-text">Total des fonds échangés</p>
                 </div>
             </div>
@@ -118,7 +118,7 @@
                                 <h6 class="mb-0">{{ projet.titre }}</h6>
                                 <small class="text-muted">{{ projet.nombre_dons }} contributions</small>
                             </div>
-                            <span class="badge bg-primary rounded-pill">{{ projet.total_collecte|intcomma }} FCFA</span>
+                            <span class="badge bg-primary rounded-pill">{{ projet.total_collecte|intcomma }} ℏ HBAR</span>
                         </li>
                         {% empty %}
                         <li class="list-group-item text-center text-muted py-4">
@@ -144,7 +144,7 @@
                                 <h6 class="mb-0">{{ contributeur.username }}</h6>
                                 <small class="text-muted">{{ contributeur.nombre_dons }} contributions</small>
                             </div>
-                            <span class="badge bg-success rounded-pill">{{ contributeur.total_dons|intcomma }} FCFA</span>
+                            <span class="badge bg-success rounded-pill">{{ contributeur.total_dons|intcomma }} ℏ HBAR</span>
                         </li>
                         {% empty %}
                         <li class="list-group-item text-center text-muted py-4">
@@ -188,7 +188,7 @@
                                             {{ transaction.projet.titre }}
                                         </a>
                                     </td>
-                                    <td class="text-end">{{ transaction.montant|intcomma }} FCFA</td>
+                                    <td class="text-end">{{ transaction.montant|intcomma }} ℏ HBAR</td>
                                     <td>
                                         <span class="badge bg-{% if transaction.statut == 'confirme' %}success{% else %}warning{% endif %}">
                                             {{ transaction.get_statut_display }}

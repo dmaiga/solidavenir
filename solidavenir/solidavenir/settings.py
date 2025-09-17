@@ -13,8 +13,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from django.utils.translation import gettext_lazy as _
 from decimal import Decimal
+import os
+import environ
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 
 # Quick-start development settings - unsuitable for production
@@ -53,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.AutoWalletMiddleware',
 ]
 
 ROOT_URLCONF = 'solidavenir.urls'
@@ -79,14 +86,28 @@ WSGI_APPLICATION = 'solidavenir.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# Initialise django-environ
+import dj_database_url
+#
+env = environ.Env()
+environ.Env.read_env() 
+# DB Prod  postgreSQL de NEON
+#
+#DATABASES = {
+#    'default': dj_database_url.config(
+#        default=env("DATABASE_URL"),
+#        conn_max_age=600,
+#        ssl_require=False 
+#    )
+#}
 
+# BD sqlite Test
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -166,15 +187,7 @@ LOGOUT_REDIRECT_URL = 'accueil'
 import os
 
 # Configuration Hedera
-HEDERA_NETWORK = os.getenv('HEDERA_NETWORK', 'testnet')
-HEDERA_OPERATOR_ID = os.getenv('HEDERA_OPERATOR_ID')
-HEDERA_OPERATOR_KEY = os.getenv('HEDERA_OPERATOR_KEY')
-HEDERA_TREASURY_ACCOUNT = os.getenv('HEDERA_TREASURY_ACCOUNT', '0.0.98')  
-# settings.py
-HEDERA_SERVICE_URL = os.getenv('HEDERA_SERVICE_URL', 'http://localhost:3001')
-# Taux de conversion (pour le testnet)
-FCFA_TO_HBAR_RATE = Decimal('0.8')  
-
+HEDERA_SERVICE_URL = 'http://localhost:3001'
 # Configuration Email
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Affiche les emails dans la console
 
