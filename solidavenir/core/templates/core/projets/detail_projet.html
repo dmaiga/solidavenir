@@ -410,7 +410,7 @@
                     </a>
                 {% endif %}
                 
-                <a href="{% url 'association_detail' projet.association.id %}" class="btn btn-outline-info btn-sm">
+                <a href="{% url 'detail_association' projet.association.slug %}" class="btn btn-outline-info btn-sm">
                     <i class="bi bi-building me-1"></i>Voir l'association
                 </a>
             {% else %}

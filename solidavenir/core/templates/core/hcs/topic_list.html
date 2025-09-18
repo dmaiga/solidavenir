@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Topics HCS{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Topics HCS</h2>
+        <div>
+            <a href="{% url 'hcs_topic_list' %}?sync=true" class="btn btn-outline-primary">
+                <i class="fas fa-sync"></i> Synchroniser
+            </a>
+            {% if user.is_staff %}
+            <a href="{% url 'hcs_create_topic' %}" class="btn btn-primary ml-2">
+                <i class="fas fa-plus"></i> Nouveau Topic
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        {% for topic in topics %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ topic.project_id }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        <strong>Topic ID:</strong> 
+                        <code>{{ topic.topic_id }}</code>
+                    </p>
+                    <p class="card-text">
+                        <strong>Créé par:</strong> {{ topic.admin_creator.username }}
+                    </p>
+                    <p class="card-text">
+                        <strong>Messages:</strong> {{ topic.messages.count }}
+                    </p>
+                    {% if topic.project_hash %}
+                    <p class="card-text">
+                        <strong>Hash projet:</strong> 
+                        <small class="text-muted">{{ topic.project_hash|truncatechars:20 }}</small>
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'hcs_topic_detail' topic.project_id %}" class="btn btn-sm btn-outline-primary">
+                        Voir les messages
+                    </a>
+                    <a href="https://hashscan.io/testnet/topic/{{ topic.topic_id }}" 
+                       target="_blank" class="btn btn-sm btn-outline-info ml-2">
+                        Voir sur HashScan
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                Aucun topic HCS créé pour le moment.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="module">
+    <h2>Informations de Notarisation Hedera</h2>
+    <div class="form-row">
+        <div class="col-12">
+            <div class="card {% if projet.hedera_topic_id %}border-success{% else %}border-warning{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-link"></i> Statut Hedera HCS
+                    </h5>
+                    
+                    {% if projet.hedera_topic_id %}
+                    <p class="text-success">
+                        <strong>Topic ID:</strong> {{ projet.hedera_topic_id }}
+                    </p>
+                    <p>
+                        <a href="https://hashscan.io/testnet/topic/{{ projet.hedera_topic_id }}" 
+                           target="_blank" class="btn btn-sm btn-info">
+                            <i class="fas fa-external-link-alt"></i> Voir sur HashScan
+                        </a>
+                    </p>
+                    {% else %}
+                    <p class="text-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Aucun topic Hedera n'a été créé pour ce projet.
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

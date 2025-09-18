@@ -64,16 +64,27 @@
                     </div>
                 </div>
 
+                
+
+
                 <!-- Aperçu du logo -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-light">
                         <h6 class="mb-0">Aperçu du logo</h6>
                     </div>
                     <div class="card-body text-center">
-                        <img src="{{ association.logo.url }}" 
-                             alt="Logo actuel" 
-                             class="img-fluid rounded-circle border"
-                             style="width: 120px; height: 120px; object-fit: cover;">
+                        {% if association.logo %}
+            <img src="{{ association.logo.url }}" 
+                 alt="Logo actuel" 
+                 class="img-fluid rounded-circle border"
+                 style="width: 120px; height: 120px; object-fit: cover;">
+        {% else %}
+            <div class="d-flex align-items-center justify-content-center bg-light rounded-circle border" 
+                 style="width: 120px; height: 120px;">
+                <i class="bi bi-image display-4 text-muted"></i>
+            </div>
+        {% endif %}
+                       
                         <p class="small text-muted mt-2">Logo actuel</p>
                     </div>
                 </div>

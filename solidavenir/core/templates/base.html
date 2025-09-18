@@ -281,7 +281,10 @@
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'profil' %}">
-                                    <i class="bi bi-gear me-2"></i>Mon profil
+                                    <i class="bi bi-person me-2"></i>Mon profil
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'voir_wallet' %}">
+                                    Wallet
                                 </a></li>
                                 <li><a class="dropdown-item" href="{% url 'deconnexion' %}">
                                     <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
@@ -349,7 +352,7 @@
                             <li class="mb-2"><a href="{% url 'espace_association' %}"><i class="bi bi-people me-2"></i><span data-key="footer.association_space">Espace association</span></a></li>
                             {% endif %}
                             <li class="mb-2"><a href="{% url 'mes_dons' %}"><i class="bi bi-heart me-2"></i><span data-key="footer.my_contributions">Mes contributions</span></a></li>
-                            <li class="mb-2"><a href="{% url 'profil' %}"><i class="bi bi-person me-2"></i><span data-key="footer.my_profile">Mon profil</span></a></li>
+                            <li class="mb-2"><a href="{% url 'modifier_profil' %}"><i class="bi bi-person me-2"></i><span data-key="footer.my_profile">Mon profil</span></a></li>
                         {% else %}
                             <li class="mb-2"><a href="{% url 'inscription' %}"><i class="bi bi-person-plus me-2"></i><span data-key="nav.create_account">Créer un compte</span></a></li>
                             <li class="mb-2"><a href="{% url 'connexion' %}"><i class="bi bi-box-arrow-in-right me-2"></i><span data-key="nav.login">Se connecter</span></a></li>

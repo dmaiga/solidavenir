@@ -254,7 +254,7 @@
             </a>
             
             {% if user.is_authenticated and user != utilisateur %}
-                <a href="{% url 'contacter_utilisateur' utilisateur.id %}" class="btn btn-primary ms-2">
+                <a href="#" class="btn btn-primary ms-2">
                     <i class="bi bi-envelope me-1"></i>Contacter {{ utilisateur.first_name }}
                 </a>
             {% endif %}
