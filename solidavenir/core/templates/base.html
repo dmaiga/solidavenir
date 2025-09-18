@@ -87,6 +87,52 @@
             font-size: 1rem;
         }
         
+        /* Styles pour l'overlay de Google Translate */
+        #google_translate_element {
+            display: inline-block;
+            position: relative;
+            z-index: 1030;
+        }
+        
+        .goog-te-banner-frame {
+            display: none !important;
+        }
+        
+        .goog-te-menu-value {
+            display: none !important;
+        }
+        
+        .goog-te-gadget {
+            color: transparent !important;
+        }
+        
+        .goog-te-combo {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            height: 32px;
+            margin-left: 0.5rem;
+        }
+        
+        .goog-te-combo:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+        
+        .goog-te-combo option {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* Masquer le texte généré par Google Translate */
+        .goog-logo-link, .goog-te-gadget span {
+            display: none !important;
+        }
+        
         .btn-primary {
             background-color: var(--secondary-color);
             border-color: var(--secondary-color);
@@ -185,7 +231,7 @@
         }
 
         .navbar-nav .nav-link {
-            font-size: 1.5rem; /* texte un peu plus grand */
+            font-size: 1.1rem; /* taille ajustée pour meilleure lisibilité */
         }
         
         /* Ajustements pour mobile */
@@ -193,6 +239,12 @@
             .language-selector-container {
                 margin: 0.5rem 0;
                 justify-content: center;
+            }
+            
+            .goog-te-combo {
+                margin-left: 0;
+                margin-top: 0.5rem;
+                width: 100%;
             }
         }
         
@@ -203,6 +255,11 @@
         
         .lang-visible {
             display: block;
+        }
+        
+        /* Correction pour l'affichage du sélecteur Google Translate */
+        .goog-te-combo {
+            margin-bottom: 0;
         }
     </style>
     
@@ -247,14 +304,10 @@
                 <!-- Boutons extrême droite -->
                 <ul class="navbar-nav ms-auto">
                     <!-- Sélecteur de langue -->
-                    
-                <li class="nav-item language-selector-container">
-                    <select class="language-select" id="languageSelector">
-                        <option value="fr">FR</option>
-                        <option value="en">EN</option>
-                    </select>
-                </li>
-                    
+                    <li class="nav-item language-selector-container">
+                        <div id="google_translate_element"></div>
+                    </li>
+                   
                     {% if user.is_authenticated %}
                         {% if user.is_staff or user.is_administrator %}
                             <li class="nav-item">
@@ -392,122 +445,63 @@
     
     <!-- Icônes Bootstrap -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <script>
-        const translations = {
-            'fr': {
-                'nav.home': 'Accueil',
-                'nav.about': 'À Propos',
-                'nav.projects': 'Projets',
-                'nav.associations': 'Associations',
-                'nav.contact': 'Contact',
-                'nav.create_account': 'Créer un compte',
-                'nav.login': 'Se connecter',
-                
-                'footer.title': 'Solid\'Avenir',
-                'footer.description': 'Plateforme de finance participative transparente pour un avenir solidaire, avec traçabilité blockchain garantie.',
-                'footer.transparency': 'Transparence',
-                'footer.trust': 'Confiance',
-                'footer.solidarity': 'Solidarité',
-                'footer.future': 'Avenir',
-                'footer.navigation': 'Navigation',
-                'footer.learn_more': 'En savoir plus',
-                'footer.transactions': 'Transactions',
-                'footer.member_space': 'Espace membre',
-                'footer.my_projects': 'Mes projets',
-                'footer.association_space': 'Espace association',
-                'footer.my_contributions': 'Mes contributions',
-                'footer.my_profile': 'Mon profil',
-                'footer.commitment': 'Engagement',
-                'footer.commitment_description': 'Chaque transaction est tracée sur la blockchain Hedera Hashgraph pour une transparence totale et une confiance absolue.',
-                'footer.terms': 'CGU',
-                'footer.privacy': 'Confidentialité',
-                'footer.rights': 'Tous droits réservés',
-                'footer.passion': 'Fait avec passion pour un avenir meilleur'
+    <!-- Script pour Google Translate -->
+<script type="text/javascript">
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+            {
+                pageLanguage: 'fr',
+                includedLanguages: 'fr,en', // Limité à français et anglais
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
             },
-            'en': {
-                'nav.home': 'Home',
-                'nav.about': 'About',
-                'nav.projects': 'Projects',
-                'nav.associations': 'Associations',
-                'nav.contact': 'Contact',
-                'nav.create_account': 'Create account',
-                'nav.login': 'Log in',
-                
-                'footer.title': 'Solid\'Avenir',
-                'footer.description': 'Transparent crowdfunding platform for a united future, with guaranteed blockchain traceability.',
-                'footer.transparency': 'Transparency',
-                'footer.trust': 'Trust',
-                'footer.solidarity': 'Solidarity',
-                'footer.future': 'Future',
-                'footer.navigation': 'Navigation',
-                'footer.learn_more': 'Learn more',
-                'footer.transactions': 'Transactions',
-                'footer.member_space': 'Member area',
-                'footer.my_projects': 'My projects',
-                'footer.association_space': 'Association space',
-                'footer.my_contributions': 'My contributions',
-                'footer.my_profile': 'My profile',
-                'footer.commitment': 'Commitment',
-                'footer.commitment_description': 'Every transaction is traced on the Hedera Hashgraph blockchain for total transparency and absolute trust.',
-                'footer.terms': 'Terms',
-                'footer.privacy': 'Privacy',
-                'footer.rights': 'All rights reserved',
-                'footer.passion': 'Made with passion for a better future'
-            }
-        };
-    </script>
-    <!-- Script pour le changement de langue -->
-    
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const languageSelector = document.getElementById('languageSelector');
-        
-        // Récupérer la langue sauvegardée si elle existe
-        let currentLanguage = localStorage.getItem('preferredLanguage') || 'fr';
-        
-        // Mettre à jour le sélecteur (cette ligne deviendra l'unique source de vérité)
-        if (languageSelector) {
-            languageSelector.value = currentLanguage;
-            
-            languageSelector.addEventListener('change', function() {
-                const selectedLanguage = this.value;
-                changeLanguage(selectedLanguage);
-            });
-        }
-        
-        // Initialiser la langue
-        changeLanguage(currentLanguage);
-        
+            'google_translate_element'
+        );
+    }
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script>
+        // Fonction pour gérer le changement de langue
         function changeLanguage(lang) {
             // Sauvegarder la préférence
             localStorage.setItem('preferredLanguage', lang);
             
-            // Mettre à jour le sélecteur
-            if (languageSelector) {
-                languageSelector.value = lang;
-            }
-            
             // Mettre à jour l'attribut lang de l'élément html
             document.documentElement.setAttribute('lang', lang);
             
-            // Traduire les textes avec data-key
-            document.querySelectorAll('[data-key]').forEach(element => {
-                const key = element.getAttribute('data-key');
-                if (translations[lang] && translations[lang][key]) {
-                    element.textContent = translations[lang][key];
+            // Si on utilise Google Translate, déclencher la traduction
+            if (typeof google !== 'undefined' && google.translate && google.translate.TranslateElement) {
+                var select = document.querySelector('.goog-te-combo');
+                if (select) {
+                    select.value = lang;
+                    select.dispatchEvent(new Event('change'));
                 }
-            });
+            }
         }
         
-        // Vérifier si la langue a changé pendant la navigation
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'preferredLanguage' && e.newValue !== currentLanguage) {
-                currentLanguage = e.newValue;
-                changeLanguage(currentLanguage);
-            }
+        // Initialiser au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Récupérer la langue sauvegardée si elle existe
+            let currentLanguage = localStorage.getItem('preferredLanguage') || 'fr';
+            
+            // Initialiser la langue
+            changeLanguage(currentLanguage);
+            
+            // Écouter les changements depuis le sélecteur Google Translate
+            var checkTranslateInterval = setInterval(function() {
+                var select = document.querySelector('.goog-te-combo');
+                if (select) {
+                    clearInterval(checkTranslateInterval);
+                    
+                    select.addEventListener('change', function() {
+                        localStorage.setItem('preferredLanguage', this.value);
+                        document.documentElement.setAttribute('lang', this.value);
+                    });
+                }
+            }, 100);
         });
-    });
-</script>
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
