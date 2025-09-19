@@ -98,7 +98,9 @@ def inscription(request):
 def connexion(request):
     """Page de connexion"""
     if request.user.is_authenticated:
-        messages.info(request, "Vous êtes déjà connecté.")
+        # ✅ Si déjà connecté et admin → tableau de bord
+        if request.user.user_type == 'admin':
+            return redirect('tableau_de_bord')
         return redirect('accueil')
     
     if request.method == 'POST':
@@ -111,7 +113,7 @@ def connexion(request):
         if user is not None:
             login(request, user)
             
-            # Journalisation audit
+            # ✅ Audit log
             AuditLog.objects.create(
                 utilisateur=user,
                 action='login',
@@ -121,20 +123,22 @@ def connexion(request):
                 adresse_ip=request.META.get('REMOTE_ADDR')
             )
             
-            # Gestion de "Remember me"
+            # ✅ Gestion "remember me"
             if not remember_me:
-                # Session expire à la fermeture du navigateur
-                request.session.set_expiry(0)
+                request.session.set_expiry(0)  # expire à la fermeture du navigateur
             else:
-                # Session expire après 30 jours
-                request.session.set_expiry(60 * 60 * 24 * 30)
+                request.session.set_expiry(60 * 60 * 24 * 30)  # 30 jours
             
-            messages.success(request, f"Bienvenue {user.username} !")
             
-            # Redirection après connexion
+            # ✅ Redirection selon le type d'utilisateur
+            if user.user_type == 'admin':
+                return redirect('tableau_de_bord')
+            
+            # ✅ Gestion de next
             next_url = request.GET.get('next')
             if next_url:
                 return redirect(next_url)
+            
             return redirect('accueil')
         else:
             messages.error(request, "Identifiant ou mot de passe incorrect.")
@@ -520,6 +524,7 @@ def modifier_profil(request):
     
     return render(request, 'core/users/modifier_profil.html', context)
 
+
 def detail_projet(request, audit_uuid):
     """Détail d'un projet spécifique avec possibilité de contribution"""
     projet = get_object_or_404(Projet, audit_uuid=audit_uuid)
@@ -585,7 +590,7 @@ def detail_projet(request, audit_uuid):
             transaction.contributeur = request.user
             transaction.statut = "en_attente"
             transaction.save()
-            
+
             # ✅ Audit log
             AuditLog.objects.create(
                 utilisateur=request.user,
@@ -602,12 +607,12 @@ def detail_projet(request, audit_uuid):
         form = Transfer_fond(projet=projet, contributeur=request.user if request.user.is_authenticated else None)
 
     can_edit = projet.peut_etre_modifie_par(request.user)
-    hbar_usd=get_hbar_to_fcfa()
+    
     # Déterminer si c'est un preview (projet non actif mais visible par le créateur/staff)
     is_preview = projet.statut not in ['actif', 'termine'] and user_can_preview
     return render(request, 'core/projets/detail_projet.html', {
         'projet': projet,
-        'hbar_usd':hbar_usd,
+        
         'transactions': transactions,
         'contributeurs_count': contributeurs_count,
         'form': form,
@@ -618,6 +623,8 @@ def detail_projet(request, audit_uuid):
         'can_edit': can_edit,
         'is_preview': is_preview,
     })
+
+
 
 def configurer_wallet(request):
     """Vue temporaire pour la configuration du wallet"""

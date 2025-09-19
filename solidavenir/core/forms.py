@@ -668,7 +668,6 @@ class Transfer_fond(forms.ModelForm):
 
 
 
-
 from django import forms
 from .models import EmailLog
 
