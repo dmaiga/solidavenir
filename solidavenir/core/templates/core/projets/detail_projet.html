@@ -16,80 +16,71 @@
 {% endif %}
 
 <div class="container py-5">
+    <!-- Alertes de statut -->
     {% if is_preview %}
-<div class="alert alert-warning alert-dismissible fade show" role="alert">
-    <strong>Mode Preview</strong> - Ce projet n'est pas encore publié. Seul vous pouvez le visualiser.
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-{% endif %}
-
-{% if projet.statut == 'brouillon' %}
-<div class="alert alert-info alert-dismissible fade show" role="alert">
-    <strong>Projet en brouillon</strong> - Votre projet est en cours de préparation.
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-{% elif projet.statut == 'en_attente' %}
-<div class="alert alert-info alert-dismissible fade show" role="alert">
-    <strong>En attente de validation</strong> - Votre projet est en cours de validation par notre équipe.
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-{% endif %}
-   {% if user.is_porteur_projet%}
-    <div class="col-auto">
-            <div class="btn-group">
-                <a href="{% url 'mes_projets' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left"></i> Retour
-                </a>
-                
-                {% if can_edit %}
-    <a href="{% url 'modifier_projet' projet.audit_uuid %}" class="btn btn-primary">
-        <i class="fas fa-edit"></i> Modifier
-    </a>
-{% endif %}
-
-                
-                {% if projet.statut in 'brouillon rejete' %}
-                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                    <i class="fas fa-trash"></i> Supprimer
-                </button>
-                {% endif %}
-            </div>
-        </div>
-            {% endif %}
-
-   {% if user.is_association%}
-    <div class="col-auto">
-            <div class="btn-group">
-                <a href="{% url 'mes_projets' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left"></i> Retour
-                </a>
-            </div>
-        </div>
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <strong>Mode Preview</strong> - Ce projet n'est pas encore publié. Seul vous pouvez le visualiser.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
     {% endif %}
 
+    {% if projet.statut == 'brouillon' %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong>Projet en brouillon</strong> - Votre projet est en cours de préparation.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% elif projet.statut == 'en_attente' %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong>En attente de validation</strong> - Votre projet est en cours de validation par notre équipe.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- Boutons d'action -->
+    {% if user.is_porteur_projet or user.is_association %}
+    <div class="mb-4">
+        <div class="btn-group">
+            <a href="{% url 'mes_projets' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Retour
+            </a>
             
+            {% if can_edit %}
+            <a href="{% url 'modifier_projet' projet.audit_uuid %}" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i>Modifier
+            </a>
+            {% endif %}
+            
+            {% if projet.statut in 'brouillon rejete' %}
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                <i class="fas fa-trash me-2"></i>Supprimer
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
     <div class="row">
         <!-- Contenu principal -->
         <div class="col-lg-8">
             <!-- En-tête du projet -->
-            <div class="card mb-4">
+            <div class="card mb-4 shadow-sm">
                 {% if projet.cover_image %}
                 <img src="{{ projet.cover_image.url }}" class="card-img-top" alt="{{ projet.titre }}" style="max-height: 400px; object-fit: cover;">
                 {% else %}
-                <!-- Image par défaut avec illustration -->
                 <div class="default-cover-image d-flex align-items-center justify-content-center bg-light" style="height: 300px;">
                     <i class="bi bi-image display-1 text-muted"></i>
                 </div>
                 {% endif %}
+                
                 <div class="card-body">
-                    <h1 class="card-title">{{ projet.titre }}</h1>
-<p class="text-muted">
-    {% if projet.est_associe_a_une_association %}
-        Porté par l’association <strong>{{ projet.association.nom }}</strong>
-    {% else %}
-        Porté par {{ projet.porteur.get_full_name|default:projet.porteur.username }}
-    {% endif %}
-</p>
+                    <h1 class="card-title mb-2">{{ projet.titre }}</h1>
+                    <p class="text-muted mb-3">
+                        {% if projet.est_associe_a_une_association %}
+                            Porté par l'association <strong>{{ projet.association.nom }}</strong>
+                        {% else %}
+                            Porté par {{ projet.porteur.get_full_name|default:projet.porteur.username }}
+                        {% endif %}
+                    </p>
 
                     <!-- Barre de progression -->
                     <div class="progress mb-3" style="height: 25px;">
@@ -103,331 +94,336 @@
                     </div>
                     
                     <div class="d-flex justify-content-between mb-3">
-                        <span><strong>{{ projet.montant_collecte|floatformat:0 }} ℏ HBAR</strong> collectés</span>
-                        <span><strong>{{ projet.montant_demande|floatformat:0 }} ℏ HBAR</strong> demandés</span>
+                        <span><strong>{{ projet.montant_collecte|floatformat:0 }} ℏ</strong> collectés</span>
+                        <span><strong>{{ projet.montant_demande|floatformat:0 }} ℏ</strong> demandés</span>
                     </div>
                     
-                    {% if projet.statut == 'actif' %}
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-success">{{ projet.get_statut_display }}</span>
-                        <span><i class="bi bi-clock"></i> {{ projet.jours_restants }} jours restants</span>
+                        <span class="badge bg-{% if projet.statut == 'actif' %}success{% else %}secondary{% endif %}">
+                            {{ projet.get_statut_display }}
+                        </span>
+                        {% if projet.statut == 'actif' %}
+                        <span><i class="bi bi-clock me-1"></i>{{ projet.jours_restants }} jours restants</span>
+                        {% endif %}
                     </div>
-                    {% else %}
-                    <div class="badge bg-secondary">{{ projet.get_statut_display }}</div>
-                    {% endif %}
                 </div>
             </div>
 
             <!-- Description du projet -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h3>Description du projet</h3>
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0"><i class="bi bi-info-circle me-2"></i>Description du projet</h3>
                 </div>
                 <div class="card-body">
-                    <p>{{ projet.description|safe|linebreaks }}</p>
-                </div>
-            </div>
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>Contreparties pour les contributeurs</h5>
-        
-                </div>
-                <div class="card-body">
-                  <p>{{ recompenses|linebreaks }}</p>
+                    <div class="projet-description">
+                        {{ projet.description|safe|linebreaks }}
+                    </div>
                 </div>
             </div>
 
-   <div class="card mb-4">
-    <div class="card-header">
-        <h3>Derniers soutiens</h3>
-        
-    </div>
-    <div class="card-body">
-        {% if transactions %}
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        
-                        <th>Date</th>
-                        <th>Transaction</th>
-                        <th class="text-end">Montant</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for transaction in transactions %}
-                    <tr>
-
-                        <td>{{ transaction.date_transaction|date:"d/m/Y H:i" }}</td>
-                        <td>
-                            {% if transaction.hedera_transaction_hash %}
-                            <a href="https://hashscan.io/testnet/transaction/{{ transaction.hedera_transaction_hash }}" 
-                               target="_blank" rel="noopener" class="text-decoration-none">
-                                <i class="bi bi-link-45deg"></i>
-                                {{ transaction.hedera_transaction_hash|truncatechars:15 }}
-                            </a>
-                            {% else %}
-                            <span class="text-muted">En attente...</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-end">
-                            <span class="badge bg-success">{{ transaction.montant|floatformat:0 }} ℏ HBAR</span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <p class="text-muted text-center">Aucun don pour le moment. Soyez le premier à soutenir ce projet !</p>
-        {% endif %}
-    </div>
-</div>
-
-        </div>
-
-<!-- Sidebar - Formulaire de don -->
-<!-- Sidebar - Formulaire de don -->
-<div class="col-lg-4">
-    <div class="card donation-card shadow">
-        <div class="card-header bg-primary text-white text-center">
-            <h3 class="mb-0">Soutenir ce projet</h3>
-        </div>
-        <div class="card-body">
-            {% if user.is_authenticated and projet.est_actif %}
-                {% if user.has_active_wallet %}
-                    {# Afficher le formulaire de contribution normal #}
-                    <form method="post" action="{% url 'process_donation' projet.id %}">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="amount" class="form-label">Montant (HBAR)</label>
-                            <input type="number" class="form-control" id="amount" name="amount" 
-                                   min="1" step="1" required placeholder="10">
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-heart-fill me-2"></i>Contribuer
-                        </button>
-                    </form>
-                    
-                    <!-- Info wallet -->
-                    <div class="mt-3 p-2 bg-light rounded small">
-                        <i class="bi bi-wallet2 text-success me-1"></i>
-                        Votre wallet: {{ user.hedera_account_id|truncatechars:12 }}
-                        <br>
-                        <a href="{% url 'voir_wallet' %}" class="text-decoration-none small">
-                            Voir les détails
-                        </a>
+            <!-- Contreparties -->
+            {% if recompenses %}
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-gift me-2"></i>Contreparties pour les contributeurs</h5>
+                </div>
+                <div class="card-body">
+                    <div class="recompenses-content">
+                        {{ recompenses|linebreaks }}
                     </div>
-                {% else %}
-                    {# Wallet en cours de création #}
-                    <div class="alert alert-info">
-                        <div class="d-flex align-items-center">
-                            <div class="spinner-border spinner-border-sm me-2" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <span>Configuration automatique de votre wallet...</span>
-                        </div>
-                        <p class="mt-2 mb-0 small">Veuillez rafraîchir la page dans quelques secondes.</p>
-                    </div>
-                {% endif %}
-            {% else %}
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    {% if not user.is_authenticated %}
-                        <a href="{% url 'connexion' %}?next={{ request.path }}" class="text-decoration-none">
-                            Connectez-vous
-                        </a> pour contribuer à ce projet.
-                    {% elif not projet.est_actif %}
-                        Ce projet n'accepte pas encore de dons.
-                        {% if projet.statut == 'termine' %}
-                            Le projet a atteint son objectif de financement.
-                        {% elif projet.statut == 'annule' %}
-                            Le projet a été annulé.
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Activité Blockchain -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="d-flex justify-content-between align-items-center mb-0">
+                        <span><i class="bi bi-link-45deg me-2"></i>Activité Blockchain</span>
+                        {% if projet.has_hedera_topic %}
+                        <span class="badge bg-success">HCS Actif</span>
                         {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Info Topic -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <strong><i class="bi bi-hash me-1"></i>Topic:</strong> 
+                            {% if projet.topic_id %}
+                            <code class="ms-1">{{ projet.topic_id }}</code>
+                            {% else %}
+                            <span class="text-muted">Non configuré</span>
+                            {% endif %}
+                        </div>
+                        {% if projet.has_hedera_topic %}
+                        <a href="{{ projet.topic_hashscan_link }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Explorer
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Transactions -->
+                    <h5 class="mb-3"><i class="bi bi-currency-exchange me-2"></i>Transactions Récentes</h5>
+                    {% if transactions %}
+                    <div class="list-group">
+                        {% for transaction in transactions %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-muted">{{ transaction.date_transaction|date:"d/m/Y H:i" }}</small>
+                                    <div class="mt-1">
+                                        {% if transaction.hedera_transaction_hash %}
+                                        <a href="https://hashscan.io/testnet/transaction/{{ transaction.hedera_transaction_hash }}" 
+                                           target="_blank" class="text-decoration-none btn btn-sm btn-outline-secondary me-2">
+                                            <i class="bi bi-currency-bitcoin me-1"></i>Transaction
+                                        </a>
+                                        {% endif %}
+                                        {% if transaction.hedera_message_id %}
+                                        <a href="{{ transaction.hedera_message_hashscan_url }}" 
+                                           target="_blank" class="text-decoration-none btn btn-sm btn-outline-info">
+                                            <i class="bi bi-chat-text me-1"></i>Message
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="badge bg-success">{{ transaction.montant|floatformat:0 }} ℏ</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-wallet2 display-4 text-muted mb-3"></i>
+                        <p class="text-muted">Aucune transaction enregistrée</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Stats résumées -->
+                    <div class="mt-4 p-3 bg-dark text-white rounded">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h4 class="text-warning mb-1">{{ transactions|length }}</h4>
+                                <small>Transactions</small>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="text-success mb-1">{{ projet.montant_collecte|floatformat:0 }} ℏ</h4>
+                                <small>Total</small>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="{% if projet.has_hedera_topic %}text-success{% else %}text-warning{% endif %} mb-1">
+                                    {% if projet.has_hedera_topic %}✅{% else %}❌{% endif %}
+                                </h4>
+                                <small>HCS</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Formulaire de don -->
+            <div class="card donation-card shadow-lg mb-4">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h3 class="mb-0"><i class="bi bi-heart-fill me-2"></i>Soutenir ce projet</h3>
+                </div>
+                <div class="card-body">
+                    {% if user.is_authenticated and projet.est_actif %}
+                        {% if user.has_active_wallet %}
+                            <form method="post" action="{% url 'process_donation' projet.id %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="amount" class="form-label">Montant (HBAR)</label>
+                                    <input type="number" class="form-control form-control-lg" id="amount" name="amount" 
+                                           min="1" step="1" required placeholder="10">
+                                    <small class="text-muted">1 HBAR ≈ {{ hbar_usd }} USD</small>
+                                </div>
+                                 
+                                <button type="submit" class="btn btn-primary w-100 py-2">
+                                    <i class="bi bi-heart-fill me-2"></i>Contribuer
+                                </button>
+                            </form>
+                            
+                            <!-- Info wallet -->
+                            <div class="mt-3 p-3 bg-light rounded">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-wallet2 text-success me-2"></i>
+                                    <div>
+                                        <small class="d-block">Votre wallet:</small>
+                                        <strong>{{ user.hedera_account_id|truncatechars:12 }}</strong>
+                                    </div>
+                                </div>
+                                <a href="{% url 'voir_wallet' %}" class="btn btn-sm btn-outline-secondary w-100 mt-2">
+                                    <i class="bi bi-eye me-1"></i>Voir les détails
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <div class="d-flex align-items-center">
+                                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <span>Configuration automatique de votre wallet...</span>
+                                </div>
+                                <p class="mt-2 mb-0 small">Veuillez rafraîchir la page dans quelques secondes.</p>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info text-center">
+                            <i class="bi bi-info-circle me-2"></i>
+                            {% if not user.is_authenticated %}
+                                <a href="{% url 'connexion' %}?next={{ request.path }}" class="text-decoration-none fw-bold">
+                                    Connectez-vous
+                                </a> pour contribuer à ce projet.
+                            {% elif not projet.est_actif %}
+                                Ce projet n'accepte pas encore de dons.
+                                {% if projet.statut == 'termine' %}
+                                    <div class="mt-2">🎉 Le projet a atteint son objectif de financement !</div>
+                                {% elif projet.statut == 'annule' %}
+                                    <div class="mt-2">❌ Le projet a été annulé.</div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
                     {% endif %}
                 </div>
-            {% endif %}
-        </div>
-    </div>
+            </div>
 
-    
-<!-- Informations du porteur -->
-<div class="card mt-4">
-    <div class="card-header bg-light">
-        <h4 class="mb-0">
-            <i class="bi bi-person-badge me-2"></i>
-            {% if projet.est_associe_a_une_association %}
-                À propos de l'association
-            {% else %}
-                À propos du porteur de projet
-            {% endif %}
-        </h4>
-    </div>
-    <div class="card-body">
-        <div class="text-center mb-4">
-            <!-- Photo de profil ou avatar -->
-            {% if projet.est_associe_a_une_association %}
-                {# Afficher le logo de l'association #}
-                {% if projet.association.logo %}
-                    <img src="{{ projet.association.logo.url }}" 
-                         alt="Logo de {{ projet.association.nom }}"
-                         class="rounded-circle mb-3" 
-                         style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--primary-color);">
-                {% else %}
-                    <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center mb-3" 
-                         style="width: 100px; height: 100px; font-size: 2.5rem; border: 3px solid var(--primary-color);">
-                        {{ projet.association.nom|first|upper }}
-                    </div>
-                {% endif %}
-                
-                <h5 class="mb-1">{{ projet.association.nom }}</h5>
-                
-                {% if projet.association.slogan %}
-                    <p class="text-muted mb-2">
-                        <i class="bi bi-quote me-1"></i>{{ projet.association.slogan }}
-                    </p>
-                {% endif %}
-                
-                <!-- Badge type d'utilisateur -->
-                <span class="badge bg-secondary mb-3">
-                    <i class="bi bi-building me-1"></i>
-                    Association
-                </span>
-                
-            {% else %}
-                {# Afficher la photo du porteur de projet #}
-                {% if projet.porteur.photo_profil %}
-                    <img src="{{ projet.porteur.photo_profil.url }}" 
-                         alt="Photo de {{ projet.porteur.get_full_name|default:projet.porteur.username }}"
-                         class="rounded-circle mb-3" 
-                         style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--primary-color);">
-                {% else %}
-                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" 
-                         style="width: 100px; height: 100px; font-size: 2.5rem; border: 3px solid var(--primary-color);">
-                        {{ projet.porteur.get_full_name|default:projet.porteur.username|first|upper }}
-                    </div>
-                {% endif %}
-                
-                <h5 class="mb-1">{{ projet.porteur.get_full_name|default:projet.porteur.username }}</h5>
-                
-                {% if projet.porteur.organisation %}
-                    <p class="text-muted mb-2">
-                        <i class="bi bi-building me-1"></i>{{ projet.porteur.organisation }}
-                    </p>
-                {% endif %}
-                
-                <!-- Badge type d'utilisateur -->
-                <span class="badge bg-primary mb-3">
-                    <i class="bi bi-{{ projet.porteur.get_user_type_icon }} me-1"></i>
-                    {{ projet.porteur.get_user_type_display }}
-                </span>
-            {% endif %}
-        </div>
-
-        <!-- Informations de contact (si visibles) -->
-        <div class="row text-center mb-3">
-            {% if projet.est_associe_a_une_association %}
-                {% if projet.association.ville %}
-                    <div class="col-6">
-                        <small class="text-muted">
-                            <i class="bi bi-geo-alt me-1"></i>
-                            {{ projet.association.ville }}
-                            {% if projet.association.pays %}, {{ projet.association.pays }}{% endif %}
-                        </small>
-                    </div>
-                {% endif %}
-                
-                {% if projet.association.date_creation %}
-                    <div class="col-6">
-                        <small class="text-muted">
-                            <i class="bi bi-calendar me-1"></i>
-                            Créée en {{ projet.association.date_creation|date:"Y" }}
-                        </small>
-                    </div>
-                {% endif %}
-            {% else %}
-                {% if projet.porteur.ville %}
-                    <div class="col-6">
-                        <small class="text-muted">
-                            <i class="bi bi-geo-alt me-1"></i>
-                            {{ projet.porteur.ville }}
-                            {% if projet.porteur.pays %}, {{ projet.porteur.pays }}{% endif %}
-                        </small>
-                    </div>
-                {% endif %}
-                
-                {% if projet.porteur.date_inscription %}
-                    <div class="col-6">
-                        <small class="text-muted">
-                            <i class="bi bi-calendar me-1"></i>
-                            Membre depuis {{ projet.porteur.date_inscription|date:"F Y" }}
-                        </small>
-                    </div>
-                {% endif %}
-            {% endif %}
-        </div>
-         </div>
-
-        <!-- Bio du porteur ou description de l'association -->
-        {% if projet.est_associe_a_une_association %}
-            {% if projet.association.description_courte %}
-                <div class="mb-3">
-                    <h6 class="text-primary">
-                        <i class="bi bi-chat-quote me-1"></i>Présentation
-                    </h6>
-                    <p class="mb-0" style="font-size: 0.9rem;">
-                        "{{ projet.association.description_courte|truncatewords:30 }}"
-                    </p>
-                    <a href="{% url 'association_detail' projet.association.id %}" class="small text-primary">
-                        En savoir plus
-                    </a>
+            <!-- Informations du porteur -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-badge me-2"></i>
+                        {% if projet.est_associe_a_une_association %}
+                            À propos de l'association
+                        {% else %}
+                            À propos du porteur
+                        {% endif %}
+                    </h4>
                 </div>
-            {% endif %}
-        {% else %}
-            {% if projet.porteur.bio %}
-                <div class="mb-3">
-                    <h6 class="text-primary">
-                        <i class="bi bi-chat-quote me-1"></i>Présentation
-                    </h6>
-                    <p class="mb-0" style="font-size: 0.9rem;">
-                        "{{ projet.porteur.bio|truncatewords:30 }}"
-                    </p>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        {% if projet.est_associe_a_une_association %}
+                            {% if projet.association.logo %}
+                                <img src="{{ projet.association.logo.url }}" 
+                                     alt="Logo de {{ projet.association.nom }}"
+                                     class="rounded-circle mb-3" 
+                                     style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--bs-primary);">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center mb-3" 
+                                     style="width: 100px; height: 100px; font-size: 2.5rem; border: 3px solid var(--bs-primary);">
+                                    {{ projet.association.nom|first|upper }}
+                                </div>
+                            {% endif %}
+                            
+                            <h5 class="mb-1">{{ projet.association.nom }}</h5>
+                            
+                            {% if projet.association.slogan %}
+                                <p class="text-muted mb-2">
+                                    <i class="bi bi-quote me-1"></i>{{ projet.association.slogan }}
+                                </p>
+                            {% endif %}
+                            
+                            <span class="badge bg-secondary mb-3">
+                                <i class="bi bi-building me-1"></i>Association
+                            </span>
+                            
+                        {% else %}
+                            {% if projet.porteur.photo_profil %}
+                                <img src="{{ projet.porteur.photo_profil.url }}" 
+                                     alt="Photo de {{ projet.porteur.get_full_name|default:projet.porteur.username }}"
+                                     class="rounded-circle mb-3" 
+                                     style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--bs-primary);">
+                            {% else %}
+                                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" 
+                                     style="width: 100px; height: 100px; font-size: 2.5rem; border: 3px solid var(--bs-primary);">
+                                    {{ projet.porteur.get_full_name|default:projet.porteur.username|first|upper }}
+                                </div>
+                            {% endif %}
+                            
+                            <h5 class="mb-1">{{ projet.porteur.get_full_name|default:projet.porteur.username }}</h5>
+                            
+                            {% if projet.porteur.organisation %}
+                                <p class="text-muted mb-2">
+                                    <i class="bi bi-building me-1"></i>{{ projet.porteur.organisation }}
+                                </p>
+                            {% endif %}
+                            
+                            <span class="badge bg-primary mb-3">
+                                <i class="bi bi-person me-1"></i>Porteur de projet
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Informations de contact -->
+                    <div class="row text-center mb-3">
+                        {% if projet.est_associe_a_une_association %}
+                            {% if projet.association.ville %}
+                                <div class="col-12 mb-2">
+                                    <small class="text-muted">
+                                        <i class="bi bi-geo-alt me-1"></i>
+                                        {{ projet.association.ville }}
+                                        {% if projet.association.pays %}, {{ projet.association.pays }}{% endif %}
+                                    </small>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            {% if projet.porteur.ville %}
+                                <div class="col-12 mb-2">
+                                    <small class="text-muted">
+                                        <i class="bi bi-geo-alt me-1"></i>
+                                        {{ projet.porteur.ville }}
+                                        {% if projet.porteur.pays %}, {{ projet.porteur.pays }}{% endif %}
+                                    </small>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Bio -->
+                    {% if projet.est_associe_a_une_association and projet.association.description_courte %}
+                        <div class="mb-3">
+                            <h6 class="text-primary">
+                                <i class="bi bi-chat-quote me-1"></i>Présentation
+                            </h6>
+                            <p class="mb-0 small">
+                                "{{ projet.association.description_courte|truncatewords:30 }}"
+                            </p>
+                        </div>
+                    {% elif not projet.est_associe_a_une_association and projet.porteur.bio %}
+                        <div class="mb-3">
+                            <h6 class="text-primary">
+                                <i class="bi bi-chat-quote me-1"></i>Présentation
+                            </h6>
+                            <p class="mb-0 small">
+                                "{{ projet.porteur.bio|truncatewords:30 }}"
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="text-center mt-4">
+                        {% if projet.est_associe_a_une_association %}
+                            {% if projet.association.site_web %}
+                                <a href="{{ projet.association.site_web }}" target="_blank" class="btn btn-outline-secondary btn-sm me-2 mb-2">
+                                    <i class="bi bi-globe me-1"></i>Site web
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            {% if projet.porteur.site_web %}
+                                <a href="{{ projet.porteur.site_web }}" target="_blank" class="btn btn-outline-secondary btn-sm me-2 mb-2">
+                                    <i class="bi bi-globe me-1"></i>Site web
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
-            {% endif %}
-        {% endif %}
-
-        <!-- Statistiques -->
-      
-                
-          
-
-        <!-- Actions -->
-        <div class="text-center mt-4">
-            {% if projet.est_associe_a_une_association %}
-                {% if projet.association.site_web %}
-                    <a href="{{ projet.association.site_web }}" target="_blank" class="btn btn-outline-secondary btn-sm me-2">
-                        <i class="bi bi-globe me-1"></i>Site web
-                    </a>
-                {% endif %}
-                
-                <a href="{% url 'detail_association' projet.association.slug %}" class="btn btn-outline-info btn-sm">
-                    <i class="bi bi-building me-1"></i>Voir l'association
-                </a>
-            {% else %}
-                {% if projet.porteur.site_web %}
-                    <a href="{{ projet.porteur.site_web }}" target="_blank" class="btn btn-outline-secondary btn-sm me-2">
-                        <i class="bi bi-globe me-1"></i>Site web
-                    </a>
-                {% endif %}
-                
-                <a href="{% url 'projets_utilisateur' projet.porteur.id %}" class="btn btn-outline-info btn-sm">
-                    <i class="bi bi-folder me-1"></i>Voir tous ses projets
-                </a>
-            {% endif %}
+            </div>
         </div>
     </div>
-</div>
-
 
     <!-- Projets similaires -->
     {% if projets_similaires %}
@@ -437,20 +433,19 @@
             <div class="row">
                 {% for projet_similaire in projets_similaires %}
                 <div class="col-md-4 mb-4">
-                    <div class="card h-100">
+                    <div class="card h-100 shadow-sm">
                         {% if projet_similaire.cover_image %}
                         <img src="{{ projet_similaire.cover_image.url }}" class="card-img-top" alt="{{ projet_similaire.titre }}" style="height: 200px; object-fit: cover;">
                         {% else %}
-                        <!-- Image par défaut avec illustration -->
                         <div class="default-image d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
                             <i class="bi bi-image text-muted"></i>
                         </div>
                         {% endif %}
                         <div class="card-body">
                             <h5 class="card-title">{{ projet_similaire.titre }}</h5>
-                            <p class="card-text">{{ projet_similaire.description|truncatewords:20|safe }}</p>
+                            <p class="card-text text-muted small">{{ projet_similaire.description_courte|default:projet_similaire.description|truncatewords:20 }}</p>
                             
-                            <div class="progress mb-3" style="height: 10px;">
+                            <div class="progress mb-3" style="height: 8px;">
                                 <div class="progress-bar bg-success" role="progressbar" 
                                      style="width: {{ projet_similaire.pourcentage_financement }}%;" 
                                      aria-valuenow="{{ projet_similaire.pourcentage_financement }}" 
@@ -459,13 +454,13 @@
                                 </div>
                             </div>
                             
-                            <div class="d-flex justify-content-between mb-2">
-                                <small>{{ projet_similaire.pourcentage_financement }}% financé</small>
-                                <small>{{ projet_similaire.jours_restants }} jours restants</small>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>{{ projet_similaire.pourcentage_financement }}% financé</span>
+                                <span>{{ projet_similaire.jours_restants }} jours restants</span>
                             </div>
                         </div>
                         <div class="card-footer bg-transparent">
-                            <a href="{% url 'detail_projet' projet_similaire.audit_uuid %}" class="btn btn-outline-primary w-100">
+                            <a href="{% url 'detail_projet' projet_similaire.audit_uuid %}" class="btn btn-outline-primary w-100 btn-sm">
                                 Voir le projet
                             </a>
                         </div>
@@ -478,18 +473,46 @@
     {% endif %}
 </div>
 
+<!-- Modal de suppression -->
+{% if projet.statut in 'brouillon rejete' %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir supprimer le projet "{{ projet.titre }}" ? Cette action est irréversible.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" action="{% url 'supprimer_projet' projet.audit_uuid %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Supprimer définitivement</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}
 
 {% block extra_css %}
 <style>
+    .donation-card {
+        border: 2px solid var(--bs-primary);
+        border-radius: 15px;
+    }
     
-    
-    .avatar-placeholder {
-        background: linear-gradient(45deg, #0d6efd, #6f42c1);
+    .donation-card .card-header {
+        border-radius: 13px 13px 0 0 !important;
     }
     
     .progress-bar {
         font-weight: bold;
+        font-size: 0.9rem;
     }
     
     .btn-primary {
@@ -500,17 +523,44 @@
     
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
     }
     
-    .default-cover-image {
-        border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
-    }
-    
+    .default-cover-image,
     .default-image {
-        border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
+        border-radius: 10px;
+    }
+    
+    .projet-description {
+        line-height: 1.8;
+        font-size: 1.1rem;
+    }
+    
+    .recompenses-content {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-left: 4px solid var(--bs-success);
+    }
+    
+    .list-group-item {
+        transition: all 0.2s ease;
+        border-radius: 8px !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    .list-group-item:hover {
+        transform: translateX(4px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .card {
+        border: none;
+        border-radius: 15px;
+    }
+    
+    .card-header {
+        border-radius: 15px 15px 0 0 !important;
     }
 </style>
 {% endblock %}

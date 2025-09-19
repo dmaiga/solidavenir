@@ -600,6 +600,7 @@ class FiltreAuditForm(forms.Form):
         label='Recherche'
     )
 #
+
 class Transfer_fond(forms.ModelForm):
     # Montant en FCFA
     montant = forms.DecimalField(
@@ -663,6 +664,8 @@ class Transfer_fond(forms.ModelForm):
                 raise ValidationError(f"Le montant ne peut pas dépasser les {montant_restant:.0f} FCFA restants.")
         
         return montant
+
+
 
 
 

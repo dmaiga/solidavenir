@@ -33,7 +33,7 @@ class ProjetAdmin(admin.ModelAdmin):
     list_display = ('titre', 'porteur', 'montant_demande', 'montant_collecte', 'statut', 'date_creation')
     list_filter = ('statut', 'date_creation')
     search_fields = ('titre', 'porteur__username', 'description')
-    readonly_fields = ('audit_uuid', 'date_creation', 'date_mise_a_jour')
+    readonly_fields = ('audit_uuid','topic_id','date_creation', 'date_mise_a_jour')
     actions = ['validate_projects', 'reject_projects']
     
     def validate_projects(self, request, queryset):

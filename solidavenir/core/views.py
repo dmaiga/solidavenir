@@ -563,33 +563,51 @@ def detail_projet(request, audit_uuid):
         if not request.user.is_authenticated:
             messages.info(request, "Connectez-vous pour contribuer.")
             return redirect(f"{reverse('connexion')}?{urlencode({'next': request.path})}")
-        
-        # Les administrateurs ne peuvent pas effectuer de contributions
+
         if request.user.user_type == 'admin':
             messages.error(request, "Les administrateurs ne peuvent pas effectuer de contributions.")
             return redirect('detail_projet', audit_uuid=audit_uuid)
-        
-        # Empêcher les contributions si le projet n'est pas actif
+
         if projet.statut != 'actif':
             messages.error(request, "Les contributions ne sont pas autorisées pour ce projet actuellement.")
             return redirect('detail_projet', audit_uuid=audit_uuid)
-        
-        # Vérifier si l'utilisateur a un wallet configuré
+
         if not user_has_wallet:
             messages.info(request, "Veuillez configurer votre wallet pour effectuer une contribution.")
-            # Rediriger vers la page de configuration du wallet (à développer)
             return redirect('configurer_wallet')
-        
+
+        # ✅ Instancier le formulaire avec les données POST
+        form = Transfer_fond(request.POST, projet=projet, contributeur=request.user)
+
+        if form.is_valid():
+            transaction = form.save(commit=False)
+            transaction.projet = projet
+            transaction.contributeur = request.user
+            transaction.statut = "en_attente"
+            transaction.save()
+            
+            # ✅ Audit log
+            AuditLog.objects.create(
+                utilisateur=request.user,
+                action="contribution_initiée",
+                modele="Transaction",
+                objet_id=str(transaction.id),
+                details={"montant": str(transaction.montant), "projet": str(projet.audit_uuid)},
+                adresse_ip=request.META.get("REMOTE_ADDR")
+            )
+
+            messages.success(request, "Votre contribution a été enregistrée et est en attente de confirmation.")
+            return redirect('detail_projet', audit_uuid=audit_uuid)
     else:
         form = Transfer_fond(projet=projet, contributeur=request.user if request.user.is_authenticated else None)
-    
+
     can_edit = projet.peut_etre_modifie_par(request.user)
-    
+    hbar_usd=get_hbar_to_fcfa()
     # Déterminer si c'est un preview (projet non actif mais visible par le créateur/staff)
     is_preview = projet.statut not in ['actif', 'termine'] and user_can_preview
     return render(request, 'core/projets/detail_projet.html', {
         'projet': projet,
-        
+        'hbar_usd':hbar_usd,
         'transactions': transactions,
         'contributeurs_count': contributeurs_count,
         'form': form,
@@ -640,10 +658,11 @@ def creer_projet(request):
                     except Exception as e:
                         logger.error(f"Erreur wallet Hedera: {str(e)}")
                         messages.error(request, "Le projet a été créé mais sans compte Hedera.")
-                    
+                    # 🔑 Génération de l'identifiant unique incluant le porteur
+                    projet.identifiant_unique = f"SOLID{projet.id or 0:06d}-{request.user.id}-{timezone.now().strftime('%Y%m%d')}"
                     projet.save()
 
-                    # Journalisation
+                     # Journalisation complète
                     AuditLog.objects.create(
                         utilisateur=request.user,
                         action='create',
@@ -654,10 +673,13 @@ def creer_projet(request):
                             'montant': float(projet.montant_demande),
                             'statut': projet.statut,
                             'wallet': projet.hedera_account_id,
-                            'association': str(projet.association.id) if projet.association else None
+                            'porteur_id': request.user.id,
+                            'porteur_nom': request.user.get_full_name(),
+                            'association': str(projet.association.id) if projet.association else None,
                         },
                         adresse_ip=request.META.get('REMOTE_ADDR')
                     )
+
 
                 messages.success(
                     request,
@@ -958,10 +980,7 @@ def detail_membre(request, user_id):
 @permission_required('core.view_dashboard', raise_exception=True)
 def liste_transactions_validation(request):
     """Liste des transactions à vérifier avec filtres"""
-    transactions = Transaction.objects.filter(
-        statut='en_attente'
-    ).select_related('contributeur', 'projet').order_by('-date_transaction')
-    
+    transactions = Transaction.objects.all().order_by('-date_transaction')
     form = FiltreTransactionsForm(request.GET or None)
     
     if form.is_valid():
@@ -1047,148 +1066,6 @@ def liste_membres(request):
 
 
 logger = logging.getLogger(__name__)
-
-@login_required
-@permission_required('core.validate_project', raise_exception=True)
-def valider_projet(request, audit_uuid):
-    """Validation d'un projet par un administrateur avec gestion complète"""
-    projet = get_object_or_404(Projet, audit_uuid=audit_uuid)
-    
-    # Vérifier que le projet est en attente de validation
-    if projet.statut not in ['en_attente', 'brouillon']:
-        messages.warning(request, f"Ce projet est déjà {projet.get_statut_display().lower()}.")
-        return redirect('tableau_de_bord')  # Redirection vers une vue existante
-    
-    
-    # Statistiques pour le dashboard admin
-    stats = {
-        'montant_demande': projet.montant_demande,
-        'duree_existence': (timezone.now() - projet.date_creation).days,
-        'projets_utilisateur': Projet.objects.filter(porteur=projet.porteur).count(),
-    }
-    
-    if request.method == 'POST':
-        form = ValidationProjetForm(request.POST, instance=projet)
-        if form.is_valid():
-            projet = form.save(commit=False)
-            ancien_statut = projet.statut
-            nouveau_statut = form.cleaned_data['statut']
-            
-            # Gestion de la validation
-            if nouveau_statut == 'actif':
-                projet.valide_par = request.user
-                projet.date_validation = timezone.now()
-                
-                # Créer un topic Hedera pour la traçabilité
-                try:
-                        if not projet.hedera_topic_id:
-                            hedera_service = HederaService()
-                            topic_id = hedera_service.creer_topic(projet.titre)
-                            projet.hedera_topic_id = topic_id
-
-                            # Journalisation création topic
-                            AuditLog.objects.create(
-                                utilisateur=request.user,
-                                action='create',
-                                modele='HederaTopic',
-                                objet_id=topic_id,
-                                details={'projet': projet.titre},
-                                adresse_ip=request.META.get('REMOTE_ADDR')
-                            )
-
-                            messages.info(request, f"Topic Hedera créé: {topic_id}")
-                except Exception as e:
-                        logger.error(f"Erreur création topic Hedera: {str(e)}")
-                        messages.warning(request, "Erreur lors de la création du topic Hedera, mais le projet a été validé.")
-            elif nouveau_statut == 'rejete':
-                projet.valide_par = request.user
-                projet.date_validation = None
-                
-                # Envoyer un email au porteur en cas de rejet
-                try:
-                    send_mail(
-                        f'Votre projet "{projet.titre}" a été examiné - Solid\'Avenir',
-                        f'Bonjour {projet.porteur.get_full_name() or projet.porteur.username},\n\n'
-                        f'Votre projet "{projet.titre}" a été examiné par notre équipe.\n'
-                        f'Statut: Rejeté\n'
-                        f'Raison: {form.cleaned_data.get("commentaire_validation", "Non spécifiée")}\n\n'
-                        f'Vous pouvez modifier votre projet et le soumettre à nouveau.\n\n'
-                        f'Cordialement,\nL\'équipe Solid\'Avenir',
-                        settings.DEFAULT_FROM_EMAIL,
-                        [projet.porteur.email],
-                        fail_silently=True,
-                    )
-                except Exception as e:
-                    logger.error(f"Erreur envoi email rejet: {str(e)}")
-            
-            projet.save()
-            
-            # Journalisation audit détaillée
-            action = 'validate' if nouveau_statut == 'actif' else 'reject'
-            AuditLog.objects.create(
-                utilisateur=request.user,
-                action=action,
-                modele='Projet',
-                objet_id=str(projet.audit_uuid),
-                details={
-                    'ancien_statut': ancien_statut,
-                    'nouveau_statut': nouveau_statut,
-                    'montant': float(projet.montant_demande),
-                    'commentaire': form.cleaned_data.get('commentaire_validation', '')
-                },
-                adresse_ip=request.META.get('REMOTE_ADDR')
-            )
-            
-            # Envoyer une notification au porteur pour validation
-            if nouveau_statut == 'actif':
-                try:
-                    send_mail(
-                        f'Félicitations ! Votre projet "{projet.titre}" est actif - Solid\'Avenir',
-                        f'Bonjour {projet.porteur.get_full_name() or projet.porteur.username},\n\n'
-                        f'Votre projet "{projet.titre}" a été validé et est maintenant actif sur notre plateforme.\n'
-                        f'Montant demandé: {projet.montant_demande:,} FCFA\n\n'
-                        f'Vous pouvez maintenant partager votre projet et commencer à collecter des fonds.\n\n'
-                        f'Cordialement,\nL\'équipe Solid\'Avenir',
-                        settings.DEFAULT_FROM_EMAIL,
-                        [projet.porteur.email],
-                        fail_silently=True,
-                    )
-                except Exception as e:
-                    logger.error(f"Erreur envoi email validation: {str(e)}")
-            
-            action_msg = "validé et activé" if nouveau_statut == 'actif' else "rejeté"
-            messages.success(request, f"Le projet a été {action_msg} avec succès.")
-            
-           
-            return redirect('tableau_de_bord')
-    else:
-        form = ValidationProjetForm(instance=projet)
-    
-    # Documents du projet
-    documents = []
-    if projet.document_justificatif:
-        documents.append({
-            'nom': 'Document justificatif',
-            'fichier': projet.document_justificatif,
-            'type': 'justificatif'
-        })
-    if projet.plan_financement:
-        documents.append({
-            'nom': 'Plan de financement',
-            'fichier': projet.plan_financement,
-            'type': 'financement'
-        })
-    
-    context = {
-        'form': form,
-        'projet': projet,
-        'documents': documents,
-        'stats': stats,
-        'porteur': projet.porteur,
-        'STATUTS': dict(Projet.STATUTS)
-    }
-    
-    return render(request, 'core/admin/valider_projet.html', context)
 
 
 
@@ -1751,22 +1628,59 @@ def valider_projet(request, audit_uuid):
                     )
                     
                     messages.info(request, f"Identifiant unique généré: {identifiant}")
-                    
+                
+                # ✅ CRÉATION DU TOPIC HCS SUR HEDERA
+                if not projet.topic_id:
+                    try:
+                        topic_response = creer_topic_pour_projet(projet, request.user)
+                        if topic_response and topic_response.get('success'):
+                            # Les champs sont déjà sauvegardés par creer_topic_pour_projet
+                            # On peut simplement mettre à jour le statut
+                            projet.hedera_topic_created = True
+                            
+                            # Journalisation création topic
+                            AuditLog.objects.create(
+                                utilisateur=request.user,
+                                action='create',
+                                modele='HederaTopic',
+                                objet_id=topic_response['topicId'],
+                                details={
+                                    'projet': projet.titre,
+                                    'transaction_id': topic_response.get('transactionId', ''),
+                                    'hashscan_url': topic_response.get('hashscanUrl', '')
+                                },
+                                adresse_ip=request.META.get('REMOTE_ADDR')
+                            )
+                            
+                            messages.success(request, f"Topic HCS créé: {projet.topic_id}")
+                        else:
+                            error_msg = topic_response.get('error', 'Erreur inconnue') if topic_response else 'Erreur inconnue'
+                            messages.warning(request, f"Projet validé mais erreur création topic HCS: {error_msg}")
+                    except Exception as e:
+                        logger.error(f"Erreur création topic HCS: {str(e)}")
+                        messages.warning(request, f"Projet validé mais erreur création topic HCS: {str(e)}")
+                
             elif nouveau_statut == 'rejete':
                 projet.valide_par = request.user
                 projet.date_validation = None
                 
                 # Envoyer un email au porteur en cas de rejet
                 try:
-                    # Envoi d'email via le backend Django configuré
+                    sujet_email = f'Votre projet "{projet.titre}" a été examiné - Solid\'Avenir'
+                    message_email = f"""Bonjour {projet.porteur.get_full_name() or projet.porteur.username},
+
+Votre projet "{projet.titre}" a été examiné par notre équipe.
+Statut: Rejeté
+Raison: {form.cleaned_data.get('commentaire_validation', 'Non spécifiée')}
+
+Vous pouvez modifier votre projet et le soumettre à nouveau.
+
+Cordialement,
+L'équipe Solid'Avenir"""
+                    
                     send_mail(
-                        f'Votre projet "{projet.titre}" a été examiné - Solid\'Avenir',
-                        f'Bonjour {projet.porteur.get_full_name() or projet.porteur.username},\n\n'
-                        f'Votre projet "{projet.titre}" a été examiné par notre équipe.\n'
-                        f'Statut: Rejeté\n'
-                        f'Raison: {form.cleaned_data.get("commentaire_validation", "Non spécifiée")}\n\n'
-                        f'Vous pouvez modifier votre projet et le soumettre à nouveau.\n\n'
-                        f'Cordialement,\nL\'équipe Solid\'Avenir',
+                        sujet_email,
+                        message_email,
                         settings.DEFAULT_FROM_EMAIL,
                         [projet.porteur.email],
                         fail_silently=True,
@@ -1790,7 +1704,9 @@ def valider_projet(request, audit_uuid):
                     'ancien_statut': ancien_statut,
                     'nouveau_statut': nouveau_statut,
                     'montant': float(projet.montant_demande),
-                    'commentaire': form.cleaned_data.get('commentaire_validation', '')
+                    'commentaire': form.cleaned_data.get('commentaire_validation', ''),
+                    'topic_id': projet.topic_id if nouveau_statut == 'actif' else None,
+                    'hedera_topic_created': projet.hedera_topic_created if nouveau_statut == 'actif' else False
                 },
                 adresse_ip=request.META.get('REMOTE_ADDR')
             )
@@ -1798,14 +1714,29 @@ def valider_projet(request, audit_uuid):
             # Envoyer une notification au porteur pour validation
             if nouveau_statut == 'actif':
                 try:
-                    # Envoi d'email via le backend Django configuré
+                    # Formatage correct du sujet d'email
+                    sujet_email = f'Félicitations ! Votre projet "{projet.titre}" est actif - Solid\'Avenir'
+                    
+                    # Formatage correct du message (éviter les caractères bizarres)
+                    message_email = f"""Bonjour {projet.porteur.get_full_name() or projet.porteur.username},
+
+Votre projet "{projet.titre}" a été validé et est maintenant actif sur notre plateforme.
+Montant demandé: {projet.montant_demande:,} FCFA
+
+Lien de votre projet: {request.build_absolute_uri(projet.get_absolute_url())}
+
+Informations blockchain:
+- Topic HCS: {projet.topic_id}
+- Voir sur HashScan: {projet.hedera_topic_hashscan_url or 'Non disponible'}
+
+Vous pouvez maintenant partager votre projet et commencer à collecter des fonds.
+
+Cordialement,
+L'équipe Solid'Avenir"""
+                    
                     send_mail(
-                        f'Félicitations ! Votre projet "{projet.titre}" est actif - Solid\'Avenir',
-                        f'Bonjour {projet.porteur.get_full_name() or projet.porteur.username},\n\n'
-                        f'Votre projet "{projet.titre}" a été validé et est maintenant actif sur notre plateforme.\n'
-                        f'Montant demandé: {projet.montant_demande:,} FCFA\n\n'
-                        f'Vous pouvez maintenant partager votre projet et commencer à collecter des fonds.\n\n'
-                        f'Cordialement,\nL\'équipe Solid\'Avenir',
+                        sujet_email,
+                        message_email,
                         settings.DEFAULT_FROM_EMAIL,
                         [projet.porteur.email],
                         fail_silently=True,
@@ -1848,8 +1779,6 @@ def valider_projet(request, audit_uuid):
     }
     
     return render(request, 'core/admin/valider_projet.html', context)
-
-
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -1950,58 +1879,6 @@ def convert_fcfa_to_hbar(fcfa_amount):
 
 
 
-@csrf_exempt
-def process_donation(request, project_id):
-    if request.method == 'POST':
-        try:
-            amount = request.POST.get('amount')
-            user = request.user
-            project = Projet.objects.get(id=project_id)
-
-            transfer_data = {
-                'fromAccountId': user.hedera_account_id,
-                'fromPrivateKey': user.hedera_private_key,
-                'toAccountId': project.hedera_account_id,
-                'amount': float(amount)
-            }
-
-            response = requests.post('http://localhost:3001/transfer', json=transfer_data, timeout=30)
-
-            if response.status_code == 200:
-                result = response.json()
-
-                transaction = Transaction.objects.create(
-                    user=user,
-                    montant=amount,
-                    hedera_transaction_hash=result['transactionId'],
-                    contributeur=user,
-                    projet=project,
-                    statut='confirme' if result['success'] else 'erreur'
-                )
-
-                # Mettre à jour le montant collecté du projet
-                if transaction.statut == 'confirme':
-                    project.montant_collecte = (
-                        project.transaction_set.filter(statut='confirme')
-                        .aggregate(total=Sum('montant'))['total'] or 0
-                    )
-                    project.save(update_fields=['montant_collecte'])
-
-                messages.success(request, f"Votre don de {amount} HBAR a bien été effectué ✅")
-                return redirect('detail_projet', audit_uuid=project.audit_uuid)
-
-            else:
-                messages.error(request, "Erreur lors du transfert ❌")
-                return redirect('detail_projet', audit_uuid=project.audit_uuid)
-
-        except Exception as e:
-            messages.error(request, f"Erreur: {str(e)}")
-            return redirect('detail_projet', audit_uuid=project.audit_uuid)
-
-    messages.warning(request, "Méthode non autorisée")
-    return redirect('detail_projet', audit_uuid=project.audit_uuid)
-
-
 def voir_wallet(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -2025,3 +1902,209 @@ def voir_wallet(request):
         'solde': solde,
         'user': request.user
     })
+
+
+import requests
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib import messages
+from django.utils import timezone
+from django.conf import settings
+from django.core.mail import send_mail
+import logging
+
+from core.models import Projet, AuditLog
+from core.forms import ValidationProjetForm
+
+logger = logging.getLogger(__name__)
+
+def creer_topic_pour_projet(projet, utilisateur):
+    """
+    Crée un topic HCS pour un projet via le microservice Node.js
+    et journalise l'action avec l'utilisateur à l'origine.
+    """
+    url = "http://localhost:3001/create-topic"
+    try:
+        response = requests.post(url, json={
+            "memo": f"Projet {projet.titre} - {projet.audit_uuid}"
+        }, timeout=30)  
+        response.raise_for_status() 
+        data = response.json()
+        
+        if data.get("success"):
+            # Sauvegarder l'ID du topic dans le projet
+            projet.topic_id = data["topicId"]
+            projet.hedera_topic_created = True
+            projet.hedera_topic_transaction_id = data.get("transactionId")
+            projet.hedera_topic_hashscan_url = data.get("hashscanUrl")
+            projet.save(update_fields=[
+                "topic_id", 
+                "hedera_topic_created", 
+                "hedera_topic_transaction_id", 
+                "hedera_topic_hashscan_url"
+            ])
+            
+            # Journaliser la création du topic avec l'utilisateur
+            AuditLog.objects.create(
+                utilisateur=utilisateur,  
+                action='create',
+                modele='HCS_Topic',
+                objet_id=data["topicId"],
+                details={
+                    'projet': projet.titre,
+                    'projet_uuid': str(projet.audit_uuid),
+                    'transaction_hash': data.get("transactionId", ""),
+                    'hashscan_url': data.get("hashscanUrl", "")
+                },
+                adresse_ip=getattr(utilisateur, "last_login_ip", "127.0.0.1")
+            )
+            
+            return data  
+        
+        else:
+            error_msg = data.get("error", "Erreur inconnue")
+            logger.error(f"Erreur création topic HCS: {error_msg}")
+            raise Exception(error_msg)
+            
+    except requests.exceptions.ConnectionError:
+        logger.error("Microservice HCS non disponible")
+        raise Exception("Service de blockchain temporairement indisponible")
+    except requests.exceptions.Timeout:
+        logger.error("Timeout création topic HCS")
+        raise Exception("Timeout du service blockchain")
+    except Exception as e:
+        logger.error(f"Erreur création topic pour projet {projet.id}: {e}")
+        raise e
+
+
+import requests
+import json
+
+
+
+@csrf_exempt
+def process_donation(request, project_id):
+    if request.method == 'POST':
+        try:
+            amount = request.POST.get('amount')
+            user = request.user
+            project = Projet.objects.get(id=project_id)
+
+            # --- Transfert HBAR via microservice Node.js ---
+            transfer_data = {
+                'fromAccountId': user.hedera_account_id,
+                'fromPrivateKey': user.hedera_private_key,
+                'toAccountId': project.hedera_account_id,
+                'amount': float(amount)
+            }
+
+            response = requests.post(
+                'http://localhost:3001/transfer',
+                json=transfer_data,
+                timeout=30
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+
+                transaction = Transaction.objects.create(
+                    user=user,
+                    montant=amount,
+                    hedera_transaction_hash=result['transactionId'],
+                    contributeur=user,
+                    projet=project,
+                    statut='confirme' if result['success'] else 'erreur'
+                )
+
+                # Mettre à jour le montant collecté
+                if transaction.statut == 'confirme':
+                    project.montant_collecte = (
+                        project.transaction_set.filter(statut='confirme')
+                        .aggregate(total=Sum('montant'))['total'] or 0
+                    )
+                    project.save(update_fields=['montant_collecte'])
+
+                    # --- Envoyer un message HCS sur le topic du projet ---
+                    if project.topic_id:
+                        hcs_response = envoyer_don_hcs(
+                            topic_id=project.topic_id,
+                            utilisateur_email=user.email,
+                            montant=amount,
+                            transaction_hash=result['transactionId']
+                        )
+                        
+                        # 🔥 GÉRER LA RÉPONSE HCS AVANT DE REDIRIGER
+                        if hcs_response and hcs_response.get('success'):
+                            messages.success(request, f"Votre don de {amount} HBAR a bien été effectué ✅ (message HCS envoyé)")
+                        else:
+                            error_msg = hcs_response.get('error', 'Erreur inconnue') if hcs_response else 'Service HCS indisponible'
+                            messages.warning(request, f"Don effectué mais erreur HCS: {error_msg} ⚠️")
+                    else:
+                        messages.warning(request, "Don effectué mais aucun Topic HCS associé au projet ⚠️")
+
+                else:
+                    messages.error(request, "Erreur lors de l'enregistrement de la transaction ❌")
+
+                return redirect('detail_projet', audit_uuid=project.audit_uuid)
+
+            else:
+                messages.error(request, "Erreur lors du transfert HBAR ❌")
+                return redirect('detail_projet', audit_uuid=project.audit_uuid)
+
+        except Exception as e:
+            messages.error(request, f"Erreur: {str(e)}")
+            return redirect('detail_projet', audit_uuid=project.audit_uuid)
+
+    messages.warning(request, "Méthode non autorisée")
+    return redirect('detail_projet', audit_uuid=project.audit_uuid)
+
+import requests
+import json
+from django.utils import timezone
+import logging
+
+logger = logging.getLogger(__name__)
+
+def envoyer_don_hcs(topic_id, utilisateur_email, montant, transaction_hash):
+    """Envoie un message HCS pour enregistrer un don"""
+    url = "http://localhost:3001/send-message"
+    
+    # Message structuré pour HCS
+    message_data = {
+        "type": "don",
+        "utilisateur": utilisateur_email,
+        "montant": float(montant),
+        "date": timezone.now().isoformat(),
+        "transaction_hash": transaction_hash,
+        "timestamp": int(timezone.now().timestamp())
+    }
+    
+    payload = {
+        "topicId": topic_id,
+        "message": message_data
+    }
+    
+    try:
+        response = requests.post(url, json=payload, timeout=10)
+        response.raise_for_status()  # Lève une exception pour les codes 4xx/5xx
+        
+        data = response.json()
+        logger.info(f"Message HCS envoyé avec succès: {data}")
+        return data
+        
+    except requests.exceptions.ConnectionError:
+        logger.error("Microservice HCS non disponible")
+        return {"success": False, "error": "Service HCS indisponible"}
+    
+    except requests.exceptions.Timeout:
+        logger.error("Timeout lors de l'envoi du message HCS")
+        return {"success": False, "error": "Timeout service HCS"}
+    
+    except requests.exceptions.HTTPError as e:
+        logger.error(f"Erreur HTTP HCS: {e}")
+        return {"success": False, "error": f"Erreur HTTP: {e}"}
+    
+    except Exception as e:
+        logger.error(f"Erreur inattendue HCS: {e}")
+        return {"success": False, "error": str(e)}

@@ -6,7 +6,9 @@ const {
   AccountCreateTransaction,
   Hbar,
   TransferTransaction,
-  AccountBalanceQuery
+  AccountBalanceQuery,
+  TopicCreateTransaction,
+  TopicMessageSubmitTransaction
 } = require("@hashgraph/sdk");
 
 const app = express();
@@ -110,6 +112,82 @@ app.get('/balance/:accountId', async (req, res) => {
   }
 });
 
+// Route pour créer un Topic HCS
+app.post('/create-topic', async (req, res) => {
+  try {
+    const { memo = "Topic SolidAvenir" } = req.body;
+
+    // Créer le topic
+    const tx = new TopicCreateTransaction()
+      .setTopicMemo(memo)
+      .freezeWith(client);
+
+    // Signer avec l’opérateur
+    const signedTx = await tx.sign(MY_PRIVATE_KEY);
+
+    // Envoyer la transaction
+    const txResponse = await signedTx.execute(client);
+
+    // Récupérer le receipt
+    const receipt = await txResponse.getReceipt(client);
+
+    const topicId = receipt.topicId.toString();
+
+    res.json({
+      success: true,
+      topicId,
+      transactionId: txResponse.transactionId.toString(),
+      status: receipt.status.toString(),
+      hashscanUrl: `https://hashscan.io/testnet/tx/${txResponse.transactionId.toString()}`
+    });
+
+  } catch (error) {
+    console.error("Erreur création topic:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
+// Route pour vérifier la santé du service
+
+app.post('/send-message', async (req, res) => {
+    const { topicId, message } = req.body;
+    
+    try {
+        // Vérifier que le topicId est valide
+        if (!topicId || !topicId.startsWith('0.0.')) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Topic ID invalide' 
+            });
+        }
+
+        const txResponse = await new TopicMessageSubmitTransaction({
+            topicId: topicId,
+            message: JSON.stringify(message)
+        }).execute(client);
+
+        const receipt = await txResponse.getReceipt(client);
+        
+        res.json({ 
+            success: true, 
+            status: receipt.status.toString(),
+            transactionId: txResponse.transactionId.toString(),
+            hashscanUrl: `https://hashscan.io/testnet/transaction/${txResponse.transactionId.toString()}`
+        });
+        
+    } catch (error) {
+        console.error("Erreur envoi message HCS:", error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
 // Route pour vérifier la santé du service
 app.get('/health', async (req, res) => {
   try {
@@ -131,6 +209,9 @@ app.get('/health', async (req, res) => {
     });
   }
 });
+
+
+
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

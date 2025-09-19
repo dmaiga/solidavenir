@@ -27,11 +27,39 @@ from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 import requests
 
+# --- MODELE PRINCIPAL PROJET ---
+from django.db import models
+from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator, FileExtensionValidator
+from django.utils import timezone
+from django.utils.text import slugify
+from django.db.models import Sum, Q
+import uuid
+from datetime import timedelta
+
+from django.db import models
+from django.core.validators import FileExtensionValidator
+from django.utils.text import slugify
+import uuid
+# --- VALIDATEURS PERSONNALISÉS ---
+from django.core.exceptions import ValidationError
+
+from decimal import Decimal
+import math
+
+
 def validate_profile_image_size(value):
     """Valide que l'image de profil ne dépasse pas 5 Mo"""
     limit = 5 * 1024 * 1024  # 5 Mo
     if value.size > limit:
         raise ValidationError("La taille maximale de l'image de profil est de 5 Mo.")
+
+def validate_file_size(value):
+    """Vérifie que le fichier ne dépasse pas 10 Mo"""
+    limit = 10 * 1024 * 1024  # 10 Mo
+    if value.size > limit:
+        raise ValidationError("La taille maximale autorisée est de 10 Mo.")
+
 
 class User(AbstractUser):
     USER_TYPES = (
@@ -308,29 +336,8 @@ class User(AbstractUser):
     def has_active_wallet(self):
         """Vérifie si l'utilisateur a un wallet actif"""
         return self.wallet_activated and bool(self.hedera_account_id)
-# apps/projets/models.py
-
-# --- VALIDATEURS PERSONNALISÉS ---
-from django.core.exceptions import ValidationError
-
-def validate_file_size(value):
-    """Vérifie que le fichier ne dépasse pas 10 Mo"""
-    limit = 10 * 1024 * 1024  # 10 Mo
-    if value.size > limit:
-        raise ValidationError("La taille maximale autorisée est de 10 Mo.")
-
-# --- MODELE PRINCIPAL PROJET ---
-from django.db import models
-from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, FileExtensionValidator
-from django.utils import timezone
-from django.utils.text import slugify
-from django.db.models import Sum, Q
-import uuid
-from datetime import timedelta
 
 User = get_user_model()
-
 class Projet(models.Model):
     """
     Représente un projet de financement participatif porté par un utilisateur.
@@ -403,6 +410,22 @@ class Projet(models.Model):
     wallet_configure = models.BooleanField(
         default=False,
         help_text="Indique si le wallet est configuré pour les transactions"
+    )
+    topic_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
+    hedera_topic_created = models.BooleanField(
+        default=False,
+        help_text="Indique si le topic HCS a été créé sur Hedera"
+    )
+    hedera_topic_transaction_id = models.CharField(
+        max_length=150, 
+        blank=True, 
+        null=True,
+        help_text="Transaction ID de création du topic HCS"
+    )
+    hedera_topic_hashscan_url = models.URLField(
+        blank=True, 
+        null=True,
+        help_text="URL HashScan pour le topic HCS"
     )
     # Médias
     cover_image = models.ImageField(
@@ -588,6 +611,15 @@ class Projet(models.Model):
         if self.vues == 0:
             return 0
         return round((self.contributeurs_count / self.vues) * 100, 2)
+    @property
+    def has_hedera_topic(self):
+        return bool(self.topic_id and self.hedera_topic_created)
+    
+    @property
+    def topic_hashscan_link(self):
+        if self.topic_id:
+            return f"https://hashscan.io/testnet/topic/{self.topic_id}"
+        return None
 
     def incrementer_vues(self):
         self.vues += 1
@@ -636,6 +668,9 @@ class Projet(models.Model):
                 self.statut = 'echec'
             self.save(update_fields=['statut'])
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('detail_projet', kwargs={'audit_uuid': str(self.audit_uuid)})
     
     def peut_etre_modifie_par(self, user):
         """Vérifie si l'utilisateur peut modifier ce projet"""
@@ -650,10 +685,6 @@ class Projet(models.Model):
         return False
 
 
-from django.db import models
-from django.core.validators import FileExtensionValidator
-from django.utils.text import slugify
-import uuid
 
 class Association(models.Model):
     DOMAINES_ACTION = (
@@ -830,14 +861,6 @@ class AssociationImage(models.Model):
 
 
 
-
-
-
-
-
-from decimal import Decimal
-import math
-
 class Transaction(models.Model):
     STATUTS = (
         ('en_attente', 'En attente'),
@@ -852,6 +875,40 @@ class Transaction(models.Model):
     
     date_transaction = models.DateTimeField(auto_now_add=True)
     hedera_transaction_hash = models.CharField(max_length=150, unique=True)
+    hedera_hashscan_url = models.URLField(
+        blank=True, 
+        null=True,
+        help_text="URL HashScan pour visualiser la transaction"
+    )
+    hedera_status = models.CharField(
+        max_length=20, 
+        blank=True, 
+        null=True,
+        help_text="Statut Hedera de la transaction (SUCCESS, FAILED, etc.)"
+    )
+    hedera_message_id = models.CharField(
+        max_length=150, 
+        blank=True, 
+        null=True,
+        help_text="ID du message HCS envoyé pour cette transaction"
+    )
+    hedera_message_hashscan_url = models.URLField(
+        blank=True, 
+        null=True,
+        help_text="URL HashScan pour le message HCS"
+    )
+    
+    # ✅ NOUVEAU: Lien direct au topic du projet
+    topic = models.ForeignKey(
+        'Projet',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='transactions_by_topic',
+        to_field='topic_id',  # Lien sur le champ topic_id
+        help_text="Topic HCS du projet associé à cette transaction"
+    )
+    
     contributeur = models.ForeignKey(
         User, 
         on_delete=models.CASCADE, 
@@ -860,7 +917,7 @@ class Transaction(models.Model):
     projet = models.ForeignKey(Projet, on_delete=models.CASCADE)
     
     statut = models.CharField(max_length=10, choices=STATUTS, default='en_attente')
-    contributeur_anonymise = models.CharField(max_length=100, editable=False)  # CORRIGÉ: donateur → contributeur
+    contributeur_anonymise = models.CharField(max_length=100, editable=False)
     
     # Suivi administratif
     verifie_par = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
@@ -874,6 +931,7 @@ class Transaction(models.Model):
             models.Index(fields=['date_transaction']),
             models.Index(fields=['contributeur']),
             models.Index(fields=['projet']),
+            models.Index(fields=['topic']),  # ✅ Nouvel index
         ]
         permissions = [
             ("verify_transaction", "Peut vérifier une transaction"),
@@ -881,13 +939,30 @@ class Transaction(models.Model):
         ]
     
     def save(self, *args, **kwargs):
-        # CORRIGÉ: Utiliser contributeur au lieu de donateur
+        # ✅ Auto-remplissage du topic à partir du projet
+        if self.projet and self.projet.topic_id and not self.topic:
+            self.topic = self.projet
+        
         if self.contributeur and not self.contributeur_anonymise:
             salt = getattr(settings, 'ANONYMIZATION_SALT', '')
             self.contributeur_anonymise = self.anonymiser_contributeur(salt)
             
         super().save(*args, **kwargs)
     
+    @property
+    def is_hedera_confirmed(self):
+        return self.hedera_status == 'SUCCESS'
+    
+    @property
+    def has_hedera_message(self):
+        return bool(self.hedera_message_id)
+    
+    @property
+    def topic_hashscan_link(self):
+        """Retourne le lien HashScan du topic"""
+        if self.topic and self.topic.topic_id:
+            return f"https://hashscan.io/testnet/topic/{self.topic.topic_id}"
+        return None
     
     def anonymiser_contributeur(self, salt):
         """Anonymisation du contributeur"""
@@ -898,16 +973,6 @@ class Transaction(models.Model):
         """Validation: Empêcher les admins de contribuer"""
         if self.contributeur and self.contributeur.user_type == 'admin':
             raise ValidationError("Les administrateurs ne peuvent pas effectuer de contributions.")
-
-
-
-
-
-
-
-
-
-
 
 
 
