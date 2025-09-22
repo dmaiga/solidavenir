@@ -65,6 +65,7 @@
                             <th>Statut</th>
                             <th>Montant</th>
                             <th>Collecté</th>
+                            <th>Paliers</th>
                             <th>Contributeurs</th>
                             <th>Date création</th>
                             <th>Actions</th>
@@ -97,69 +98,134 @@
                                 </div>
                                 <small>{{ projet.montant_collecte|intcomma }} FCFA</small>
                             </td>
+                            <td>
+                                <!-- Affichage des paliers -->
+                                <div class="paliers-container">
+                                    {% for palier in projet.paliers.all %}
+                                    <div class="palier-item mb-2 p-2 border rounded">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small>
+                                                <strong>Palier {{ palier.pourcentage }}%</strong><br>
+                                                <span class="text-muted">{{ palier.montant|intcomma }} FCFA</span>
+                                            </small>
+                                            <div>
+                                                {% if palier.transfere %}
+                                                    <span class="badge bg-success" title="Transféré le {{ palier.date_transfert|date:'d/m/Y' }}">
+                                                        <i class="fas fa-check"></i> Payé
+                                                    </span>
+                                                {% elif palier.montant_minimum <= projet.montant_engage %}
+                                                    <!-- Vérifier si des preuves existent -->
+                                                    {% with palier.preuves.first as preuve %}
+                                                        {% if preuve %}
+                                                            {% if preuve.statut == 'approuve' %}
+                                                                <span class="badge bg-info">
+                                                                    <i class="fas fa-check-double"></i> Approuvé
+                                                                </span>
+                                                            {% elif preuve.statut == 'en_attente' %}
+                                                                <span class="badge bg-warning">
+                                                                    <i class="fas fa-clock"></i> En vérification
+                                                                </span>
+                                                            {% elif preuve.statut == 'rejete' %}
+                                                                <span class="badge bg-danger">
+                                                                    <i class="fas fa-times"></i> Rejeté
+                                                                </span>
+                                                            {% elif preuve.statut == 'modification' %}
+                                                                <span class="badge bg-warning">
+                                                                    <i class="fas fa-edit"></i> Modifications
+                                                                </span>
+                                                            {% endif %}
+                                                        {% else %}
+                                                            <a href="{% url 'soumettre_preuves_palier' palier.id %}" 
+                                                               class="btn btn-warning btn-sm">
+                                                               <i class="fas fa-file-upload"></i> Preuves
+                                                            </a>
+                                                        {% endif %}
+                                                    {% endwith %}
+                                                {% else %}
+                                                    <span class="badge bg-secondary">
+                                                        {{ palier.pourcentage }}% non atteint
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Barre de progression du palier -->
+                                        <div class="progress mt-1" style="height: 5px;">
+                                            {% if palier.montant_minimum <= projet.montant_engage %}
+                                                <div class="progress-bar bg-success" style="width: 100%"></div>
+                                            {% else %}
+                                                <div class="progress-bar bg-secondary" 
+                                                     style="width: {% widthratio projet.montant_engage palier.montant_minimum 100 %}%">
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </td>
                             <td>{{ projet.nombre_donateurs }}</td>
                             <td>{{ projet.date_creation|date:"d/m/Y" }}</td>
                             <td>
-                                <div class="btn-group">
-                                    <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye"></i>
+                                <div class="btn-group-vertical">
+                                    <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-sm btn-outline-primary mb-1">
+                                        <i class="fas fa-eye"></i> Voir
                                     </a>
                                     
                                     {% if projet.statut in 'brouillon en_attente' %}
-                                    <a href="{% url 'modifier_projet' projet.audit_uuid %}" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-edit"></i>
+                                    <a href="{% url 'modifier_projet' projet.audit_uuid %}" class="btn btn-sm btn-outline-secondary mb-1">
+                                        <i class="fas fa-edit"></i> Modifier
                                     </a>
+                                    {% endif %}
+                                    
+                                    <!-- Actions spécifiques selon le statut -->
+                                    {% if projet.statut == 'brouillon' %}
+                                    <form method="post" action="{% url 'mes_projets' %}" class="mb-1">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="projet_id" value="{{ projet.id }}">
+                                        <input type="hidden" name="action" value="soumettre">
+                                        <button type="submit" class="btn btn-sm btn-success w-100">
+                                            <i class="fas fa-paper-plane"></i> Soumettre
+                                        </button>
+                                    </form>
+                                    {% elif projet.statut == 'en_attente' %}
+                                    <form method="post" action="{% url 'mes_projets' %}" class="mb-1">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="projet_id" value="{{ projet.id }}">
+                                        <input type="hidden" name="action" value="annuler">
+                                        <button type="submit" class="btn btn-sm btn-warning w-100">
+                                            <i class="fas fa-times"></i> Annuler
+                                        </button>
+                                    </form>
                                     {% endif %}
                                     
                                     {% if projet.statut in 'brouillon rejete' %}
                                     <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ projet.id }}">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="fas fa-trash"></i> Supprimer
                                     </button>
                                     {% endif %}
                                 </div>
 
-                                <!-- Actions spécifiques selon le statut -->
-                                {% if projet.statut == 'brouillon' %}
-                                <form method="post" action="{% url 'mes_projets' %}" class="mt-2">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="projet_id" value="{{ projet.id }}">
-                                    <input type="hidden" name="action" value="soumettre">
-                                    <button type="submit" class="btn btn-sm btn-success">
-                                        <i class="fas fa-paper-plane"></i> Soumettre
-                                    </button>
-                                </form>
-                                {% elif projet.statut == 'en_attente' %}
-                                <form method="post" action="{% url 'mes_projets' %}" class="mt-2">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="projet_id" value="{{ projet.id }}">
-                                    <input type="hidden" name="action" value="annuler">
-                                    <button type="submit" class="btn btn-sm btn-warning">
-                                        <i class="fas fa-times"></i> Annuler
-                                    </button>
-                                </form>
-                                {% endif %}
-                            </td>
-                        </tr>
-
-                        <!-- Modal de suppression -->
-                        <div class="modal fade" id="deleteModal{{ projet.id }}" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Confirmer la suppression</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Êtes-vous sûr de vouloir supprimer le projet "{{ projet.titre }}" ?</p>
-                                        <p class="text-danger"><strong>Cette action est irréversible.</strong></p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                        <a href="{% url 'supprimer_projet' projet.audit_uuid %}" class="btn btn-danger">Supprimer</a>
+                                <!-- Modal de suppression -->
+                                <div class="modal fade" id="deleteModal{{ projet.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirmer la suppression</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Êtes-vous sûr de vouloir supprimer le projet "{{ projet.titre }}" ?</p>
+                                                <p class="text-danger"><strong>Cette action est irréversible.</strong></p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                <a href="{% url 'supprimer_projet' projet.audit_uuid %}" class="btn btn-danger">Supprimer</a>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -177,4 +243,28 @@
         </div>
     </div>
 </div>
+
+<style>
+.palier-item {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s;
+}
+
+.palier-item:hover {
+    background-color: #e9ecef;
+}
+
+.paliers-container {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.progress {
+    border-radius: 3px;
+}
+
+.btn-group-vertical .btn {
+    margin-bottom: 2px;
+}
+</style>
 {% endblock %}

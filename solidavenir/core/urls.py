@@ -26,7 +26,7 @@ urlpatterns = [
     path('profil/modifier/', views.modifier_profil, name='modifier_profil'),
     path('profil/mot-de-passe/', views.changer_mot_de_passe, name='changer_mot_de_passe'),
 
- path('envoyer-email/', views.envoyer_email_view, name='envoyer_email'),
+    path('envoyer-email/', views.envoyer_email_view, name='envoyer_email'),
     path('liste-emails/', views.liste_emails_view, name='liste_emails'),
     path('tableau-de-bord/', views.tableau_de_bord, name='tableau_de_bord'),
     path('transactions/validation/', views.liste_transactions_validation, name='liste_transactions_validation'),
@@ -45,11 +45,21 @@ urlpatterns = [
     path('association/<int:association_id>/preview/', views.preview_association_admin, name='preview_association_admin'),
     path('association/<int:association_id>/valider/', views.valider_association, name='valider_association'),
     path('association/<int:association_id>/rejeter/', views.rejeter_association, name='rejeter_association'),
-
+    path('gerer_distributions/', views.gerer_distributions, name='gerer_distributions'),
+    path('logs_distributions/', views.logs_distributions, name='logs_distributions'),
+    
     path('envoyer-email/', views.envoyer_email_view, name='envoyer_email'),
     path('liste-emails/', views.liste_emails_view, name='liste_emails'),
      path('donation/<int:project_id>/process/', views.process_donation, name='process_donation'),
     
     # URL pour voir le wallet
     path('wallet/', views.voir_wallet, name='voir_wallet'),
+     # URLs pour les preuves
+    path('projet/palier/<int:palier_id>/soumettre-preuves/', 
+         views.soumettre_preuves_palier, name='soumettre_preuves_palier'),
+    
+    path('palier/<int:palier_id>/verifier-preuves/', 
+         views.verifier_preuves_palier, name='verifier_preuves_palier'),
+    path("topics/", views.liste_topics, name="liste_topics"),
+    path("topics/<int:projet_id>/", views.topic_detail, name="topic_detail"),
 ]

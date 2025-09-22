@@ -1,0 +1,196 @@
+<!-- templates/core/logs_distributions.html -->
+{% extends 'base_admin.html' %}
+{% load static humanize %}
+
+{% block title %}Logs des Distributions - SolidAvenir{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-12">
+            <!-- En-tête -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-history text-primary me-2"></i>
+                    Historique des Distributions
+                </h1>
+                <div>
+                    <a href="{% url 'gerer_distributions' %}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>Retour aux distributions
+                    </a>
+                    <a href="{% url 'logs_audit' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-database me-2"></i>Voir tous les logs
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filtres -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Type d'action</label>
+                            <select name="action" class="form-select">
+                                <option value="">Toutes les actions</option>
+                                <option value="debut_distribution">Début distribution</option>
+                                <option value="distribution_success">Distribution réussie</option>
+                                <option value="distribution_failed">Échec distribution</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Statut</label>
+                            <select name="statut" class="form-select">
+                                <option value="">Tous les statuts</option>
+                                <option value="SUCCESS">Succès</option>
+                                <option value="FAILURE">Échec</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">&nbsp;</label>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter me-2"></i>Filtrer
+                                </button>
+                                <a href="{% url 'logs_distributions' %}" class="btn btn-outline-secondary ms-2">
+                                    Réinitialiser
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tableau des logs -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                    <th>Projet</th>
+                                    <th>Montant</th>
+                                    <th>Utilisateur</th>
+                                    <th>Statut</th>
+                                    <th>Détails</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                <tr class="{% if log.statut == 'SUCCESS' %}table-success{% else %}table-danger{% endif %}">
+                                    <td>
+                                        <small>{{ log.date_action|date:"d/m/Y H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if 'success' in log.details.action %}success{% elif 'failed' in log.details.action %}danger{% else %}info{% endif %}">
+                                            {{ log.details.action|default:log.action }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if log.details.projet %}
+                                        <strong>{{ log.details.projet }}</strong>
+                                        {% if log.details.projet_id %}
+                                        <br>
+                                        <small class="text-muted">#{{ log.details.projet_id }}</small>
+                                        {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.details.montant %}
+                                        <strong class="text-success">{{ log.details.montant|intcomma }} HBAR</strong>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.utilisateur %}
+                                        {{ log.utilisateur.get_full_name|default:log.utilisateur.email }}
+                                        {% else %}
+                                        <span class="text-muted">Système</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if log.statut == 'SUCCESS' %}success{% else %}danger{% endif %}">
+                                            {{ log.get_statut_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                type="button" 
+                                                data-bs-toggle="collapse" 
+                                                data-bs-target="#details-{{ log.id }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="7" class="p-0">
+                                        <div id="details-{{ log.id }}" class="collapse">
+                                            <div class="p-3 bg-light">
+                                                <pre class="mb-0">{{ log.details }}</pre>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                                        <p class="text-muted">Aucun log de distribution trouvé</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if logs.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if logs.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ logs.previous_page_number }}">Précédent</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in logs.paginator.page_range %}
+                            <li class="page-item {% if logs.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if logs.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ logs.next_page_number }}">Suivant</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Fonction pour formater joliment le JSON
+function prettyPrintJson(json) {
+    if (typeof json === 'string') {
+        try {
+            json = JSON.parse(json);
+        } catch (e) {
+            return json;
+        }
+    }
+    return JSON.stringify(json, null, 2);
+}
+
+// Appliquer le formatage à tous les pre
+document.querySelectorAll('pre').forEach(pre => {
+    pre.textContent = prettyPrintJson(pre.textContent);
+});
+</script>
+{% endblock %}

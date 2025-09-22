@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Soumettre les preuves - Palier {{ palier.pourcentage }}%{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <!-- En-tête -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-upload me-2"></i>
+                        Soumettre les preuves - Palier {{ palier.pourcentage }}%
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>{{ palier.projet.titre }}</h5>
+                            <p class="text-muted">{{ palier.projet.description|truncatewords:20 }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info">
+                                <strong>Montant du palier :</strong> {{ palier.montant }} HBAR<br>
+                                <strong>Pourcentage :</strong> {{ palier.pourcentage }}%<br>
+                                <strong>Statut :</strong> 
+                                <span class="badge bg-warning">En attente de preuves</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if preuve_existante %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Attention :</strong> Une soumission existe déjà pour ce palier. 
+                En soumettant de nouvelles preuves, l'ancienne version sera remplacée.
+            </div>
+            {% endif %}
+
+            <!-- Formulaire de soumission -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="preuve-form" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Champ fichiers -->
+                        <div class="mb-4">
+                            <label for="id_fichiers" class="form-label fw-bold">
+                                Fichiers preuves *
+                            </label>
+                            <input type="file" name="fichiers" id="id_fichiers" 
+                                   class="form-control" multiple 
+                                   accept=".jpg,.jpeg,.png,.pdf,.mp4,.avi,.mov,.doc,.docx,.xls,.xlsx,.txt">
+                            
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Types autorisés : images (JPEG, PNG, GIF), PDF, vidéos (MP4, AVI, MOV), 
+                                documents Office (DOC, DOCX, XLS, XLSX). Max 10 fichiers, 50 MB au total.
+                            </div>
+                            
+                            <!-- Aperçu des fichiers -->
+                            <div id="file-preview" class="mt-3" style="display: none;">
+                                <h6>Fichiers sélectionnés :</h6>
+                                <div id="file-list" class="list-group"></div>
+                            </div>
+                        </div>
+
+                        <!-- Champ description -->
+                        <div class="mb-4">
+                            <label for="id_description" class="form-label fw-bold">
+                                Description des preuves
+                            </label>
+                            <textarea name="description" id="id_description" 
+                                      class="form-control" rows="3"
+                                      placeholder="Décrivez brièvement les preuves soumises...">{{ form.description.value|default:'' }}</textarea>
+                            
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Décrivez comment ces preuves démontrent l'achèvement du palier.
+                            </div>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'mes_projets' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Retour aux projets
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Soumettre les preuves
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('id_fichiers');
+    const filePreview = document.getElementById('file-preview');
+    const fileList = document.getElementById('file-list');
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            fileList.innerHTML = '';
+            
+            if (this.files && this.files.length > 0) {
+                filePreview.style.display = 'block';
+                
+                for (let i = 0; i < this.files.length; i++) {
+                    const file = this.files[i];
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    
+                    listItem.innerHTML = `
+                        <div>
+                            <i class="fas fa-file me-2 text-primary"></i>
+                            <span class="file-name">${file.name}</span>
+                        </div>
+                        <div>
+                            <span class="badge bg-primary rounded-pill me-2">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                            <span class="badge bg-secondary">${file.type || 'Type inconnu'}</span>
+                        </div>
+                    `;
+                    
+                    fileList.appendChild(listItem);
+                }
+            } else {
+                filePreview.style.display = 'none';
+            }
+        });
+    }
+    
+    // Validation côté client
+    const form = document.getElementById('preuve-form');
+    form.addEventListener('submit', function(e) {
+        const files = fileInput.files;
+        let totalSize = 0;
+        
+        if (!files || files.length === 0) {
+            e.preventDefault();
+            alert('❌ Veuillez sélectionner au moins un fichier.');
+            return;
+        }
+        
+        if (files.length > 10) {
+            e.preventDefault();
+            alert('❌ Maximum 10 fichiers autorisés.');
+            return;
+        }
+        
+        for (let i = 0; i < files.length; i++) {
+            totalSize += files[i].size;
+        }
+        
+        if (totalSize > 50 * 1024 * 1024) {
+            e.preventDefault();
+            alert('❌ La taille totale des fichiers dépasse 50 MB. Veuillez sélectionner des fichiers plus petits.');
+            return;
+        }
+    });
+});
+</script>
+
+<style>
+.file-name {
+    word-break: break-all;
+}
+
+.list-group-item {
+    border-left: 4px solid #007bff;
+}
+</style>
+{% endblock %}

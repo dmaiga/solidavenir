@@ -608,7 +608,7 @@ class Transfer_fond(forms.ModelForm):
         decimal_places=0,
         label="Montant de la contribution (FCFA)",  # Texte changé
         help_text="Montant en FCFA que vous souhaitez contribuer",  # Texte changé
-        widget=forms.NumberInput(attrs={'placeholder': '10000', 'min': '100'})
+        widget=forms.NumberInput(attrs={'placeholder': '10000', 'min': '1'})
     )
     
     # Option de contribution anonyme
@@ -977,7 +977,7 @@ class CreationProjetForm(forms.ModelForm):
         description_courte = self.cleaned_data.get('description_courte', '')
         description_courte = description_courte.strip()
         
-        if len(description_courte) < 20:
+        if len(description_courte) < 10:
             raise ValidationError("Le résumé doit contenir au moins 20 caractères.")
         
         if len(description_courte) > 300:
@@ -988,8 +988,8 @@ class CreationProjetForm(forms.ModelForm):
     def clean_montant_demande(self):
         """Validation du montant demandé"""
         montant = self.cleaned_data.get('montant_demande')
-        if montant and montant < 10000:
-            raise ValidationError("Le montant demandé doit être d'au moins 10 000 FCFA.")
+        if montant and montant < 5:
+            raise ValidationError("Le montant demandé doit être d'au moins 10 FCFA.")
         return montant
     
     def save(self, commit=True):
@@ -1014,3 +1014,90 @@ class CreationProjetForm(forms.ModelForm):
             self.save_m2m() 
         
         return projet    
+
+from django import forms
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
+
+from django import forms
+from django.utils.html import format_html
+
+class MultiFileInput(forms.ClearableFileInput):
+    def render(self, name, value, attrs=None, renderer=None):
+        attrs = attrs or {}
+        attrs['multiple'] = 'multiple'
+        return super().render(name, value, attrs, renderer)
+    
+    def value_from_datadict(self, data, files, name):
+        if hasattr(files, 'getlist'):
+            return files.getlist(name)
+        return None
+
+class PreuveForm(forms.Form):
+    """Formulaire pour soumettre des preuves pour un palier"""
+
+    fichiers = forms.FileField(
+        label="Fichiers preuves",
+        widget=MultiFileInput(attrs={
+            'accept': '.jpg,.jpeg,.png,.pdf,.mp4,.avi,.mov,.doc,.docx,.xls,.xlsx,.txt',
+            'class': 'form-control'
+        }),
+        help_text="Sélectionnez un ou plusieurs fichiers (max 10 fichiers, 50 MB au total)",
+        required=True
+    )
+
+    description = forms.CharField(
+        label="Description des preuves",
+        widget=forms.Textarea(attrs={
+            'rows': 3,
+            'placeholder': 'Décrivez brièvement les preuves soumises...',
+            'class': 'form-control'
+        }),
+        required=False,
+        help_text="Facultatif : expliquez comment ces preuves démontrent l'achèvement du palier"
+    )
+
+    def clean_fichiers(self):
+        # Cette méthode ne sera plus utilisée de la même manière
+        # On va gérer les fichiers directement dans la vue
+        return self.cleaned_data.get('fichiers')
+    
+
+
+
+class VerificationPreuveForm(forms.Form):
+    """Formulaire pour vérifier les preuves (admin)"""
+    
+    ACTION_CHOICES = [
+        ('approuver', '✅ Approuver les preuves'),
+        ('rejeter', '❌ Rejeter les preuves'),
+        ('modification', '📝 Demander des modifications'),
+    ]
+    
+    action = forms.ChoiceField(
+        label="Action",
+        choices=ACTION_CHOICES,
+        widget=forms.RadioSelect
+    )
+    
+    commentaires = forms.CharField(
+        label="Commentaires",
+        widget=forms.Textarea(attrs={
+            'rows': 4,
+            'placeholder': 'Expliquez votre décision...'
+        }),
+        required=False,
+        help_text="Les commentaires seront visibles par le porteur du projet"
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        action = cleaned_data.get('action')
+        commentaires = cleaned_data.get('commentaires', '')
+        
+        if action in ['rejeter', 'modification'] and not commentaires.strip():
+            raise forms.ValidationError(
+                "Veuillez fournir des commentaires lorsque vous rejetez ou demandez des modifications"
+            )
+        
+        return cleaned_data

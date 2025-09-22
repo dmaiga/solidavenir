@@ -27,27 +27,6 @@ class CustomUserAdmin(UserAdmin):
     def make_donateur(self, request, queryset):
         queryset.update(user_type='donateur')
     make_donateur.short_description = "Définir comme donateur"
-
-@admin.register(Projet)
-class ProjetAdmin(admin.ModelAdmin):
-    list_display = ('titre', 'porteur', 'montant_demande', 'montant_collecte', 'statut', 'date_creation')
-    list_filter = ('statut', 'date_creation')
-    search_fields = ('titre', 'porteur__username', 'description')
-    readonly_fields = ('audit_uuid','topic_id','date_creation', 'date_mise_a_jour')
-    actions = ['validate_projects', 'reject_projects']
-    
-    def validate_projects(self, request, queryset):
-        for projet in queryset:
-            projet.statut = 'actif'
-            projet.valide_par = request.user
-            projet.date_validation = timezone.now()
-            projet.save()
-    validate_projects.short_description = "Valider les projets sélectionnés"
-    
-    def reject_projects(self, request, queryset):
-        queryset.update(statut='rejete')
-    reject_projects.short_description = "Rejeter les projets sélectionnés"
-
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     list_display = ('montant', 'contributeur_anonymise', 'projet', 'statut', 'date_transaction')
@@ -132,6 +111,7 @@ from .models import ContactSubmission
 
 @admin.register(ContactSubmission)
 class ContactSubmissionAdmin(admin.ModelAdmin):
+
     list_display = ('sujet', 'email', 'date_soumission', 'traite')
     list_filter = ('traite', 'date_soumission')
     search_fields = ('sujet', 'email', 'message')
@@ -139,3 +119,131 @@ class ContactSubmissionAdmin(admin.ModelAdmin):
     
     def has_add_permission(self, request):
         return False  # Empêcher l'ajout manuel depuis l'admin
+    
+
+from django.contrib import admin
+from django.utils.html import format_html
+from .models import Projet, Palier
+
+# Créer un inline pour les paliers
+class PalierInline(admin.TabularInline):
+    model = Palier
+    extra = 0
+    readonly_fields = ('montant_minimum', 'transfere', 'date_transfert', 'transaction_hash')
+    fields = ('pourcentage', 'montant', 'montant_minimum', 'transfere', 'date_transfert', 'transaction_hash')
+    
+    def has_add_permission(self, request, obj=None):
+        # Permettre d'ajouter des paliers seulement à la création
+        return obj is None
+
+@admin.register(Projet)
+class ProjetAdmin(admin.ModelAdmin):
+    list_display = ('titre', 'porteur','montant_collecte', 'montant_demande', 'montant_engage', 'montant_distribue', 'statut', 'date_creation', 'paliers_status')
+    list_filter = ('statut', 'date_creation', 'categorie')
+    search_fields = ('titre', 'porteur__username', 'description')
+    readonly_fields = ('audit_uuid', 'topic_id', 'date_creation', 'date_mise_a_jour', 'montant_engage', 'montant_distribue', 'paliers_summary')
+    inlines = [PalierInline]  # ← Ajouter les paliers en inline
+    actions = ['validate_projects', 'reject_projects', 'creer_paliers_auto']
+    
+    # Champs à afficher dans le détail
+    fieldsets = (
+        ('Informations générales', {
+            'fields': ('titre', 'description', 'porteur', 'association', 'statut')
+        }),
+        ('Financement', {
+            'fields': ('montant_demande', 'montant_minimal','montant_collecte', 'montant_engage', 'montant_distribue', 'commission')
+        }),
+        ('Détails techniques', {
+            'fields': ('audit_uuid', 'topic_id', 'hedera_account_id', 'paliers_summary'),
+            'classes': ('collapse',)
+        }),
+        ('Dates', {
+            'fields': ('date_creation', 'date_mise_a_jour', 'date_debut', 'date_fin'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def paliers_status(self, obj):
+        """Affiche le statut des paliers dans la liste"""
+        total = obj.paliers.count()
+        transferes = obj.paliers.filter(transfere=True).count()
+        
+        if total == 0:
+            return format_html('<span class="badge bg-secondary">Aucun palier</span>')
+        elif transferes == total:
+            return format_html('<span class="badge bg-success">✓ Tous distribués</span>')
+        elif transferes > 0:
+            return format_html('<span class="badge bg-warning">{}/{} distribués</span>', transferes, total)
+        else:
+            return format_html('<span class="badge bg-info">{} paliers</span>', total)
+    paliers_status.short_description = "Paliers"
+    
+    def paliers_summary(self, obj):
+        """Résumé des paliers dans le détail"""
+        paliers = obj.paliers.all()
+        if not paliers.exists():
+            return "Aucun palier configuré"
+        
+        html = '<div class="paliers-summary">'
+        for palier in paliers:
+            status = "✓ Distribué" if palier.transfere else "⏳ En attente"
+            css_class = "text-success" if palier.transfere else "text-warning"
+            html += f'''
+            <div class="border p-2 mb-2">
+                <strong>Palier {palier.pourcentage}%</strong> - {palier.montant} HBAR
+                <br><span class="{css_class}">{status}</span>
+                {f"<br>Distribué le: {palier.date_transfert}" if palier.transfere else ""}
+            </div>
+            '''
+        html += '</div>'
+        return format_html(html)
+    paliers_summary.short_description = "Résumé des paliers"
+    
+    def creer_paliers_auto(self, request, queryset):
+        """Action pour créer automatiquement les paliers"""
+        from .utils import creer_paliers  # Import local pour éviter circularité
+        
+        for projet in queryset:
+            creer_paliers(projet)
+            self.message_user(request, f"Paliers créés pour {projet.titre}")
+    creer_paliers_auto.short_description = "Créer les paliers automatiquement"
+    
+    def validate_projects(self, request, queryset):
+        for projet in queryset:
+            projet.statut = 'actif'
+            projet.valide_par = request.user
+            projet.date_validation = timezone.now()
+            
+            # Créer automatiquement les paliers si nécessaire
+            if not projet.paliers.exists():
+                from .utils import creer_paliers
+                creer_paliers(projet)
+            
+            projet.save()
+        self.message_user(request, "Projets validés avec succès")
+    validate_projects.short_description = "Valider les projets sélectionnés"
+    
+    def reject_projects(self, request, queryset):
+        queryset.update(statut='rejete')
+        self.message_user(request, "Projets rejetés avec succès")
+    reject_projects.short_description = "Rejeter les projets sélectionnés"
+    
+    # Ajouter du CSS pour l'admin
+    class Media:
+        css = {
+            'all': ('css/admin_paliers.css',)
+        }
+@admin.register(Palier)
+class PalierAdmin(admin.ModelAdmin):
+    list_display = ('projet', 'pourcentage', 'montant', 'montant_minimum', 'transfere', 'date_transfert')
+    list_filter = ('transfere', 'projet__statut')
+    search_fields = ('projet__titre',)
+    readonly_fields = ('montant_minimum', 'date_transfert', 'transaction_hash')
+    
+    def has_add_permission(self, request):
+        # Les paliers sont créés automatiquement, pas manuellement
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        # Empêcher la suppression des paliers
+        return False

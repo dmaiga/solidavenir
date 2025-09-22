@@ -332,6 +332,13 @@
                             </a>
                         </li>
                         <li>
+                            <a href="{% url 'gerer_distributions' %}" class="nav-link {% if request.resolver_match.url_name == 'gerer_distributions' %}active{% endif %}">
+                                <i class="fas fa-clipboard-list"></i>
+                                Gerer distributions
+                            </a>
+                        </li>
+
+                        <li>
                             <a href="{% url 'logs_audit' %}" class="nav-link {% if request.resolver_match.url_name == 'logs_audit' %}active{% endif %}">
                                 <i class="fas fa-clipboard-list"></i>
                                 Logs d'audit

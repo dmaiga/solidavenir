@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>💬 Détails du Topic : {{ projet.titre }}</h2>
+  <p><strong>Topic Hedera :</strong> {{ projet.topic_id }}</p>
+  <p><a href="{{ projet.topic_hashscan_link }}" target="_blank">🔗 Voir sur HashScan</a></p>
+
+  <hr>
+
+  {% if messages_topic %}
+    <ul class="list-group">
+      {% for msg in messages_topic %}
+        <li class="list-group-item">
+          <strong>{{ msg.type_message }}</strong> - {{ msg.date_envoi|date:"d/m/Y H:i" }}<br>
+          👤 {{ msg.utilisateur_email }}<br>
+          💰 {{ msg.montant }} HBAR<br>
+          🔗 Tx Hash : {{ msg.transaction_hash }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Aucun message enregistré pour ce projet.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -15,7 +15,13 @@ from django.utils.translation import gettext_lazy as _
 from decimal import Decimal
 import os
 import environ
-
+import os
+import dj_database_url
+#
+env = environ.Env()
+environ.Env.read_env() 
+HEDERA_OPERATOR_ID = env("HEDERA_OPERATOR_ID")
+HEDERA_OPERATOR_PRIVATE_KEY = env("HEDERA_OPERATOR_PRIVATE_KEY")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -87,10 +93,7 @@ WSGI_APPLICATION = 'solidavenir.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 # Initialise django-environ
-import dj_database_url
-#
-env = environ.Env()
-environ.Env.read_env() 
+
 # DB Prod  postgreSQL de NEON
 #
 #DATABASES = {

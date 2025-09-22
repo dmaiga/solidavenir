@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load static humanize %}
 {% block title %}{{ projet.titre }} - Plateforme de Financement Participatif{% endblock %}
 
 {% block content %}
@@ -82,20 +82,41 @@
                         {% endif %}
                     </p>
 
-                    <!-- Barre de progression -->
-                    <div class="progress mb-3" style="height: 25px;">
-                        <div class="progress-bar bg-success" role="progressbar" 
-                             style="width: {{ pourcentage }}%;" 
-                             aria-valuenow="{{ pourcentage }}" 
-                             aria-valuemin="0" 
-                             aria-valuemax="100">
-                            {{ pourcentage }}%
+                   <!-- Barre de progression double -->
+                    <div class="mb-4">
+                        <!-- Financement global -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><strong>Objectif de financement</strong></span>
+                                <strong class="text-success">{{ projet.pourcentage_financement }}%</strong>
+                            </div>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-success" 
+                                     style="width: {{ projet.pourcentage_financement }}%">
+                                    {{ projet.montant_engage|intcomma }}/{{ projet.montant_demande|intcomma }} HBAR
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-1">
+                                {{ conversions.montant_engage_fcfa|intcomma }} FCFA / {{ conversions.montant_demande_fcfa|intcomma }} FCFA
+                            </small>
                         </div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mb-3">
-                        <span><strong>{{ projet.montant_collecte|floatformat:0 }} ℏ</strong> collectés</span>
-                        <span><strong>{{ projet.montant_demande|floatformat:0 }} ℏ</strong> demandés</span>
+                        
+                        <!-- Distribution aux paliers -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><strong>Fonds distribués</strong></span>
+                                <strong class="text-info">{{ projet.pourcentage_distribue }}%</strong>
+                            </div>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-info" 
+                                     style="width: {{ projet.pourcentage_distribue }}%">
+                                    {{ projet.montant_distribue|intcomma }}/{{ projet.montant_engage|intcomma }} HBAR
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-1">
+                                Commission: {{ projet.taux_commission }} ({{ projet.montant_commission_total|intcomma }} HBAR retenus)
+                            </small>
+                        </div>
                     </div>
                     
                     <div class="d-flex justify-content-between align-items-center">
@@ -103,11 +124,61 @@
                             {{ projet.get_statut_display }}
                         </span>
                         {% if projet.statut == 'actif' %}
-                        <span><i class="bi bi-clock me-1"></i>{{ projet.jours_restants }} jours restants</span>
+                        <span><i class="fas fa-clock me-1"></i>{{ projet.jours_restants }} jours restants</span>
                         {% endif %}
                     </div>
                 </div>
             </div>
+
+            <!-- Paliers de distribution -->
+            {% if paliers %}
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0"><i class="fas fa-target me-2"></i>Paliers de distribution</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for palier_info in paliers %}
+                        <div class="col-md-6 mb-3">
+                            <div class="border rounded p-3 h-100 {% if palier_info.distribue %}bg-light{% elif palier_info.statut_preuve == 'approuve' %}border-success{% else %}border-secondary{% endif %}">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong>Palier {{ palier_info.palier.pourcentage }}%</strong>
+                                    <span class="badge {% if palier_info.distribue %}bg-success{% elif palier_info.statut_preuve == 'approuve' %}bg-info{% else %}bg-secondary{% endif %}">
+                                        {% if palier_info.distribue %}
+                                            <i class="fas fa-check"></i> Distribué
+                                        {% elif palier_info.statut_preuve == 'approuve' %}
+                                            <i class="fas fa-check-double"></i> Approuvé
+                                        {% elif palier_info.statut_preuve == 'en_attente' %}
+                                            <i class="fas fa-clock"></i> En attente
+                                        {% else %}
+                                            En préparation
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                
+                                <div class="mb-2">
+                                    <small class="text-muted">Montant:</small>
+                                    <div class="fw-bold">{{ palier_info.palier.montant|intcomma }} HBAR</div>
+                                    <small class="text-muted">({{ palier_info.montant_fcfa|intcomma }} FCFA)</small>
+                                </div>
+                                
+                                {% if palier_info.distribue and palier_info.palier.transaction_hash %}
+                                <div class="mt-2">
+                                    <small class="text-muted">Transaction:</small>
+                                    <a href="https://hashscan.io/testnet/transaction/{{ palier_info.palier.transaction_hash }}" 
+                                       target="_blank" class="d-block text-truncate">
+                                        <code>{{ palier_info.palier.transaction_hash|truncatechars:20 }}</code>
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
 
             <!-- Description du projet -->
             <div class="card mb-4 shadow-sm">
@@ -209,7 +280,7 @@
                                 <small>Transactions</small>
                             </div>
                             <div class="col-4">
-                                <h4 class="text-success mb-1">{{ projet.montant_collecte|floatformat:0 }} ℏ</h4>
+                                <h4 class="text-success mb-1">{{ projet.montant_engage|floatformat:0 }} ℏ</h4>
                                 <small>Total</small>
                             </div>
                             <div class="col-4">
@@ -240,7 +311,7 @@
                                     <label for="amount" class="form-label">Montant (HBAR)</label>
                                     <input type="number" class="form-control form-control-lg" id="amount" name="amount" 
                                            min="1" step="1" required placeholder="10">
-                                    <small class="text-muted">1 HBAR ≈ {{ hbar_usd }} USD</small>
+                                      1 HBAR ≈ {{ conversions.hbar_to_fcfa_rate|floatformat:2 }} FCFA
                                 </div>
                                  
                                 <button type="submit" class="btn btn-primary w-100 py-2">

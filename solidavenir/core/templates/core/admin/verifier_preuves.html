@@ -1,0 +1,160 @@
+<!-- core/admin/verifier_preuves.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Vérifier les preuves - {{ projet.titre }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- En-tête -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-search me-2"></i>
+                            Vérifier les preuves - Palier {{ palier.pourcentage }}%
+                        </h4>
+                        <a href="{% url 'gerer_distributions' %}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i>Retour
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>{{ projet.titre }}</h5>
+                            <p class="text-muted">{{ projet.description }}</p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <strong>Porteur :</strong> {{ projet.porteur.get_full_name }}<br>
+                                    <strong>Email :</strong> {{ projet.porteur.email }}
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Montant palier :</strong> {{ palier.montant }} HBAR<br>
+                                    <strong>Pourcentage :</strong> {{ palier.pourcentage }}%
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Date soumission :</strong> {{ preuve.date_soumission|date:"d/m/Y H:i" }}<br>
+                                    <strong>Statut :</strong> 
+                                    <span class="badge bg-{% if preuve.statut == 'en_attente' %}warning{% elif preuve.statut == 'approuve' %}success{% else %}danger{% endif %}">
+                                        {{ preuve.get_statut_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fichiers preuves -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-files me-2"></i>Fichiers soumis ({{ fichiers|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if fichiers %}
+                    <div class="row">
+                        {% for fichier in fichiers %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    {% if fichier.type_fichier == 'photo' %}
+                                        <i class="fas fa-image fa-3x text-primary mb-2"></i>
+                                    {% elif fichier.type_fichier == 'video' %}
+                                        <i class="fas fa-video fa-3x text-success mb-2"></i>
+                                    {% elif fichier.type_fichier == 'document' %}
+                                        <i class="fas fa-file-pdf fa-3x text-danger mb-2"></i>
+                                    {% else %}
+                                        <i class="fas fa-file fa-3x text-secondary mb-2"></i>
+                                    {% endif %}
+                                    
+                                    <h6 class="card-title">{{ fichier.fichier.name|slice:"20:" }}</h6>
+                                    <p class="card-text small text-muted">
+                                        Type: {{ fichier.get_type_fichier_display }}<br>
+                                        Taille: {{ fichier.fichier.size|filesizeformat }}
+                                    </p>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="{{ fichier.fichier.url }}" target="_blank" class="btn btn-primary btn-sm w-100">
+                                        <i class="fas fa-download me-1"></i>Télécharger
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning text-center">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Aucun fichier trouvé pour cette preuve.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Formulaire de vérification -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Décision de vérification</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Action *</strong></label>
+                            <div class="row">
+                                {% for choice in form.action %}
+                                <div class="col-md-4 mb-2">
+                                    <div class="form-check">
+                                        {{ choice.tag }}
+                                        <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                            {{ choice.choice_label }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.action.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.action.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.commentaires.id_for_label }}" class="form-label">
+                                <strong>Commentaires</strong>
+                            </label>
+                            {{ form.commentaires }}
+                            {% if form.commentaires.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.commentaires.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Ces commentaires seront visibles par le porteur du projet
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'gerer_distributions' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Annuler
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-2"></i>Valider la décision
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

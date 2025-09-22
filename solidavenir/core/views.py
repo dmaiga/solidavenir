@@ -1,33 +1,55 @@
 # Standard library
+import os
+import json
 import logging
+import requests
+from mimetypes import MimeTypes
 from datetime import timedelta
+from decimal import Decimal, ROUND_HALF_UP
 from urllib.parse import urlencode
 
 # Django imports
-from django.shortcuts import render, redirect, get_object_or_404
+from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
+from django.contrib.auth import (
+    login, authenticate, logout, update_session_auth_hash
+)
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.forms import PasswordChangeForm
-from django.http import JsonResponse, HttpResponseForbidden, HttpResponseRedirect
-from django.db import transaction as db_transaction
-from django.db.models import Sum, Count, Q, Avg, Max, Min, DecimalField
-from django.db.models.functions import Coalesce, TruncMonth
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.utils import timezone
-from django.core.mail import send_mail, EmailMessage
-from django.conf import settings
-from django.views.decorators.csrf import csrf_protect
-from django.urls import reverse
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.humanize.templatetags.humanize import intcomma
+from django.core.cache import cache
+from django.core.mail import send_mail, EmailMessage
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db import transaction as db_transaction
+from django.db.models import (
+    Sum, Count, Q, Avg, Max, Min, F, DecimalField, Prefetch
+)
+from django.db.models.functions import Coalesce, TruncMonth
+from django.http import (
+    JsonResponse, HttpResponseForbidden, HttpResponseRedirect
+)
+from django.shortcuts import (
+    render, redirect, get_object_or_404
+)
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.http import urlencode
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
 
 # Local apps imports
-from .models import Projet, Transaction, User, AuditLog, Association
+from .models import (
+    Projet, Transaction, User, AuditLog, Association,
+    Palier, PreuvePalier, FichierPreuve, EmailLog, TransactionAdmin
+)
 from .forms import (
     InscriptionFormSimplifiee, CreationProjetForm, ValidationProjetForm,
-    ProfilUtilisateurForm, ContactForm, Transfer_fond, AssociationForm
+    ProfilUtilisateurForm, ContactForm, Transfer_fond, AssociationForm,
+    FiltreMembresForm, FiltreTransactionsForm, FiltreAuditForm,
+    EmailFormSimple, PreuveForm, VerificationPreuveForm
 )
 
+logger = logging.getLogger(__name__)
 
 
 def about(request):
@@ -238,19 +260,18 @@ def liste_projets(request):
     }
     
     return render(request, 'core/projets/liste_projets.html', context)
-from django.db import transaction 
-
-
 
 @login_required
 def mes_projets(request):
-    """Liste des projets de l'utilisateur connecté avec statistiques"""
+    """Liste des projets de l'utilisateur connecté avec statistiques et paliers"""
     
-    
-    # Récupérer tous les projets du porteur avec annotations
+    # Récupérer tous les projets du porteur avec annotations et préchargement
     projets = Projet.objects.filter(porteur=request.user).annotate(
         nombre_donateurs=Count('transaction__contributeur', filter=Q(transaction__statut='confirme'), distinct=True),
         derniere_transaction=Max('transaction__date_transaction', filter=Q(transaction__statut='confirme'))
+    ).prefetch_related(
+        Prefetch('paliers', queryset=Palier.objects.order_by('pourcentage')),
+        Prefetch('paliers__preuves', queryset=PreuvePalier.objects.order_by('-date_soumission'))
     ).order_by('-date_creation')
     
     # Calculer les statistiques globales
@@ -328,6 +349,7 @@ def mes_projets(request):
     }
     
     return render(request, 'core/projets/mes_projets.html', context)
+
 
 
 def transparence(request):
@@ -428,11 +450,6 @@ def transparence(request):
 
 
 
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .forms import ContactForm
-from .models import ContactSubmission
-
 def contact(request):
     """Page de contact"""
     if request.method == 'POST':
@@ -524,114 +541,246 @@ def modifier_profil(request):
     
     return render(request, 'core/users/modifier_profil.html', context)
 
+logger = logging.getLogger(__name__)
 
 def detail_projet(request, audit_uuid):
     """Détail d'un projet spécifique avec possibilité de contribution"""
     projet = get_object_or_404(Projet, audit_uuid=audit_uuid)
     
-    # Compter les contributeurs distincts
-    contributeurs_count = Transaction.objects.filter(
+    # 🔍 Incrémenter le compteur de vues
+    projet.incrementer_vues()
+    
+    # 📊 Statistiques avancées
+    stats_transactions = Transaction.objects.filter(
         projet=projet, 
-        statut='confirme'
-    ).values('contributeur').distinct().count()
-    
-    # Récupérer les niveaux de financement si le projet en a
-    recompenses = None
-    if projet.has_recompenses and projet.recompenses_description:
-        recompenses = projet.recompenses_description
-    
-    # Vérifier si l'utilisateur peut voir le projet (créateur ou staff)
-    user_can_preview = (
-        request.user == projet.porteur or  # Créateur du projet
-        request.user.is_staff or           # Staff/admin
-        hasattr(request.user, 'association_profile') and request.user.association_profile == projet.association  # Association propriétaire
+        statut='confirme',
+        destination='operator'
+    ).aggregate(
+        total_contributeurs=Count('contributeur', distinct=True),
+        montant_total=Sum('montant'),
+        don_moyen=Avg('montant'),
+        don_max=Max('montant'),
+        dernier_don=Max('date_transaction')
     )
     
-    # Seuls les projets actifs ou terminés sont visibles par le public
-    # Mais permettre le preview au créateur et au staff même si le projet n'est pas actif
+    contributeurs_count = stats_transactions['total_contributeurs'] or 0
+    montant_total_collecte = stats_transactions['montant_total'] or 0
+    
+    # 📈 Paliers avec statut
+    paliers_avec_statut = []
+    for palier in projet.paliers.all().order_by('pourcentage'):
+        try:
+            preuve = PreuvePalier.objects.get(palier=palier)
+            statut_preuve = preuve.statut
+            date_soumission = preuve.date_soumission
+        except PreuvePalier.DoesNotExist:
+            statut_preuve = 'non_soumis'
+            date_soumission = None
+            
+        paliers_avec_statut.append({
+            'palier': palier,
+            'statut_preuve': statut_preuve,
+            'date_soumission': date_soumission,
+            'distribue': palier.transfere,
+            'montant_fcfa': palier.montant_fcfa if hasattr(palier, 'montant_fcfa') else Decimal('0')
+        })
+    
+    # 💰 Conversions de devise
+    try:
+        from .models import convert_hbar_to_fcfa
+        conversions = {
+            'hbar_to_fcfa_rate': Decimal('0.07') * Decimal('600'),  # Taux simplifié
+            'montant_demande_fcfa': projet.montant_demande_fcfa,
+            'montant_engage_fcfa': projet.montant_engage_fcfa,
+            'montant_restant_fcfa': projet.montant_restant_fcfa,
+            'montant_distribue_fcfa': projet.montant_distribue_fcfa,
+        }
+    except Exception as e:
+        logger.error(f"Erreur conversion devise: {e}")
+        conversions = {
+            'hbar_to_fcfa_rate': Decimal('42'),
+            'montant_demande_fcfa': Decimal('0'),
+            'montant_engage_fcfa': Decimal('0'),
+            'montant_restant_fcfa': Decimal('0'),
+            'montant_distribue_fcfa': Decimal('0'),
+        }
+    
+    # 👥 Vérification des permissions de visualisation
+    user_can_preview = (
+        request.user == projet.porteur or
+        request.user.is_staff or
+        (hasattr(request.user, 'association_profile') and 
+         request.user.association_profile == projet.association)
+    )
+    
     if projet.statut not in ['actif', 'termine'] and not user_can_preview:
         messages.error(request, "Ce projet n'est pas accessible.")
         return redirect('liste_projets')
     
-    # Récupérer des projets similaires (seulement pour les projets actifs)
-    projets_similaires = Projet.objects.filter(statut='actif').exclude(audit_uuid=audit_uuid)[:3]
+    # 🔍 Projets similaires
+    projets_similaires = Projet.objects.filter(
+        statut='actif',
+        categorie=projet.categorie
+    ).exclude(audit_uuid=audit_uuid).order_by('?')[:3]  # Random order for variety
     
-    transactions = Transaction.objects.filter(projet=projet, statut='confirme').order_by('-date_transaction')[:5]
+    # 💳 Transactions récentes
+    transactions_recentes = Transaction.objects.filter(
+        projet=projet, 
+        statut='confirme',
+        destination='operator'
+    ).select_related('contributeur').order_by('-date_transaction')[:10]
     
-    # Vérifier si l'utilisateur a un wallet configuré
+    # 👛 Vérification wallet utilisateur
     user_has_wallet = False
     if request.user.is_authenticated:
-        # Vérifier si l'utilisateur a un wallet configuré dans son profil
-        user_has_wallet = hasattr(request.user, 'hedera_account_id') and request.user.hedera_account_id
+        user_has_wallet = (
+            hasattr(request.user, 'hedera_account_id') and 
+            request.user.hedera_account_id and
+            hasattr(request.user, 'hedera_private_key') and 
+            request.user.hedera_private_key
+        )
     
+    # 📝 Gestion des contributions (POST)
     if request.method == 'POST':
-        if not request.user.is_authenticated:
-            messages.info(request, "Connectez-vous pour contribuer.")
-            return redirect(f"{reverse('connexion')}?{urlencode({'next': request.path})}")
-
-        if request.user.user_type == 'admin':
-            messages.error(request, "Les administrateurs ne peuvent pas effectuer de contributions.")
-            return redirect('detail_projet', audit_uuid=audit_uuid)
-
-        if projet.statut != 'actif':
-            messages.error(request, "Les contributions ne sont pas autorisées pour ce projet actuellement.")
-            return redirect('detail_projet', audit_uuid=audit_uuid)
-
-        if not user_has_wallet:
-            messages.info(request, "Veuillez configurer votre wallet pour effectuer une contribution.")
-            return redirect('configurer_wallet')
-
-        # ✅ Instancier le formulaire avec les données POST
-        form = Transfer_fond(request.POST, projet=projet, contributeur=request.user)
-
-        if form.is_valid():
-            transaction = form.save(commit=False)
-            transaction.projet = projet
-            transaction.contributeur = request.user
-            transaction.statut = "en_attente"
-            transaction.save()
-
-            # ✅ Audit log
-            AuditLog.objects.create(
-                utilisateur=request.user,
-                action="contribution_initiée",
-                modele="Transaction",
-                objet_id=str(transaction.id),
-                details={"montant": str(transaction.montant), "projet": str(projet.audit_uuid)},
-                adresse_ip=request.META.get("REMOTE_ADDR")
-            )
-
-            messages.success(request, "Votre contribution a été enregistrée et est en attente de confirmation.")
-            return redirect('detail_projet', audit_uuid=audit_uuid)
-    else:
-        form = Transfer_fond(projet=projet, contributeur=request.user if request.user.is_authenticated else None)
-
-    can_edit = projet.peut_etre_modifie_par(request.user)
+        return handle_contribution(request, projet, user_has_wallet)
     
-    # Déterminer si c'est un preview (projet non actif mais visible par le créateur/staff)
-    is_preview = projet.statut not in ['actif', 'termine'] and user_can_preview
-    return render(request, 'core/projets/detail_projet.html', {
+    # 📋 Formulaire de contribution
+    form = Transfer_fond(projet=projet, contributeur=request.user if request.user.is_authenticated else None)
+    
+    # 🎯 Context pour le template
+    context = {
         'projet': projet,
-        
-        'transactions': transactions,
+        'transactions': transactions_recentes,
         'contributeurs_count': contributeurs_count,
+        'montant_total_collecte': montant_total_collecte,
         'form': form,
         'projets_similaires': projets_similaires,
-        'pourcentage': projet.pourcentage_financement,
-        'user_has_wallet': user_has_wallet, 
-        'recompenses': recompenses,
-        'can_edit': can_edit,
-        'is_preview': is_preview,
-    })
+        'pourcentage_financement': projet.pourcentage_financement,
+        'pourcentage_distribue': projet.pourcentage_distribue,
+        'user_has_wallet': user_has_wallet,
+        'recompenses': projet.recompenses_description if projet.has_recompenses else None,
+        'can_edit': projet.peut_etre_modifie_par(request.user),
+        'is_preview': projet.statut not in ['actif', 'termine'] and user_can_preview,
+        'paliers': paliers_avec_statut,
+        'conversions': conversions,
+        'stats': {
+            'vues': projet.vues,
+            'partages': projet.partages,
+            'taux_conversion': projet.taux_conversion,
+            'don_moyen': stats_transactions['don_moyen'] or 0,
+            'don_max': stats_transactions['don_max'] or 0,
+            'dernier_don': stats_transactions['dernier_don'],
+        }
+    }
+    
+    return render(request, 'core/projets/detail_projet.html', context)
 
+def handle_contribution(request, projet, user_has_wallet):
+    """Gère la soumission d'une contribution"""
+    # 🔒 Vérifications de sécurité
+    if not request.user.is_authenticated:
+        messages.info(request, "Connectez-vous pour contribuer.")
+        return redirect(f"{reverse('connexion')}?{urlencode({'next': request.path})}")
 
+    if request.user.user_type == 'admin':
+        messages.error(request, "Les administrateurs ne peuvent pas effectuer de contributions.")
+        return redirect('detail_projet', audit_uuid=projet.audit_uuid)
+
+    if projet.statut != 'actif':
+        messages.error(request, "Les contributions ne sont pas autorisées pour ce projet actuellement.")
+        return redirect('detail_projet', audit_uuid=projet.audit_uuid)
+
+    if not user_has_wallet:
+        messages.error(request, "Veuillez configurer votre wallet pour effectuer une contribution.")
+        return redirect('configurer_wallet')
+
+    # 📝 Validation du formulaire
+    form = Transfer_fond(request.POST, projet=projet, contributeur=request.user)
+    
+    if not form.is_valid():
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f"Erreur {field}: {error}")
+        return redirect('detail_projet', audit_uuid=projet.audit_uuid)
+
+    try:
+        with transaction.atomic():
+            # 💾 Sauvegarde de la transaction
+            transaction_obj = form.save(commit=False)
+            transaction_obj.projet = projet
+            transaction_obj.contributeur = request.user
+            transaction_obj.statut = "en_attente"
+            transaction_obj.destination = "operator"
+            transaction_obj.save()
+
+            # 📊 Mise à jour des statistiques du projet
+            projet.refresh_from_db()
+
+            # 📖 AUDIT LOG - Journalisation détaillée
+            AuditLog.objects.create(
+                utilisateur=request.user,
+                action="contribution_initiee",
+                modele="Transaction",
+                objet_id=str(transaction_obj.id),
+                details={
+                    'montant': float(transaction_obj.montant),
+                    'projet_id': projet.id,
+                    'projet_titre': projet.titre,
+                    'projet_audit_uuid': str(projet.audit_uuid),
+                    'contributeur_email': request.user.email,
+                    'transaction_type': 'don',
+                    'destination': 'operator',
+                    'statut': 'en_attente',
+                    'commission_projet': float(projet.commission),
+                    'montant_engage_avant': float(projet.montant_engage),
+                    'montant_collecte_avant': float(projet.montant_collecte or 0)
+                },
+                adresse_ip=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                statut='SUCCESS'
+            )
+
+            # 🔔 Notification (optionnelle)
+            try:
+                # Envoyer une notification HCS
+                from .utils import envoyer_notification_contribution
+                envoyer_notification_contribution(projet, request.user, transaction_obj.montant)
+            except Exception as e:
+                logger.error(f"Erreur notification contribution: {e}")
+
+            messages.success(request, 
+                f"✅ Votre contribution de {transaction_obj.montant} HBAR a été enregistrée ! "
+                f"Elle est en attente de confirmation sur la blockchain."
+            )
+
+    except Exception as e:
+        logger.error(f"Erreur lors de la contribution: {e}")
+        
+        # 📖 AUDIT LOG - Journalisation de l'erreur
+        AuditLog.objects.create(
+            utilisateur=request.user,
+            action="contribution_erreur",
+            modele="Transaction",
+            objet_id="N/A",
+            details={
+                'erreur': str(e),
+                'projet_id': projet.id,
+                'projet_titre': projet.titre,
+                'contributeur_email': request.user.email,
+                'montant_tente': request.POST.get('montant', 'N/A')
+            },
+            adresse_ip=request.META.get('REMOTE_ADDR'),
+            statut='FAILURE'
+        )
+        
+        messages.error(request, "Une erreur est survenue lors de l'enregistrement de votre contribution.")
+
+    return redirect('detail_projet', audit_uuid=projet.audit_uuid)
 
 def configurer_wallet(request):
     """Vue temporaire pour la configuration du wallet"""
     messages.info(request, "La fonctionnalité de configuration du wallet sera bientôt disponible.")
     return redirect('profil')
-
-import requests
 
 @login_required
 def creer_projet(request):
@@ -666,9 +815,11 @@ def creer_projet(request):
                         logger.error(f"Erreur wallet Hedera: {str(e)}")
                         messages.error(request, "Le projet a été créé mais sans compte Hedera.")
                     # 🔑 Génération de l'identifiant unique incluant le porteur
-                    projet.identifiant_unique = f"SOLID{projet.id or 0:06d}-{request.user.id}-{timezone.now().strftime('%Y%m%d')}"
                     projet.save()
-
+                    projet.identifiant_unique = f"SOLID{projet.id:06d}-{request.user.id}-{timezone.now().strftime('%Y%m%d')}"
+                    projet.save(update_fields=['identifiant_unique'])
+                    for pct in [40, 30, 30]:
+                        Palier.objects.create(projet=projet, pourcentage=pct)
                      # Journalisation complète
                     AuditLog.objects.create(
                         utilisateur=request.user,
@@ -899,7 +1050,6 @@ def admin_required(view_func):
             return redirect('accueil')
         return view_func(request, *args, **kwargs)
     return wrapper
-from .forms import FiltreMembresForm, FiltreTransactionsForm, FiltreAuditForm
 
 
 @login_required
@@ -1787,14 +1937,6 @@ L'équipe Solid'Avenir"""
     
     return render(request, 'core/admin/valider_projet.html', context)
 
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from .forms import EmailFormSimple
-from .models import EmailLog
-from django.core.mail import send_mail
-from django.conf import settings
-
 @login_required
 def envoyer_email_view(request):
     """Vue simpliste pour envoyer un email"""
@@ -1851,41 +1993,6 @@ def liste_emails_view(request):
     return render(request, 'core/emails/liste_email.html', {'emails': emails})
 
 
-import requests
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
-
-from django.shortcuts import redirect
-from django.urls import reverse
-from django.contrib import messages
-from django.shortcuts import redirect
-import requests
-
-def get_hbar_to_fcfa():
-    """Retourne le prix actuel de 1 HBAR en USD (USD)"""
-    try:
-        response = requests.get(
-            "https://api.coingecko.com/api/v3/simple/price",
-            params={"ids": "hedera-hashgraph", "vs_currencies": "usd"},
-            timeout=10
-        )
-        data = response.json()
-        return data["hedera-hashgraph"]["usd"]
-    except Exception as e:
-        print(f"Erreur conversion HBAR-FCFA: {e}")
-        return None
-
-
-def convert_fcfa_to_hbar(fcfa_amount):
-    """Convertit un montant FCFA en HBAR"""
-    rate = get_hbar_to_fcfa()
-    if not rate:
-        raise ValueError("Impossible de récupérer le taux de conversion")
-    return fcfa_amount / rate
-
-
-
 def voir_wallet(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -1911,18 +2018,6 @@ def voir_wallet(request):
     })
 
 
-import requests
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib import messages
-from django.utils import timezone
-from django.conf import settings
-from django.core.mail import send_mail
-import logging
-
-from core.models import Projet, AuditLog
-from core.forms import ValidationProjetForm
 
 logger = logging.getLogger(__name__)
 
@@ -1984,16 +2079,82 @@ def creer_topic_pour_projet(projet, utilisateur):
         logger.error(f"Erreur création topic pour projet {projet.id}: {e}")
         raise e
 
+logger = logging.getLogger(__name__)
 
-import requests
-import json
+def envoyer_don_hcs(topic_id, utilisateur_email, montant, transaction_hash, type_message="distribution_palier"):
+    """Envoie un message HCS pour enregistrer un don"""
+    url = "http://localhost:3001/send-message"
+    
+    # Message structuré pour HCS
+    message_data = {
+        "type": type_message,
+        "utilisateur": utilisateur_email,
+        "montant": float(montant),
+        "date": timezone.now().isoformat(),
+        "transaction_hash": transaction_hash,
+        "timestamp": int(timezone.now().timestamp())
+    }
+    
+    payload = {
+        "topicId": topic_id,
+        "message": message_data
+    }
+    
+    try:
+        response = requests.post(url, json=payload, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        from core.models import Projet, TopicMessage
+        projet = Projet.objects.filter(topic_id=topic_id).first()
+        if projet:
+            TopicMessage.objects.create(
+                projet=projet,
+                type_message=type_message,
+                utilisateur_email=utilisateur_email,
+                montant=montant,
+                transaction_hash=transaction_hash,
+                contenu=message_data
+            )
+
+        logger.info(f"Message HCS envoyé avec succès: {data}")
+        return data
+        
+    except requests.exceptions.ConnectionError:
+        logger.error("Microservice HCS non disponible")
+        return {"success": False, "error": "Service HCS indisponible"}
+    
+    except requests.exceptions.Timeout:
+        logger.error("Timeout lors de l'envoi du message HCS")
+        return {"success": False, "error": "Timeout service HCS"}
+    
+    except requests.exceptions.HTTPError as e:
+        logger.error(f"Erreur HTTP HCS: {e}")
+        return {"success": False, "error": f"Erreur HTTP: {e}"}
+    
+    except Exception as e:
+        logger.error(f"Erreur inattendue HCS: {e}")
+        return {"success": False, "error": str(e)}
 
 
 
 @csrf_exempt
 def process_donation(request, project_id):
     if request.method == 'POST':
-        try:
+        try: # Vérifier que l'utilisateur est authentifié
+            if not request.user.is_authenticated:
+                messages.error(request, "Vous devez être connecté pour effectuer un don")
+                return redirect('login')
+            
+            # Vérifier que l'utilisateur a un wallet configuré
+            if not request.user.hedera_account_id or not request.user.hedera_private_key:
+                messages.error(request, "Votre wallet n'est pas configuré")
+                return redirect('detail_projet', audit_uuid=project.audit_uuid)
+            
+            amount = Decimal(request.POST.get('amount', 0))
+            if amount <= 0:
+                messages.error(request, "Montant invalide")
+                return redirect('detail_projet', audit_uuid=project.audit_uuid)
+
             amount = request.POST.get('amount')
             user = request.user
             project = Projet.objects.get(id=project_id)
@@ -2002,7 +2163,7 @@ def process_donation(request, project_id):
             transfer_data = {
                 'fromAccountId': user.hedera_account_id,
                 'fromPrivateKey': user.hedera_private_key,
-                'toAccountId': project.hedera_account_id,
+                'toAccountId': settings.HEDERA_OPERATOR_ID,
                 'amount': float(amount)
             }
 
@@ -2016,22 +2177,23 @@ def process_donation(request, project_id):
                 result = response.json()
 
                 transaction = Transaction.objects.create(
-                    user=user,
-                    montant=amount,
-                    hedera_transaction_hash=result['transactionId'],
-                    contributeur=user,
-                    projet=project,
-                    statut='confirme' if result['success'] else 'erreur'
-                )
+                user=user,
+                montant=amount,
+                hedera_transaction_hash=result['transactionId'],
+                contributeur=user,
+                projet=project,
+                statut='confirme' if result['success'] else 'erreur',
+                destination='operator'  
+                    )
 
                 # Mettre à jour le montant collecté
                 if transaction.statut == 'confirme':
-                    project.montant_collecte = (
-                        project.transaction_set.filter(statut='confirme')
+                    # Mettre à jour montant_engage au lieu de montant_collecte
+                    project.montant_engage = (
+                        project.transaction_set.filter(statut='confirme', destination='operator')
                         .aggregate(total=Sum('montant'))['total'] or 0
                     )
-                    project.save(update_fields=['montant_collecte'])
-
+                    project.save(update_fields=['montant_engage'])
                     # --- Envoyer un message HCS sur le topic du projet ---
                     if project.topic_id:
                         hcs_response = envoyer_don_hcs(
@@ -2066,25 +2228,92 @@ def process_donation(request, project_id):
     messages.warning(request, "Méthode non autorisée")
     return redirect('detail_projet', audit_uuid=project.audit_uuid)
 
-import requests
-import json
-from django.utils import timezone
-import logging
+def transfer_from_admin_to_doer(projet, porteur, montant_brut, palier=None):
+    """
+    Transfert avec commission, journalisation et notification HCS complète
+    """
+    montant_brut = Decimal(montant_brut)
 
-logger = logging.getLogger(__name__)
+    # Commission
+    commission_pct = projet.commission or Decimal("1.0")
+    commission_amount = (montant_brut * commission_pct) / Decimal("100")
+    montant_net = montant_brut - commission_amount
 
-def envoyer_don_hcs(topic_id, utilisateur_email, montant, transaction_hash):
-    """Envoie un message HCS pour enregistrer un don"""
+    # Transfert HBAR
+    transfer_data = {
+        "fromAccountId": settings.HEDERA_OPERATOR_ID,
+        "fromPrivateKey": settings.HEDERA_OPERATOR_KEY,
+        "toAccountId": porteur.hedera_account_id,
+        "amount": float(montant_net)
+    }
+
+    try:
+        response = requests.post("http://localhost:3001/transfer", json=transfer_data, timeout=30)
+        
+        if response.status_code != 200:
+            logger.error(f"Erreur transfert HBAR: {response.status_code} - {response.text}")
+            return {"success": False, "error": f"Erreur API HBAR: {response.status_code}"}
+
+        data = response.json()
+        transaction_hash = data.get("transactionId")
+
+        # Journalisation en base
+        transaction_admin = TransactionAdmin.objects.create(
+            projet=projet,
+            montant_brut=montant_brut,
+            montant_net=montant_net,
+            commission=commission_amount,
+            commission_pourcentage=commission_pct,
+            transaction_hash=transaction_hash,
+            beneficiaire=porteur,
+            type_transaction="distribution"
+        )
+
+        # ✅ ENVOI HCS AVEC DÉTAILS COMPLETS
+        if projet.topic_id:
+            
+            resultat_hcs = envoyer_don_hcs(
+                topic_id=projet.topic_id,
+                utilisateur_email=porteur.email,
+                montant=montant_brut,  # Montant brut avant commission
+                transaction_hash=transaction_hash,
+                type_message="distribution_admin_porteur"  # Type spécifique
+            )
+
+            if resultat_hcs.get('success'):
+                logger.info(f"✅ Distribution {transaction_hash} tracée sur HCS")
+                
+            else:
+                logger.warning(f"⚠️ HCS échoué pour {transaction_hash}")
+
+        return {"success": True, "transactionId": transaction_hash}
+
+    except requests.exceptions.Timeout:
+        error_msg = "Timeout lors du transfert HBAR"
+        logger.error(error_msg)
+        return {"success": False, "error": error_msg}
+    
+    except requests.exceptions.ConnectionError:
+        error_msg = "Service HBAR indisponible"
+        logger.error(error_msg)
+        return {"success": False, "error": error_msg}
+    
+    except Exception as e:
+        error_msg = f"Erreur inattendue: {str(e)}"
+        logger.error(error_msg)
+        return {"success": False, "error": error_msg}
+
+
+def envoyer_distribution_hcs(topic_id, distribution_data):
+    """Envoie un message HCS spécifique pour les distributions"""
     url = "http://localhost:3001/send-message"
     
-    # Message structuré pour HCS
     message_data = {
-        "type": "don",
-        "utilisateur": utilisateur_email,
-        "montant": float(montant),
+        "type": "distribution",
+        "version": "1.0",
+        "timestamp": int(timezone.now().timestamp()),
         "date": timezone.now().isoformat(),
-        "transaction_hash": transaction_hash,
-        "timestamp": int(timezone.now().timestamp())
+        "data": distribution_data  # Tous les détails de la distribution
     }
     
     payload = {
@@ -2094,24 +2323,739 @@ def envoyer_don_hcs(topic_id, utilisateur_email, montant, transaction_hash):
     
     try:
         response = requests.post(url, json=payload, timeout=10)
-        response.raise_for_status()  # Lève une exception pour les codes 4xx/5xx
+        response.raise_for_status()
         
         data = response.json()
-        logger.info(f"Message HCS envoyé avec succès: {data}")
-        return data
+        logger.info(f"Message distribution HCS envoyé: {distribution_data.get('transaction_hash')}")
+        return {"success": True, "data": data, "message_id": data.get("message_id")}
         
     except requests.exceptions.ConnectionError:
         logger.error("Microservice HCS non disponible")
         return {"success": False, "error": "Service HCS indisponible"}
     
     except requests.exceptions.Timeout:
-        logger.error("Timeout lors de l'envoi du message HCS")
+        logger.error("Timeout HCS")
         return {"success": False, "error": "Timeout service HCS"}
     
-    except requests.exceptions.HTTPError as e:
-        logger.error(f"Erreur HTTP HCS: {e}")
-        return {"success": False, "error": f"Erreur HTTP: {e}"}
-    
     except Exception as e:
-        logger.error(f"Erreur inattendue HCS: {e}")
+        logger.error(f"Erreur HCS: {e}")
         return {"success": False, "error": str(e)}
+
+
+def creer_paliers(projet):
+    # Supprimer les paliers existants
+    projet.paliers.all().delete()
+    
+    pourcentages = [40, 30, 30]
+    for pct in pourcentages:
+        montant_palier = (projet.montant_demande * Decimal(pct)) / 100
+        Palier.objects.create(
+            projet=projet, 
+            pourcentage=Decimal(pct), 
+            montant=montant_palier
+        )
+
+def verifier_paliers(projet):
+    """Vérifier si les paliers peuvent être distribués"""
+    montant_disponible = projet.montant_engage - projet.montant_distribue
+    
+    for palier in projet.paliers.order_by('montant_minimum'):
+        if (montant_disponible >= palier.montant and 
+            not palier.transfere and 
+            palier.montant <= montant_disponible):
+            
+            return True  # Palier prêt à être distribué
+    
+    return False
+
+
+@login_required
+def gerer_distributions(request):
+    """Interface admin pour libérer les fonds selon les paliers avec vérification des preuves"""
+    
+    # Récupérer les projets éligibles
+    projets = Projet.objects.filter(
+        Q(montant_engage__gt=0) | 
+        Q(statut__in=['actif', 'termine'])
+    ).prefetch_related('paliers', 'transaction_set')
+    
+    distributions = []
+    
+    for projet in projets:
+        # Calcul manuel du total des dons
+        total_dons = sum(
+            float(t.montant) for t in projet.transaction_set.all() 
+            if t.statut == 'confirme' and t.destination == 'operator'
+        )
+        
+        # Calcul des métriques
+        montant_engage = float(projet.montant_engage or 0)
+        montant_distribue = float(projet.montant_distribue or 0)
+        montant_demande = float(projet.montant_demande or 0)
+        
+        montant_disponible = montant_engage - montant_distribue
+        pourcentage_engage = (montant_engage / montant_demande * 100) if montant_demande > 0 else 0
+        pourcentage_distribue = (montant_distribue / montant_demande * 100) if montant_demande > 0 else 0
+        
+        # Analyser chaque palier avec son statut de preuve
+        paliers_avec_statut = []
+        
+        for palier in projet.paliers.order_by('montant_minimum'):
+            palier_montant = float(palier.montant or 0)
+            
+            # Vérifier le statut des preuves
+            try:
+                preuve = PreuvePalier.objects.get(palier=palier)
+                statut_preuve = preuve.statut
+                date_soumission = preuve.date_soumission
+                preuve_id = preuve.id
+            except PreuvePalier.DoesNotExist:
+                statut_preuve = 'non_soumis'
+                date_soumission = None
+                preuve_id = None
+            
+            # Déterminer si le palier est distributable
+            distributable = (
+                montant_disponible >= palier_montant and 
+                not palier.transfere and
+                statut_preuve == 'approuve'
+            )
+            
+            palier_data = {
+                'id': palier.id,
+                'pourcentage': float(palier.pourcentage),
+                'montant': palier_montant,
+                'transfere': palier.transfere,
+                'date_transfert': palier.date_transfert,
+                'statut_preuve': statut_preuve,
+                'date_soumission': date_soumission,
+                'preuve_id': preuve_id,
+                'distributable': distributable,
+                'montant_suffisant': montant_disponible >= palier_montant,
+                'preuve_requise': not palier.transfere and statut_preuve != 'approuve'
+            }
+            
+            paliers_avec_statut.append(palier_data)
+        
+        # Séparer les paliers par statut
+        paliers_distribuables = [p for p in paliers_avec_statut if p['distributable']]
+        paliers_en_attente = [p for p in paliers_avec_statut if not p['transfere'] and not p['distributable']]
+        paliers_deja_distribues = [p for p in paliers_avec_statut if p['transfere']]
+        
+        distributions.append({
+            'projet': projet,
+            'montant_demande': montant_demande,
+            'montant_engage': montant_engage,
+            'montant_distribue': montant_distribue,
+            'montant_disponible': montant_disponible,
+            'pourcentage_engage': round(pourcentage_engage, 1),
+            'pourcentage_distribue': round(pourcentage_distribue, 1),
+            'paliers_distribuables': paliers_distribuables,
+            'paliers_en_attente': paliers_en_attente,
+            'paliers_deja_distribues': paliers_deja_distribues,
+            'total_dons': total_dons,
+        })
+    
+    # Gestion des requêtes POST
+    if request.method == 'POST':
+        projet_id = request.POST.get('projet_id')
+        palier_id = request.POST.get('palier_id')
+        action = request.POST.get('action')
+        
+        try:
+            projet = Projet.objects.get(id=projet_id)
+            palier = Palier.objects.get(id=palier_id, projet=projet)
+            
+            if action == 'distribuer':
+                # Vérifications préalables
+                try:
+                    preuve = PreuvePalier.objects.get(palier=palier)
+                    if preuve.statut != 'approuve':
+                        messages.error(request, "Les preuves doivent être approuvées avant distribution")
+                        return redirect('gerer_distributions')
+                except PreuvePalier.DoesNotExist:
+                    messages.error(request, "Aucune preuve soumise pour ce palier")
+                    return redirect('gerer_distributions')
+                
+                montant_disponible = projet.montant_engage - projet.montant_distribue
+                if montant_disponible < float(palier.montant):
+                    messages.error(request, "Fonds insuffisants pour ce palier")
+                    return redirect('gerer_distributions')
+                
+                # Journaliser le début
+                AuditLog.objects.create(
+                    utilisateur=request.user,
+                    action='validate',
+                    modele='Distribution',
+                    objet_id=f"projet_{projet.id}_palier_{palier.id}",
+                    details={'action': 'debut_distribution', 'projet': projet.titre},
+                    adresse_ip=request.META.get('REMOTE_ADDR'),
+                    statut='IN_PROGRESS'
+                )
+                
+                # ⚡ EFFECTUER LE TRANSFERT
+                resultat = transfer_from_admin_to_doer(projet, projet.porteur, palier.montant)
+                
+                if resultat['success']:
+                    transaction_hash = resultat['transactionId']
+                    
+                    # ✅ Mettre à jour le palier avec le hash de transaction
+                    palier.transfere = True
+                    palier.date_transfert = timezone.now()
+                    palier.transaction_hash = resultat['transactionId']
+                    palier.save()
+                    
+                    # Mettre à jour les montants du projet
+                    projet.montant_distribue += palier.montant
+                    projet.save(update_fields=['montant_distribue'])
+                    
+                    # 📧 ENVOYER LA NOTIFICATION AU PORTEUR
+                    envoyer_notification_porteur(projet.porteur, palier, 'distribution')
+                    
+                    # 🌐 Notification HCS
+                    envoyer_don_hcs(
+                        topic_id=projet.topic_id,
+                        utilisateur_email=projet.porteur.email,
+                        montant=palier.montant,
+                        transaction_hash=transaction_hash
+                    )
+                    
+                    # 📝 Journaliser le succès
+                    AuditLog.objects.create(
+                        utilisateur=request.user,
+                        action='validate',
+                        modele='Distribution',
+                        objet_id=f"projet_{projet.id}_palier_{palier.id}",
+                        details={
+                            'action': 'distribution_success',
+                            'transaction_hash': transaction_hash,
+                            'montant': float(palier.montant)
+                        },
+                        adresse_ip=request.META.get('REMOTE_ADDR'),
+                        statut='SUCCESS'
+                    )
+                    
+                    messages.success(request, 
+                        f"✅ Distribution de {palier.montant} HBAR effectuée\n"
+                        f"📧 Notification envoyée au porteur\n"
+                        f"🔗 Transaction: {transaction_hash}"
+                    )
+                    
+                else:
+                    # Journaliser l'échec
+                    AuditLog.objects.create(
+                        utilisateur=request.user,
+                        action='validate',
+                        modele='Distribution',
+                        objet_id=f"projet_{projet.id}_palier_{palier.id}",
+                        details={
+                            'action': 'distribution_failed',
+                            'error': resultat.get('error', 'Erreur inconnue')
+                        },
+                        adresse_ip=request.META.get('REMOTE_ADDR'),
+                        statut='FAILURE'
+                    )
+                    
+                    messages.error(request, f"❌ Erreur: {resultat.get('error', 'Erreur inconnue')}")
+            
+            elif action == 'verifier_preuves':
+                return redirect('verifier_preuves_palier', palier_id=palier.id)
+                
+        except Exception as e:
+            AuditLog.objects.create(
+                utilisateur=request.user,
+                action='validate',
+                modele='Distribution',
+                objet_id=f"projet_{projet_id}_palier_{palier_id}",
+                details={'action': 'distribution_exception', 'error': str(e)},
+                adresse_ip=request.META.get('REMOTE_ADDR'),
+                statut='FAILURE'
+            )
+            
+            logger.error(f"Erreur distribution: {str(e)}")
+            messages.error(request, f"❌ Erreur: {str(e)}")
+        
+        return redirect('gerer_distributions')
+    
+    # Calcul des totaux
+    total_engage = sum(dist['montant_engage'] for dist in distributions)
+    total_distribue = sum(dist['montant_distribue'] for dist in distributions)
+    total_disponible = sum(dist['montant_disponible'] for dist in distributions)
+    total_paliers_attente = sum(len(dist['paliers_en_attente']) for dist in distributions)
+    total_paliers_distribuables = sum(len(dist['paliers_distribuables']) for dist in distributions)
+    
+    context = {
+        'distributions': distributions,
+        'total_engage': total_engage,
+        'total_distribue': total_distribue,
+        'total_disponible': total_disponible,
+        'total_paliers_attente': total_paliers_attente,
+        'total_paliers_distribuables': total_paliers_distribuables,
+    }
+    
+    return render(request, 'core/admin/gerer_distributions.html', context)
+
+
+
+
+@login_required
+def logs_distributions(request):
+    """Affiche les logs spécifiques aux distributions"""
+    logs = AuditLog.objects.filter(
+        modele__in=['Distribution', 'DistributionAuto', 'Palier']
+    ).order_by('-date_action')
+    
+    return render(request, 'core/admin/logs_distributions.html', {
+        'logs': logs
+    })
+
+def envoyer_notification_hcs(topic_id, type_notification, details):
+    """Système de notification HCS complet"""
+    message_data = {
+        "type": type_notification,
+        "timestamp": int(timezone.now().timestamp()),
+        "details": details
+    }
+    
+    payload = {
+        "topicId": topic_id,
+        "message": message_data
+    }
+    
+    try:
+        response = requests.post("http://localhost:3001/send-message", json=payload, timeout=10)
+        return response.json()
+    except Exception as e:
+        logger.error(f"Erreur HCS: {e}")
+        return {"success": False}
+
+def notifier_soumission_preuve_hcs(projet, palier, nb_fichiers):
+    """Notifier dans HCS la soumission de preuves d'un palier"""
+    details = {
+        "projet": projet.titre,
+        "palier": f"{palier.pourcentage}%",
+        "fichiers": nb_fichiers,
+        "statut": "en_attente"
+    }
+    
+    return envoyer_notification_hcs(
+        topic_id=projet.topic_id, 
+        type_notification="soumission_preuve",
+        details=details
+    )
+
+
+@login_required
+def soumettre_preuves_palier(request, palier_id):
+    """Interface pour le porteur pour soumettre les preuves d'un palier"""
+    palier = get_object_or_404(Palier, id=palier_id, projet__porteur=request.user)
+    projet = palier.projet
+    
+    if palier.transfere:
+        messages.info(request, "Ce palier a déjà été traité")
+        return redirect('mes_projets')
+    
+    try:
+        preuve_existante = PreuvePalier.objects.get(palier=palier)
+    except PreuvePalier.DoesNotExist:
+        preuve_existante = None
+    
+    if request.method == 'POST':
+        # NE PAS utiliser le formulaire pour la validation des fichiers
+        # Récupérer directement les fichiers depuis request.FILES
+        fichiers = request.FILES.getlist('fichiers')
+        description = request.POST.get('description', '')
+        
+        # Validation manuelle des fichiers
+        errors = []
+        
+        # Vérifier qu'au moins un fichier est sélectionné
+        if not fichiers or len(fichiers) == 0:
+            errors.append("Veuillez sélectionner au moins un fichier.")
+        
+        # Vérifier le nombre de fichiers
+        elif len(fichiers) > 10:
+            errors.append("Maximum 10 fichiers autorisés.")
+        
+        # Vérifier la taille totale et les types
+        else:
+            taille_totale = 0
+            types_autorises = [
+                'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+                'application/pdf', 
+                'video/mp4', 'video/avi', 'video/quicktime', 'video/x-msvideo',
+                'application/msword', 
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/plain'
+            ]
+            
+            for fichier in fichiers:
+                taille_totale += fichier.size
+                
+                # Vérifier le type MIME
+                if hasattr(fichier, 'content_type') and fichier.content_type:
+                    if fichier.content_type not in types_autorises:
+                        errors.append(f"Type de fichier non autorisé : {fichier.name}")
+                
+                # Vérifier la taille individuelle
+                if fichier.size > 10 * 1024 * 1024:  # 10 MB
+                    errors.append(f"Le fichier {fichier.name} est trop volumineux (max 10 MB)")
+            
+            # Vérifier la taille totale
+            if taille_totale > 50 * 1024 * 1024:  # 50 MB
+                errors.append("La taille totale des fichiers ne doit pas dépasser 50 MB")
+        
+        if errors:
+            # Afficher les erreurs
+            for error in errors:
+                messages.error(request, error)
+            form = PreuveForm(initial={'description': description})
+        else:
+            # Traitement des fichiers valides
+            with transaction.atomic():
+                if preuve_existante:
+                    # Supprimer les anciens fichiers physiquement
+                    for ancien_fichier in preuve_existante.fichiers.all():
+                        ancien_fichier.fichier.delete(save=False)
+                    preuve_existante.delete()
+                
+                # Créer la nouvelle preuve
+                preuve = PreuvePalier.objects.create(
+                    palier=palier,
+                    statut='en_attente'
+                )
+                
+                # Sauvegarder les fichiers
+                fichiers_uploades = []
+                for fichier in fichiers:
+                    type_fichier = determiner_type_fichier(fichier.name)
+                    fichier_preuve = FichierPreuve.objects.create(
+                        preuve=preuve,
+                        fichier=fichier,
+                        type_fichier=type_fichier
+                    )
+                    fichiers_uploades.append(fichier_preuve)
+                
+                # Journaliser
+                AuditLog.objects.create(
+                    utilisateur=request.user,
+                    action='submit_proof',
+                    modele='Palier',
+                    objet_id=str(palier.id),
+                    details={
+                        'projet': projet.titre,
+                        'palier': f"{palier.pourcentage}%",
+                        'fichiers': len(fichiers_uploades),
+                        'types_fichiers': [f.type_fichier for f in fichiers_uploades],
+                        'statut': 'en_attente'
+                    },
+                    adresse_ip=request.META.get('REMOTE_ADDR')
+                )
+                
+                # Notification HCS
+                notifier_soumission_preuve_hcs(projet, palier, len(fichiers_uploades))
+            
+            messages.success(request, 
+                f"✅ {len(fichiers_uploades)} preuve(s) soumise(s) avec succès. "
+                f"En attente de vérification par l'administrateur."
+            )
+            return redirect('mes_projets')
+    
+    else:
+        form = PreuveForm()
+    
+    context = {
+        'palier': palier,
+        'projet': projet,
+        'form': form,
+        'preuve_existante': preuve_existante
+    }
+    return render(request, 'core/projets/soumettre_preuves.html', context)
+
+
+@login_required
+def verifier_preuves_palier(request, palier_id):
+    """Interface pour vérifier les preuves soumises par le porteur"""
+    palier = get_object_or_404(Palier, id=palier_id)
+    projet = palier.projet
+    
+    try:
+        preuve = PreuvePalier.objects.get(palier=palier)
+        fichiers = preuve.fichiers.all()
+    except PreuvePalier.DoesNotExist:
+        preuve = None
+        fichiers = []
+    
+    if request.method == 'POST':
+        form = VerificationPreuveForm(request.POST)
+        
+        if form.is_valid():
+            action = form.cleaned_data['action']
+            commentaires = form.cleaned_data['commentaires']
+            
+            if not preuve:
+                messages.error(request, "Aucune preuve trouvée pour ce palier")
+                return redirect('gerer_distributions')
+            
+            if action == 'approuver':
+                preuve.statut = 'approuve'
+                preuve.commentaires = commentaires
+                preuve.save()
+                
+                # Journaliser
+                AuditLog.objects.create(
+                    utilisateur=request.user,
+                    action='approve_proof',
+                    modele='PreuvePalier',
+                    objet_id=str(preuve.id),
+                    details={
+                        'projet': projet.titre,
+                        'palier': f"{palier.pourcentage}%",
+                        'montant': float(palier.montant),
+                        'fichiers': len(fichiers),
+                        'statut': 'approuve'
+                    },
+                    adresse_ip=request.META.get('REMOTE_ADDR'),
+                    statut='SUCCESS'
+                )
+                
+                # Notifier le porteur
+                envoyer_notification_porteur(projet.porteur, palier, 'approuve', commentaires)
+                
+                messages.success(request, "Preuves approuvées avec succès")
+                
+            elif action == 'rejeter':
+                preuve.statut = 'rejete'
+                preuve.commentaires = commentaires
+                preuve.save()
+                
+                AuditLog.objects.create(
+                    utilisateur=request.user,
+                    action='reject_proof',
+                    modele='PreuvePalier',
+                    objet_id=str(preuve.id),
+                    details={
+                        'projet': projet.titre,
+                        'palier': f"{palier.pourcentage}%",
+                        'commentaires': commentaires,
+                        'statut': 'rejete'
+                    },
+                    adresse_ip=request.META.get('REMOTE_ADDR'),
+                    statut='SUCCESS'
+                )
+                
+                envoyer_notification_porteur(projet.porteur, palier, 'rejete', commentaires)
+                messages.warning(request, "Preuves rejetées")
+                
+            elif action == 'modification':
+                preuve.statut = 'modification'
+                preuve.commentaires = commentaires
+                preuve.save()
+                
+                AuditLog.objects.create(
+                    utilisateur=request.user,
+                    action='request_proof_modification',
+                    modele='PreuvePalier',
+                    objet_id=str(preuve.id),
+                    details={
+                        'projet': projet.titre,
+                        'palier': f"{palier.pourcentage}%",
+                        'commentaires': commentaires,
+                        'statut': 'modification'
+                    },
+                    adresse_ip=request.META.get('REMOTE_ADDR'),
+                    statut='SUCCESS'
+                )
+                
+                envoyer_notification_porteur(projet.porteur, palier, 'modification', commentaires)
+                messages.info(request, "Modifications demandées au porteur")
+            
+            return redirect('gerer_distributions')
+    else:
+        form = VerificationPreuveForm()
+    
+    context = {
+        'palier': palier,
+        'projet': projet,
+        'preuve': preuve,
+        'fichiers': fichiers,
+        'form': form
+    }
+    return render(request, 'core/admin/verifier_preuves.html', context)
+
+def envoyer_notification_porteur(porteur, palier, action, commentaires=""):
+    """Envoie une notification au porteur concernant son palier"""
+    
+    projet = palier.projet
+    sujet = ""
+    message = ""
+    
+    if action == 'approuve':
+        sujet = f"✅ Palier {palier.pourcentage}% approuvé - {projet.titre}"
+        message = f"""
+        Bonjour {porteur.get_full_name()},
+        
+        Félicitations ! Les preuves que vous avez soumises pour le palier {palier.pourcentage}% 
+        de votre projet "{projet.titre}" ont été approuvées.
+        
+        Montant du palier : {palier.montant} HBAR
+        Prochaines étapes : Le transfert des fonds sera effectué sous peu.
+        
+        Cordialement,
+        L'équipe SolidChain
+        """
+    
+    elif action == 'rejete':
+        sujet = f"❌ Palier {palier.pourcentage}% nécessite des modifications - {projet.titre}"
+        message = f"""
+        Bonjour {porteur.get_full_name()},
+        
+        Les preuves soumises pour le palier {palier.pourcentage}% de votre projet 
+        "{projet.titre}" nécessitent des modifications.
+        
+        Commentaires de l'administrateur :
+        {commentaires}
+        
+        Veuillez soumettre de nouvelles preuves en vous connectant à votre espace.
+        
+        Cordialement,
+        L'équipe SolidChain
+        """
+    
+    elif action == 'modification':
+        sujet = f"📝 Modifications requises - Palier {palier.pourcentage}% - {projet.titre}"
+        message = f"""
+        Bonjour {porteur.get_full_name()},
+        
+        Des modifications sont requises pour les preuves du palier {palier.pourcentage}% 
+        de votre projet "{projet.titre}".
+        
+        Retour de l'administrateur :
+        {commentaires}
+        
+        Veuillez apporter les modifications demandées et resoumettre vos preuves.
+        
+        Cordialement,
+        L'équipe SolidChain
+        """
+    
+    elif action == 'distribution':
+        # Récupérer l'URL d'exploration de la transaction
+        transaction_url = f"https://hashscan.io/testnet/transaction/{palier.transaction_hash}"
+        
+        sujet = f"💰 Transfert effectué - Palier {palier.pourcentage}% - {projet.titre}"
+        message = f"""
+        Bonjour {porteur.get_full_name()},
+        
+        Le transfert du palier {palier.pourcentage}% de votre projet "{projet.titre}" 
+        a été effectué avec succès.
+        
+        📊 DÉTAILS DU TRANSFERT :
+        • Montant transféré : {palier.montant} HBAR
+        • Date du transfert : {timezone.now().strftime('%d/%m/%Y à %H:%M')}
+        • Hash de transaction : {palier.transaction_hash}
+        • Lien de vérification : {transaction_url}
+        
+        🔍 Vous pouvez vérifier la transaction sur HashScan :
+        {transaction_url}
+        
+        Le montant a été crédité sur votre compte Hedera associé au projet.
+        
+        
+        
+        Cordialement,
+        L'équipe SolidChain
+        """
+    
+    # Envoi par email
+    try:
+        porteur.email_user(sujet, message)
+        logger.info(f"Notification envoyée à {porteur.email} pour le palier {palier.id}")
+    except Exception as e:
+        logger.error(f"Erreur envoi email à {porteur.email}: {str(e)}")
+    
+    # Notification HCS
+    try:
+        envoyer_don_hcs(
+            topic_id=projet.topic_id,
+            utilisateur_email=porteur.email,
+            montant=palier.montant if action == 'distribution' else 0,
+            transaction_hash=palier.transaction_hash if action == 'distribution' else "",
+            type_message=f"notification_{action}"
+        )
+    except Exception as e:
+        logger.error(f"Erreur notification HCS: {str(e)}")
+
+
+
+def determiner_type_fichier(nom_fichier):
+    """Détermine le type de fichier basé sur l'extension"""
+    extension = os.path.splitext(nom_fichier)[1].lower()
+    
+    # Images
+    images = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg']
+    if extension in images:
+        return 'photo'
+    
+    # Vidéos
+    videos = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv']
+    if extension in videos:
+        return 'video'
+    
+    # Documents
+    documents = [
+        '.pdf', '.doc', '.docx', '.txt', '.rtf', 
+        '.xls', '.xlsx', '.ppt', '.pptx', '.odt'
+    ]
+    if extension in documents:
+        return 'document'
+    
+    return 'autre'
+
+# Version alternative avec vérification MIME type
+def determiner_type_fichier_avance(fichier):
+    """Détermine le type de fichier avec vérification MIME"""
+    nom_fichier = fichier.name
+    
+    # Vérification par extension (méthode simple)
+    type_simple = determiner_type_fichier(nom_fichier)
+    
+    # Vérification MIME type (plus fiable)
+    mime = MimeTypes()
+    mime_type, _ = mime.guess_type(nom_fichier)
+    
+    if mime_type:
+        if mime_type.startswith('image/'):
+            return 'photo'
+        elif mime_type.startswith('video/'):
+            return 'video'
+        elif mime_type.startswith('application/'):
+            return 'document'
+    
+    return type_simple
+
+@login_required
+def liste_topics(request):
+    projets = Projet.objects.exclude(topic_id__isnull=True).exclude(topic_id__exact="")
+
+    context = {
+        "projets": projets,
+    }
+    return render(request, "core/site/liste_topics.html", context)
+
+@login_required
+def topic_detail(request, projet_id):
+    projet = get_object_or_404(Projet, id=projet_id)
+
+    if not projet.topic_id:
+        messages.warning(request, "Ce projet n’a pas encore de topic Hedera.")
+        return redirect("liste_topics")
+
+    messages_topic = projet.messages.all()
+    context = {
+        "projet": projet,
+        "messages_topic": messages_topic,
+    }
+    return render(request, "core/site/topic_detail.html", context)

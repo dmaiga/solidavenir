@@ -26,7 +26,7 @@ import uuid
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 import requests
-
+from decimal import Decimal
 # --- MODELE PRINCIPAL PROJET ---
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -60,6 +60,68 @@ def validate_file_size(value):
     if value.size > limit:
         raise ValidationError("La taille maximale autorisée est de 10 Mo.")
 
+from decimal import Decimal, ROUND_HALF_UP
+from django.core.cache import cache
+import requests
+import logging
+
+logger = logging.getLogger(__name__)
+
+# =============================================================================
+# FONCTIONS DE CONVERSION DE DEVISES
+# =============================================================================
+
+def get_hbar_to_usd():
+    """Récupère le prix HBAR/USD avec cache"""
+    cache_key = 'hbar_usd_rate'
+    cached_rate = cache.get(cache_key)
+    
+    if cached_rate:
+        return cached_rate
+    
+    try:
+        response = requests.get(
+            "https://api.coingecko.com/api/v3/simple/price",
+            params={"ids": "hedera-hashgraph", "vs_currencies": "usd"},
+            timeout=10
+        )
+        response.raise_for_status()
+        data = response.json()
+        rate = Decimal(str(data["hedera-hashgraph"]["usd"]))
+        
+        # Cache pour 5 minutes
+        cache.set(cache_key, rate, 300)
+        return rate
+        
+    except Exception as e:
+        logger.error(f"Erreur récupération taux HBAR/USD: {e}")
+        # Retourner un taux par défaut en cas d'erreur
+        return Decimal('0.07')
+
+def get_usd_to_fcfa():
+    """Taux USD/FCFA (fixe ou API)"""
+    # Pour l'Afrique de l'Ouest, taux approximatif
+    return Decimal('600')
+
+def convert_hbar_to_fcfa(hbar_amount):
+    """Convertit HBAR vers FCFA"""
+    if not isinstance(hbar_amount, Decimal):
+        hbar_amount = Decimal(str(hbar_amount))
+    
+    usd_rate = get_hbar_to_usd()
+    fcfa_rate = get_usd_to_fcfa()
+    return (hbar_amount * usd_rate * fcfa_rate).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+def convert_fcfa_to_hbar(fcfa_amount):
+    """Convertit FCFA vers HBAR"""
+    if not isinstance(fcfa_amount, Decimal):
+        fcfa_amount = Decimal(str(fcfa_amount))
+    
+    usd_rate = get_hbar_to_usd()
+    fcfa_rate = get_usd_to_fcfa()
+    if usd_rate == 0:
+        raise ValueError("Taux de conversion indisponible")
+    return (fcfa_amount / fcfa_rate / usd_rate).quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
 
 class User(AbstractUser):
     USER_TYPES = (
@@ -338,6 +400,7 @@ class User(AbstractUser):
         return self.wallet_activated and bool(self.hedera_account_id)
 
 User = get_user_model()
+
 class Projet(models.Model):
     """
     Représente un projet de financement participatif porté par un utilisateur.
@@ -397,7 +460,8 @@ class Projet(models.Model):
     #hedera
     hedera_account_id = models.CharField(max_length=100, blank=True, null=True)
     hedera_private_key = models.CharField(max_length=500, blank=True, null=True)
-
+    montant_engage = models.DecimalField(max_digits=15, decimal_places=0, default=0)
+    montant_distribue = models.DecimalField(max_digits=15, decimal_places=0, default=0)
     montant_demande = models.DecimalField(max_digits=15, decimal_places=0, validators=[MinValueValidator(0)])
     montant_minimal = models.DecimalField(
         max_digits=15,
@@ -405,6 +469,7 @@ class Projet(models.Model):
         default=0,
         help_text="Montant minimum à atteindre pour que le projet soit financé"
     )
+
     montant_collecte = models.DecimalField(max_digits=15, decimal_places=0, default=0)
     type_financement = models.CharField(max_length=10, choices=TYPES_FINANCEMENT, default='don')
     wallet_configure = models.BooleanField(
@@ -500,7 +565,12 @@ class Projet(models.Model):
     # Récompenses (intégrées directement dans le modèle)
     has_recompenses = models.BooleanField(default=False)
     recompenses_description = models.TextField(blank=True, null=True, help_text="Description des récompenses pour contributeurs")
-
+    commission = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=2,
+        help_text="Pourcentage de commission retenue par la plateforme avant distribution au porteur"
+    )
     class Meta:
         indexes = [
             models.Index(fields=['audit_uuid']),
@@ -530,7 +600,12 @@ class Projet(models.Model):
 
         if self.date_debut and self.duree_campagne and not self.date_fin:
             self.date_fin = self.date_debut + timedelta(days=self.duree_campagne)
-
+        
+        if self.montant_collecte > 0:
+            # Import local pour éviter circularité
+            from .views import verifier_paliers
+            verifier_paliers(self)
+        
         # Si la catégorie n'est pas "autre", effacer le champ autre_categorie
         if self.categorie != 'autre' and self.autre_categorie:
             self.autre_categorie = None
@@ -571,18 +646,23 @@ class Projet(models.Model):
 
     @property
     def pourcentage_financement(self):
+        """Pourcentage basé sur le montant engagé (déposé chez l'opérateur)"""
         if self.montant_demande == 0:
             return 0
-        montant_actuel = self.montant_actuel()
-        return round((montant_actuel / self.montant_demande) * 100, 1)
+        
+        # Utiliser montant_engage au lieu de montant_collecte
+        montant_engage = self.montant_engage or 0
+        return round((montant_engage / self.montant_demande) * 100, 1)
 
     @property
     def objectif_atteint(self):
-        return self.montant_collecte >= self.montant_demande
-
+        """Vérifie si le montant engagé atteint l'objectif"""
+        return self.montant_engage >= self.montant_demande
+    
     @property
     def objectif_minimal_atteint(self):
-        return self.montant_collecte >= self.montant_minimal
+        """Vérifie si le montant engagé atteint l'objectif minimal"""
+        return self.montant_engage >= self.montant_minimal
 
     def montant_actuel(self):
         from django.db.models import Sum
@@ -620,6 +700,23 @@ class Projet(models.Model):
         if self.topic_id:
             return f"https://hashscan.io/testnet/topic/{self.topic_id}"
         return None
+ 
+    @property
+    def stats_contributeurs(self):
+        """Statistiques avancées des contributeurs"""
+        from django.db.models import Count, Avg
+        stats = Transaction.objects.filter(
+            projet=self, 
+            statut='confirme',
+            destination='operator'
+        ).aggregate(
+            total_contributeurs=Count('contributeur', distinct=True),
+            don_moyen=Avg('montant'),
+            don_max=Max('montant'),
+            don_min=Min('montant')
+        )
+        return stats
+
 
     def incrementer_vues(self):
         self.vues += 1
@@ -684,6 +781,69 @@ class Projet(models.Model):
             return True
         return False
 
+    @property
+    def montant_demande_fcfa(self):
+        """Montant demandé en FCFA"""
+        try:
+            return convert_hbar_to_fcfa(self.montant_demande)
+        except Exception as e:
+            logger.error(f"Erreur conversion montant_demande: {e}")
+            return Decimal('0')
+
+    @property
+    def montant_engage_fcfa(self):
+        """Montant engagé en FCFA"""
+        try:
+            return convert_hbar_to_fcfa(self.montant_engage or 0)
+        except Exception as e:
+            logger.error(f"Erreur conversion montant_engage: {e}")
+            return Decimal('0')
+    
+    @property
+    def montant_restant_fcfa(self):
+        """Montant restant en FCFA"""
+        try:
+            return convert_hbar_to_fcfa(self.montant_restant)
+        except Exception as e:
+            logger.error(f"Erreur conversion montant_restant: {e}")
+            return Decimal('0')
+    
+    @property
+    def montant_distribue_fcfa(self):
+        """Montant distribué en FCFA"""
+        try:
+            return convert_hbar_to_fcfa(self.montant_distribue or 0)
+        except Exception as e:
+            logger.error(f"Erreur conversion montant_distribue: {e}")
+            return Decimal('0')
+    
+    @property
+    def pourcentage_distribue(self):
+        """Pourcentage déjà distribué au porteur"""
+        if not self.montant_engage or self.montant_engage == 0:
+            return 0
+        try:
+            return round((float(self.montant_distribue or 0) / float(self.montant_engage)) * 100, 1)
+        except Exception as e:
+            logger.error(f"Erreur calcul pourcentage_distribue: {e}")
+            return 
+    
+    @property
+    def taux_commission(self):
+        """Taux de commission formaté"""
+        return f"{self.commission}%"
+    
+    @property
+    def montant_commission_total(self):
+        """Commission totale prélevée"""
+        try:
+            if not self.montant_distribue:
+                return Decimal('0')
+            commission = (self.montant_distribue * self.commission / 100)
+            return commission.quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+        except Exception as e:
+            logger.error(f"Erreur calcul commission: {e}")
+            return Decimal('0')
 
 
 class Association(models.Model):
@@ -868,6 +1028,11 @@ class Transaction(models.Model):
         ('erreur', 'Erreur'),
         ('rembourse', 'Remboursé'),
     )
+    destination = models.CharField(max_length=20, choices=[
+        ('operator', 'Vers opérateur'),
+        ('project', 'Vers projet direct'),
+        ('beneficiary', 'Vers bénéficiaire')
+    ], default='operator')
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     audit_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -898,7 +1063,6 @@ class Transaction(models.Model):
         help_text="URL HashScan pour le message HCS"
     )
     
-    # ✅ NOUVEAU: Lien direct au topic du projet
     topic = models.ForeignKey(
         'Projet',
         on_delete=models.SET_NULL,
@@ -931,7 +1095,7 @@ class Transaction(models.Model):
             models.Index(fields=['date_transaction']),
             models.Index(fields=['contributeur']),
             models.Index(fields=['projet']),
-            models.Index(fields=['topic']),  # ✅ Nouvel index
+            models.Index(fields=['topic']),
         ]
         permissions = [
             ("verify_transaction", "Peut vérifier une transaction"),
@@ -994,7 +1158,10 @@ class AuditLog(models.Model):
     )
     
     audit_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    utilisateur = models.ForeignKey(User, on_delete=models.CASCADE)
+    utilisateur = models.ForeignKey(User, 
+                                    on_delete=models.CASCADE,
+                                   
+                                    )
     action = models.CharField(max_length=10, choices=ACTION_TYPES)
     modele = models.CharField(max_length=50)  # Nom du modèle affecté
     objet_id = models.CharField(max_length=100)  # ID de l'objet affecté
@@ -1068,9 +1235,109 @@ class EmailLog(models.Model):
         self.erreur = message_erreur
         self.save()
 
+class Palier(models.Model):
+    projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name='paliers')
+    pourcentage = models.DecimalField(max_digits=5, decimal_places=2)
+    montant = models.DecimalField(max_digits=15, decimal_places=0)
+    montant_minimum = models.DecimalField(max_digits=15, decimal_places=0, editable=False)
+    transfere = models.BooleanField(default=False)
+    date_transfert = models.DateTimeField(null=True, blank=True)
+    transaction_hash = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        ordering = ['montant_minimum']
+
+        # Dans models.py - Modifiez la méthode save() de Palier
+    def save(self, *args, **kwargs):
+        if not self.montant and self.projet.montant_demande:
+            self.montant = (self.projet.montant_demande * self.pourcentage) / 100
+
+        # Calcul du montant minimum pour déclencher ce palier
+        montant_anterieur = Decimal('0')
+
+        # Récupérer tous les paliers existants avec pourcentage inférieur
+        paliers_existants = Palier.objects.filter(
+            projet=self.projet, 
+            pourcentage__lt=self.pourcentage
+        )
+
+        for palier in paliers_existants:
+            montant_anterieur += palier.montant
+
+        self.montant_minimum = montant_anterieur + Decimal('0.01')
+
+        super().save(*args, **kwargs)
+
+class PreuvePalier(models.Model):
+    STATUT_CHOICES = [
+        ('non_soumis', 'Non soumis'),
+        ('en_attente', 'En attente de vérification'),
+        ('approuve', 'Approuvé'),
+        ('rejete', 'Rejeté'),
+        ('modification', 'Modification requise'),
+    ]
+    
+    palier = models.ForeignKey('Palier', on_delete=models.CASCADE, related_name='preuves')
+    date_soumission = models.DateTimeField(auto_now_add=True)
+    date_verification = models.DateTimeField(null=True, blank=True)
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='non_soumis')
+    commentaires = models.TextField(blank=True)
+    verificateur = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='preuves_verifiees'
+    )
+    
+    class Meta:
+        verbose_name = "Preuve de palier"
+        verbose_name_plural = "Preuves de paliers"
+        ordering = ['-date_soumission']
+    
+    def __str__(self):
+        return f"Preuve {self.palier.projet.titre} - Palier {self.palier.pourcentage}%"
+    
+    def save(self, *args, **kwargs):
+        if self.statut in ['approuve', 'rejete', 'modification'] and not self.date_verification:
+            self.date_verification = timezone.now()
+        super().save(*args, **kwargs)
+        
+class FichierPreuve(models.Model):
+    TYPE_CHOICES = [
+        ('photo', 'Photo'),
+        ('video', 'Vidéo'),
+        ('document', 'Document'),
+        ('autre', 'Autre'),
+    ]
+    
+    preuve = models.ForeignKey(PreuvePalier, on_delete=models.CASCADE, related_name='fichiers')
+    fichier = models.FileField(upload_to='preuves/%Y/%m/%d/')
+    type_fichier = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    date_upload = models.DateTimeField(auto_now_add=True)
+    description = models.CharField(max_length=255, blank=True)
+    
+    class Meta:
+        verbose_name = "Fichier preuve"
+        verbose_name_plural = "Fichiers preuves"
 
 
-class ContactSubmission(models.Model):
+class TransactionAdmin(models.Model):
+    projet = models.ForeignKey(Projet, on_delete=models.CASCADE)
+    montant_brut = models.DecimalField(max_digits=15, decimal_places=2)
+    montant_net = models.DecimalField(max_digits=15, decimal_places=2)
+    commission = models.DecimalField(max_digits=15, decimal_places=2)
+    commission_pourcentage = models.DecimalField(max_digits=5, decimal_places=2)
+    transaction_hash = models.CharField(max_length=100)
+    beneficiaire = models.ForeignKey(User, on_delete=models.CASCADE)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    type_transaction = models.CharField(max_length=20, choices=[
+        ('distribution', 'Distribution'),
+        ('commission', 'Commission')
+    ])
+
+class ContactSubmission(models.Model): 
+
     sujet = models.CharField(max_length=100)
     email = models.EmailField()
     message = models.TextField()
@@ -1084,3 +1351,19 @@ class ContactSubmission(models.Model):
     
     def __str__(self):
         return f"{self.sujet} - {self.email}"
+    
+    
+class TopicMessage(models.Model):
+    projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name="messages")
+    type_message = models.CharField(max_length=100)  # ex: don, distribution_admin_porteur
+    utilisateur_email = models.EmailField(blank=True, null=True)
+    montant = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    transaction_hash = models.CharField(max_length=200, blank=True, null=True)
+    contenu = models.JSONField(default=dict)  # message complet HCS
+    date_envoi = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date_envoi"]
+
+    def __str__(self):
+        return f"{self.projet.titre} | {self.type_message} | {self.montant or ''}"

@@ -1,0 +1,366 @@
+<!-- templates/core/admin/gerer_distributions.html -->
+{% extends 'base_admin.html' %}
+{% load static humanize %}
+
+{% block title %}Gérer les Distributions - SolidAvenir{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- En-tête -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-money-bill-transfer text-primary me-2"></i>
+                        Gestion des Distributions de Fonds
+                    </h1>
+                    <p class="text-muted mb-0">Vérifiez les preuves et distribuez les fonds par paliers</p>
+                </div>
+                <div>
+                    <a href="{% url 'logs_distributions' %}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-history me-2"></i>Logs
+                    </a>
+                    <span class="badge bg-primary fs-6">
+                        {{ distributions|length }} projet(s) suivi(s)
+                    </span>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Statistiques globales -->
+            <div class="row mb-4">
+                <div class="col-xl-2 col-md-4 mb-3">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <h3 class="text-primary mb-1">{{ total_paliers_distribuables }}</h3>
+                            <small class="text-muted">Paliers prêts</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-md-4 mb-3">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning mb-1">{{ total_paliers_attente }}</h3>
+                            <small class="text-muted">En attente</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-md-4 mb-3">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <h3 class="text-success mb-1">{{ total_engage|default:0|intcomma }}</h3>
+                            <small class="text-muted">HBAR engagés</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-md-4 mb-3">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <h3 class="text-info mb-1">{{ total_distribue|default:0|intcomma }}</h3>
+                            <small class="text-muted">HBAR distribués</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-md-4 mb-3">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning mb-1">{{ total_disponible|default:0|intcomma }}</h3>
+                            <small class="text-muted">HBAR disponibles</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-md-4 mb-3">
+                    <div class="card border-secondary">
+                        <div class="card-body text-center">
+                            <h3 class="text-secondary mb-1">{{ distributions|length }}</h3>
+                            <small class="text-muted">Projets actifs</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des projets -->
+            {% if distributions %}
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="20%">Projet & Porteur</th>
+                                    <th width="15%">Financement</th>
+                                    <th width="15%">Statut</th>
+                                    <th width="30%">Paliers</th>
+                                    <th width="20%">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dist in distributions %}
+                                <tr>
+                                    <!-- Colonne Projet -->
+                                    <td>
+                                        <div class="d-flex align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1 text-primary">{{ dist.projet.titre }}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user me-1"></i>
+                                                    {{ dist.projet.porteur.get_full_name|default:dist.projet.porteur.email }}
+                                                </small>
+                                                <br>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar me-1"></i>
+                                                    Créé le {{ dist.projet.date_creation|date:"d/m/Y" }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Colonne Financement -->
+                                    <td>
+                                        <div class="mb-2">
+                                            <small class="text-muted">Objectif:</small>
+                                            <div class="fw-bold">{{ dist.montant_demande|intcomma }} HBAR</div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <small class="text-muted">Engagé:</small>
+                                            <div class="fw-bold text-success">{{ dist.montant_engage|intcomma }} HBAR</div>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">Disponible:</small>
+                                            <div class="fw-bold text-warning">{{ dist.montant_disponible|intcomma }} HBAR</div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Colonne Statut -->
+                                    <td>
+                                        <div class="mb-2">
+                                            <span class="badge bg-{% if dist.projet.statut == 'actif' %}success{% else %}secondary{% endif %}">
+                                                {{ dist.projet.get_statut_display }}
+                                            </span>
+                                        </div>
+                                        <div class="progress mb-2" style="height: 6px;">
+                                            <div class="progress-bar bg-success" 
+                                                 style="width: {{ dist.pourcentage_engage }}%"
+                                                 title="{{ dist.pourcentage_engage }}% engagé">
+                                            </div>
+                                        </div>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar bg-info" 
+                                                 style="width: {{ dist.pourcentage_distribue }}%"
+                                                 title="{{ dist.pourcentage_distribue }}% distribué">
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Colonne Paliers -->
+                                    <td>
+                                        <div class="paliers-container">
+                                            <!-- Paliers distribuables -->
+                                            {% for palier in dist.paliers_distribuables %}
+                                            <div class="palier-item distributable mb-2 p-2 border border-success rounded">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <strong class="text-success">
+                                                        <i class="fas fa-check-circle me-1"></i>
+                                                        Palier {{ palier.pourcentage }}%
+                                                    </strong>
+                                                    <span class="badge bg-success">{{ palier.montant|intcomma }} HBAR</span>
+                                                </div>
+                                                <small class="text-muted d-block">
+                                                    Preuves: <span class="badge bg-success">Approuvées</span>
+                                                </small>
+                                            </div>
+                                            {% endfor %}
+
+                                            <!-- Paliers en attente -->
+                                            {% for palier in dist.paliers_en_attente %}
+                                            <div class="palier-item en-attente mb-2 p-2 border rounded 
+                                                {% if palier.statut_preuve == 'en_attente' %}border-warning
+                                                {% elif palier.statut_preuve == 'non_soumis' %}border-danger
+                                                {% elif palier.statut_preuve == 'rejete' %}border-danger
+                                                {% elif palier.statut_preuve == 'modification' %}border-warning
+                                                {% else %}border-secondary{% endif %}">
+                                                
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <strong class="{% if palier.statut_preuve == 'non_soumis' %}text-danger{% else %}text-warning{% endif %}">
+                                                        <i class="fas fa-{% if palier.statut_preuve == 'non_soumis' %}exclamation-triangle{% else %}clock{% endif %} me-1"></i>
+                                                        Palier {{ palier.pourcentage }}%
+                                                    </strong>
+                                                    <span class="badge bg-secondary">{{ palier.montant|intcomma }} HBAR</span>
+                                                </div>
+                                                
+                                                <small class="text-muted d-block">
+                                                    Preuves: 
+                                                    <span class="badge 
+                                                        {% if palier.statut_preuve == 'non_soumis' %}bg-danger
+                                                        {% elif palier.statut_preuve == 'en_attente' %}bg-warning
+                                                        {% elif palier.statut_preuve == 'rejete' %}bg-danger
+                                                        {% elif palier.statut_preuve == 'modification' %}bg-warning
+                                                        {% else %}bg-secondary{% endif %}">
+                                                        {{ palier.statut_preuve|title }}
+                                                    </span>
+                                                </small>
+                                                
+                                                {% if palier.montant_suffisant %}
+                                                <small class="text-info d-block">
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    Fonds suffisants
+                                                </small>
+                                                {% else %}
+                                                <small class="text-danger d-block">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                                    Fonds insuffisants
+                                                </small>
+                                                {% endif %}
+                                            </div>
+                                            {% endfor %}
+
+                                            <!-- Paliers déjà distribués -->
+                                            {% for palier in dist.paliers_deja_distribues %}
+                                            <div class="palier-item distribue mb-2 p-2 border border-info rounded bg-light">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <small class="text-info">
+                                                        <i class="fas fa-check-double me-1"></i>
+                                                        Palier {{ palier.pourcentage }}% distribué
+                                                    </small>
+                                                    <small class="text-muted">{{ palier.date_transfert|date:"d/m/Y" }}</small>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+
+                                    <!-- Colonne Actions -->
+                                    <td>
+                                        <div class="btn-group-vertical w-100">
+                                            <!-- Actions pour paliers distribuables -->
+                                            {% for palier in dist.paliers_distribuables %}
+                                            <form method="post" class="mb-2">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="projet_id" value="{{ dist.projet.id }}">
+                                                <input type="hidden" name="palier_id" value="{{ palier.id }}">
+                                                <input type="hidden" name="action" value="distribuer">
+                                                <button type="submit" class="btn btn-success btn-sm w-100">
+                                                    <i class="fas fa-paper-plane me-1"></i>
+                                                    Distribuer {{ palier.pourcentage }}%
+                                                </button>
+                                            </form>
+                                            {% endfor %}
+
+                                            <!-- Actions pour paliers en attente -->
+                                            {% for palier in dist.paliers_en_attente %}
+                                            <form method="post" class="mb-2">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="projet_id" value="{{ dist.projet.id }}">
+                                                <input type="hidden" name="palier_id" value="{{ palier.id }}">
+                                                <input type="hidden" name="action" value="verifier_preuves">
+                                                <button type="submit" class="btn 
+                                                    {% if palier.statut_preuve == 'non_soumis' %}btn-outline-danger
+                                                    {% elif palier.statut_preuve == 'en_attente' %}btn-warning
+                                                    {% elif palier.statut_preuve == 'rejete' %}btn-outline-danger
+                                                    {% elif palier.statut_preuve == 'modification' %}btn-warning
+                                                    {% else %}btn-outline-secondary{% endif %} btn-sm w-100">
+                                                    
+                                                    <i class="fas fa-{% if palier.statut_preuve == 'non_soumis' %}exclamation-triangle{% else %}search{% endif %} me-1"></i>
+                                                    {% if palier.statut_preuve == 'non_soumis' %}Preuves manquantes
+                                                    {% elif palier.statut_preuve == 'en_attente' %}Vérifier preuves
+                                                    {% elif palier.statut_preuve == 'rejete' %}Preuves rejetées
+                                                    {% elif palier.statut_preuve == 'modification' %}Modifications
+                                                    {% else %}Vérifier{% endif %}
+                                                </button>
+                                            </form>
+                                            {% endfor %}
+
+                                            <!-- Lien vers les détails du projet -->
+                                            <a href="{% url 'detail_projet' dist.projet.audit_uuid %}" 
+                                               class="btn btn-outline-primary btn-sm w-100 mt-2"
+                                               target="_blank">
+                                                <i class="fas fa-external-link-alt me-1"></i>
+                                                Voir projet
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- Aucune distribution -->
+            <div class="text-center py-5">
+                <div class="empty-state">
+                    <i class="fas fa-coins fa-4x text-muted mb-3"></i>
+                    <h3 class="text-muted">Aucun projet à suivre</h3>
+                    <p class="text-muted">Aucun projet n'a de fonds engagés ou distribuables pour le moment.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.paliers-container {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.palier-item {
+    transition: all 0.2s ease;
+}
+
+.palier-item:hover {
+    transform: translateX(2px);
+}
+
+.palier-item.distributable {
+    background-color: #f8fff8;
+}
+
+.palier-item.en-attente {
+    background-color: #fffbf0;
+}
+
+.palier-item.distribue {
+    background-color: #f8f9fa;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.progress {
+    border-radius: 3px;
+}
+
+.badge {
+    font-size: 0.7rem;
+}
+
+.btn-group-vertical .btn {
+    margin-bottom: 0.25rem;
+}
+
+.empty-state {
+    padding: 3rem 1rem;
+}
+</style>
+{% endblock %}
