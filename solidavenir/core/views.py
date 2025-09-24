@@ -491,7 +491,7 @@ def profil(request):
     if request.user.hedera_account_id:
         try:
             response = requests.get(
-                f'http://localhost:3001/balance/{request.user.hedera_account_id}',
+                f'http://hedera_service:3001/balance/{request.user.hedera_account_id}',
                 timeout=5
             )
             if response.status_code == 200:
@@ -692,7 +692,7 @@ def creer_projet(request):
                     # 🔑 Création du wallet Hedera pour ce projet
                     try:
                         
-                        response = requests.post("http://localhost:3001/create-wallet", timeout=10)
+                        response = requests.post("http://hedera_service:3001/create-wallet", timeout=10)
                         if response.status_code == 200:
                             data = response.json()
                             projet.hedera_account_id = data.get("accountId")
@@ -2592,7 +2592,7 @@ def voir_wallet(request):
     solde = None
     try:
         response = requests.get(
-            f'http://localhost:3001/balance/{request.user.hedera_account_id}',
+            f'http://hedera_service:3001/balance/{request.user.hedera_account_id}',
             timeout=5
         )
         if response.status_code == 200:
@@ -2611,7 +2611,7 @@ def creer_topic_pour_projet(projet, utilisateur):
     Crée un topic HCS pour un projet via le microservice Node.js
     et journalise l'action avec l'utilisateur à l'origine.
     """
-    url = "http://localhost:3001/create-topic"
+    url = "http://hedera_service:3001/create-topic"
     try:
         response = requests.post(url, json={
             "memo": f"Projet {projet.titre} - {projet.audit_uuid}"
@@ -2667,7 +2667,7 @@ def creer_topic_pour_projet(projet, utilisateur):
 
 def envoyer_don_hcs(topic_id, utilisateur_email, montant, transaction_hash, type_message="distribution_palier"):
     """Envoie un message HCS pour enregistrer un don"""
-    url = "http://localhost:3001/send-message"
+    url = "http://hedera_service:3001/send-message"
     
     # Message structuré pour HCS
     message_data = {
@@ -2747,7 +2747,7 @@ def process_donation(request, project_id):
                 'toAccountId': settings.HEDERA_OPERATOR_ID,
                 'amount': float(amount)
             }
-            response = requests.post('http://localhost:3001/transfer', json=transfer_data, timeout=30)
+            response = requests.post('http://hedera_service:3001/transfer', json=transfer_data, timeout=30)
 
             if response.status_code != 200:
                 messages.error(request, "Erreur lors du transfert HBAR ❌")
@@ -2829,7 +2829,7 @@ def transfer_from_admin_to_doer(projet, porteur, montant_brut, palier=None, init
     }
 
     try:
-        response = requests.post("http://localhost:3001/transfer", json=transfer_data, timeout=30)
+        response = requests.post("http://hedera_service:3001/transfer", json=transfer_data, timeout=30)
         
         if response.status_code != 200:
             logger.error(f"Erreur transfert HBAR: {response.status_code} - {response.text}")
@@ -2894,7 +2894,7 @@ def transfer_from_admin_to_doer(projet, porteur, montant_brut, palier=None, init
 
 def envoyer_distribution_hcs(topic_id, distribution_data):
     """Envoie un message HCS spécifique pour les distributions"""
-    url = "http://localhost:3001/send-message"
+    url = "http://hedera_service:3001/send-message"
     
     message_data = {
         "type": "distribution",
@@ -2971,7 +2971,7 @@ def envoyer_notification_hcs(topic_id, type_notification, details):
     }
     
     try:
-        response = requests.post("http://localhost:3001/send-message", json=payload, timeout=10)
+        response = requests.post("http://hedera_service:3001/send-message", json=payload, timeout=10)
         return response.json()
     except Exception as e:
         logger.error(f"Erreur HCS: {e}")

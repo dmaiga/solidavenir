@@ -372,7 +372,7 @@ class User(AbstractUser):
             try:
                 # Appeler le service Node.js pour créer un wallet
                 response = requests.post(
-                    'http://localhost:3001/create-wallet',
+                    'http://hedera_service:3001/create-wallet',
                     json={'initialBalance': 50},
                     timeout=10
                 )
