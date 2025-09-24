@@ -1,128 +1,379 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Solid'Avenir - Tous les projets{% endblock %}
+{% block title %}Solid'Avenir - All Projects{% endblock %}
 
 {% block extra_css %}
 <style>
+    :root {
+        /* Palette de couleurs révisée */
+        --primary-blue: #0a4d87;           /* Bleu principal */
+        --primary-blue-light: #2e7dcc;     /* Bleu clair */
+        --primary-orange: #d96c49;         /* Orange principal */
+        --primary-orange-light: #e89a7f;   /* Orange clair */
+        --secondary-green: #10b981;        /* Vert pour succès/impact */
+        --light-bg: #f8fafc;               /* Fond très clair */
+        --light-color: #ffffff;            /* Blanc */
+        --dark-color: #1e293b;             /* Texte sombre */
+        --gray-light: #f1f5f9;             /* Gris très clair */
+        --gray-medium: #94a3b8;            /* Gris moyen */
+        
+        /* Tailles cohérentes */
+        --border-radius-sm: 8px;
+        --border-radius-md: 12px;
+        --border-radius-lg: 16px;
+        --spacing-xs: 0.5rem;
+        --spacing-sm: 1rem;
+        --spacing-md: 1.5rem;
+        --spacing-lg: 2rem;
+        --spacing-xl: 3rem;
+        --spacing-xxl: 4rem;
+        
+        /* Typographie */
+        --font-size-xs: 0.75rem;
+        --font-size-sm: 0.875rem;
+        --font-size-base: 1rem;
+        --font-size-lg: 1.125rem;
+        --font-size-xl: 1.25rem;
+        --font-size-xxl: 1.5rem;
+        --font-size-xxxl: 2rem;
+        
+        /* Effets */
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+        --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+        --transition: all 0.3s ease;
+    }
+
     .project-card {
         border: none;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        transition: transform 0.3s, box-shadow 0.3s;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
         height: 100%;
+        overflow: hidden;
+        background: var(--light-color);
     }
     
     .project-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .project-image-container {
+        position: relative;
+        overflow: hidden;
+        height: 220px;
     }
     
     .project-image {
-        height: 200px;
+        height: 100%;
+        width: 100%;
         object-fit: cover;
-        border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
+        transition: transform 0.6s ease;
+    }
+    
+    .project-card:hover .project-image {
+        transform: scale(1.08);
     }
     
     .category-badge {
         position: absolute;
-        top: 15px;
-        right: 15px;
-        background: var(--secondary-color);
-        color: var(--dark-color);
-        padding: 5px 10px;
+        top: var(--spacing-sm);
+        right: var(--spacing-sm);
+        background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-light) 100%);
+        color: var(--light-color);
+        padding: var(--spacing-xs) var(--spacing-sm);
         border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
+        font-size: var(--font-size-xs);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: var(--shadow-sm);
+        z-index: 2;
     }
     
-    .progress {
-        height: 10px;
-        border-radius: 5px;
-        margin-bottom: 10px;
+    .progress-container {
+        background: var(--gray-light);
+        border-radius: var(--border-radius-sm);
+        height: 12px;
+        overflow: hidden;
+        margin: var(--spacing-md) 0;
+    }
+    
+    .progress-bar {
+        background: linear-gradient(90deg, var(--secondary-green) 0%, var(--primary-blue-light) 100%);
+        height: 100%;
+        border-radius: var(--border-radius-sm);
+        transition: width 1.2s ease-in-out;
+        position: relative;
+    }
+    
+    .progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 100%; }
     }
     
     .stats-info {
-        font-size: 0.9rem;
-        color: #6c757d;
+        font-size: var(--font-size-sm);
+        color: var(--gray-medium);
+        font-weight: 600;
     }
     
     .filter-section {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 30px;
+        background: var(--light-bg);
+        border-radius: var(--border-radius-lg);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+        border: 1px solid rgba(10, 77, 135, 0.1);
+        box-shadow: var(--shadow-sm);
     }
     
     .pagination {
         justify-content: center;
-        margin-top: 30px;
+        margin-top: var(--spacing-xl);
     }
     
     .page-item.active .page-link {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+        border-color: transparent;
+        box-shadow: var(--shadow-md);
     }
     
     .page-link {
-        color: var(--primary-color);
+        color: var(--primary-blue);
+        border: 1px solid var(--gray-light);
+        padding: var(--spacing-sm) var(--spacing-md);
+        margin: 0 var(--spacing-xs);
+        border-radius: var(--border-radius-md);
+        transition: var(--transition);
+        font-weight: 600;
     }
     
     .page-link:hover {
-        color: var(--dark-color);
+        color: var(--light-color);
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+        border-color: transparent;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
     }
     
     .empty-state {
         text-align: center;
-        padding: 60px 20px;
+        padding: var(--spacing-xxl) var(--spacing-lg);
+        background: var(--light-bg);
+        border-radius: var(--border-radius-lg);
+        margin: var(--spacing-xl) 0;
     }
     
     .empty-state-icon {
         font-size: 4rem;
-        color: #dee2e6;
-        margin-bottom: 20px;
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: var(--spacing-lg);
     }
     
     .default-image {
-        height: 200px;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        height: 220px;
+        background: linear-gradient(135deg, var(--light-bg) 0%, var(--gray-light) 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .default-image::before {
+        content: '';
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        background: conic-gradient(from 0deg, transparent 0%, rgba(10, 77, 135, 0.05) 10%, transparent 20%);
+        animation: rotate 8s linear infinite;
+    }
+    
+    @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
     
     .default-image i {
         font-size: 3rem;
-        color: #adb5bd;
+        color: var(--gray-medium);
+        position: relative;
+        z-index: 1;
     }
+    
+    .card-body {
+        padding: var(--spacing-lg);
+    }
+    
+    .card-title {
+        font-size: var(--font-size-xl);
+        font-weight: 700;
+        color: var(--dark-color);
+        margin-bottom: var(--spacing-sm);
+        line-height: 1.4;
+    }
+    
+    .card-text {
+        color: var(--gray-medium);
+        line-height: 1.6;
+        margin-bottom: var(--spacing-md);
+        font-size: var(--font-size-base);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+        border: none;
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-sm) var(--spacing-lg);
+        font-weight: 600;
+        transition: var(--transition);
+        box-shadow: var(--shadow-sm);
+        color: var(--light-color);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+        color: var(--light-color);
+    }
+    
+    .btn-outline-primary {
+        border: 2px solid var(--primary-blue);
+        color: var(--primary-blue);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-sm) var(--spacing-lg);
+        font-weight: 600;
+        transition: var(--transition);
+    }
+    
+    .btn-outline-primary:hover {
+        background: var(--primary-blue);
+        color: var(--light-color);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .card-footer {
+        background: rgba(10, 77, 135, 0.03);
+        border-top: 1px solid var(--gray-light);
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+    
+    .text-primary {
+        color: var(--primary-blue) !important;
+    }
+    
+    .display-4 {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+    
+    .lead {
+        color: var(--dark-color);
+        font-weight: 500;
+    }
+    
+    .form-control, .form-select {
+        border-radius: var(--border-radius-md);
+        border: 1px solid var(--gray-light);
+        padding: var(--spacing-sm);
+        transition: var(--transition);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-blue-light);
+        box-shadow: 0 0 0 3px rgba(10, 77, 135, 0.1);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .project-card {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .filter-section {
+            padding: var(--spacing-md);
+        }
+        
+        .empty-state {
+            padding: var(--spacing-xl) var(--spacing-md);
+        }
+        
+        .card-body {
+            padding: var(--spacing-md);
+        }
+        
+        .display-4 {
+            font-size: var(--font-size-xxxl);
+        }
+    }
+    
+    /* Animation pour l'apparition des cartes */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .project-card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    /* Délai d'animation pour chaque carte */
+    .project-card:nth-child(1) { animation-delay: 0.1s; }
+    .project-card:nth-child(2) { animation-delay: 0.2s; }
+    .project-card:nth-child(3) { animation-delay: 0.3s; }
+    .project-card:nth-child(4) { animation-delay: 0.4s; }
+    .project-card:nth-child(5) { animation-delay: 0.5s; }
+    .project-card:nth-child(6) { animation-delay: 0.6s; }
 </style>
 {% endblock %}
 
 {% block content %}
 
 <div class="container py-5">
-    <!-- En-tête -->
-  <div class="row mb-5">
-    <div class="col-12">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-            <div class="text-center text-md-start mb-3 mb-md-0">
-                <h1 class="display-4 fw-bold mb-2 text-primary">Tous les projets</h1>
-                <p class="lead fs-4">Découvrez des initiatives inspirantes et soutenez celles qui vous passionnent</p>
-            </div>
-            <div class="text-center text-md-end">
-                <a href="{% url 'creer_projet' %}" class="btn btn-primary btn-lg shadow-sm">
-                    <i class="bi bi-plus-circle me-2"></i>Lancer votre projet
-                </a>
-                <p class="text-muted mt-2 small">Partagez votre vision avec notre communauté</p>
+    <!-- Header -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <div class="text-center text-md-start mb-3 mb-md-0">
+                    <h1 class="display-4 fw-bold mb-2">All Projects</h1>
+                    <p class="lead fs-4">Discover inspiring initiatives and support those that matter to you</p>
+                </div>
+                <div class="text-center text-md-end">
+                    <a href="{% url 'creer_projet' %}" class="btn btn-primary btn-lg shadow-sm">
+                        <i class="bi bi-plus-circle me-2"></i>Start Your Project
+                    </a>
+                    <p class="text-muted mt-2 small">Share your vision with our community</p>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-    <!-- Filtres et recherche -->
+    <!-- Filters and search -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="filter-section">
@@ -130,12 +381,12 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <input type="text" name="recherche" class="form-control" 
-                                   placeholder="Rechercher un projet..." 
+                                   placeholder="Search for a project..." 
                                    value="{{ request.GET.recherche|default:'' }}">
                         </div>
                         <div class="col-md-3">
                             <select class="form-select" name="categorie">
-                                <option value="">Toutes les catégories</option>
+                                <option value="">All Categories</option>
                                 {% for value, label in categories %}
                                 <option value="{{ value }}" {% if request.GET.categorie == value %}selected{% endif %}>
                                     {{ label }}
@@ -146,20 +397,18 @@
                         
                         <div class="col-md-3">
                             <select class="form-select" name="type_financement">
-                                <option value="tous">Types de financement</option>
-                                  {% for value, label in types_financement %}
-                               <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>
+                                <option value="tous">Funding Types</option>
+                                {% for value, label in types_financement %}
+                                <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>
                                     {{ label }}
                                 </option>
                                 {% endfor %}
                             </select>
-                           
                         </div>
                         
-                       
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-funnel"></i> Filtrer
+                                <i class="bi bi-funnel"></i> Filter
                             </button>
                         </div>
                     </div>
@@ -168,59 +417,56 @@
         </div>
     </div>
 
-    <!-- Liste des projets -->
+    <!-- Projects list -->
     <div class="row" id="projectsContainer">
         {% for projet in projets %}
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card project-card">
                 <span class="category-badge">{{ projet.get_categorie_display }}</span>
                 
-                {% if projet.cover_image %}
-                <img src="{{ projet.cover_image.url }}" class="card-img-top" alt="{{ projet.titre }}" style="max-height: 400px; object-fit: cover;">
-                {% else %}
-                <!-- Image par défaut avec illustration -->
-                <div class="default-cover-image d-flex align-items-center justify-content-center bg-light" style="height: 300px;">
-                    <i class="bi bi-image display-1 text-muted"></i>
+                <div class="project-image-container">
+                    {% if projet.cover_image %}
+                    <img src="{{ projet.cover_image.url }}" class="project-image" alt="{{ projet.titre }}">
+                    {% else %}
+                    <div class="default-image">
+                        <i class="bi bi-image"></i>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
                 
                 <div class="card-body">
                     <h5 class="card-title">{{ projet.titre }}</h5>
                     <p class="card-text">{{ projet.description|truncatewords:20|safe }}</p>
-                    <!-- Barre de progression -->
-                    <div class="progress">
-                        <div class="progress-bar bg-success" role="progressbar" 
-                             style="width: {{ projet.pourcentage_financement|default:0 }}%;" 
-                             aria-valuenow="{{ projet.pourcentage_financement|default:0 }}" 
-                             aria-valuemin="0" aria-valuemax="100">
-                        </div>
+                    
+                    <!-- Progress bar -->
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: {{ projet.pourcentage_financement|default:0 }}%;"></div>
                     </div>
                     
                     <div class="d-flex justify-content-between stats-info mb-2">
-                        <span>{{ projet.pourcentage_financement|default:0 }}% financé</span>
-                        <span>{{ projet.duree_restante }} jours restants</span>
+                        <span>{{ projet.pourcentage_financement|default:0 }}% funded</span>
+                        <span>{{ projet.duree_restante }} days remaining</span>
                     </div>
                     
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <strong>{{ projet.montant_collectes|default:0|floatformat:0 }} FCFA</strong>
-                        <span class="text-muted">sur {{ projet.montant_demande|floatformat:0 }} FCFA</span>
+                        <strong class="text-primary">{{ projet.montant_collectes|default:0|floatformat:0 }} FCFA</strong>
+                        <span class="text-muted">of {{ projet.montant_demande|floatformat:0 }} FCFA</span>
                     </div>
                     
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="text-muted small">
-                            <i class="bi bi-people"></i> {{ projet.nombre_contributeur }} contributeurs
+                            <i class="bi bi-people"></i> {{ projet.nombre_contributeur }} contributors
                         </span>
-<a href="{% url 'detail_projet' audit_uuid=projet.audit_uuid %}" 
-   class="btn btn-primary btn-sm">
-    Voir le projet
-</a>
-
+                        <a href="{% url 'detail_projet' audit_uuid=projet.audit_uuid %}" 
+                           class="btn btn-primary btn-sm">
+                            View Project
+                        </a>
                     </div>
                 </div>
                 
-                <div class="card-footer bg-transparent">
+                <div class="card-footer">
                     <small class="text-muted">
-                        Créé le {{ projet.date_creation|date:"d/m/Y" }}
+                        Created on {{ projet.date_creation|date:"d/m/Y" }}
                     </small>
                 </div>
             </div>
@@ -232,13 +478,13 @@
                 <div class="empty-state-icon">
                     <i class="bi bi-inbox"></i>
                 </div>
-                <h3>Aucun projet trouvé</h3>
-                <p class="text-muted">Aucun projet ne correspond à vos critères de recherche.</p>
+                <h3 class="text-dark">No Projects Found</h3>
+                <p class="text-muted">No projects match your search criteria.</p>
                 <a href="{% url 'liste_projets' %}" class="btn btn-outline-primary mt-2">
-                    Voir tous les projets
+                    View All Projects
                 </a>
                 <a href="{% url 'creer_projet' %}" class="btn btn-primary mt-2 ms-2">
-                    Proposer un projet
+                    Propose a Project
                 </a>
             </div>
         </div>
@@ -312,14 +558,9 @@
         // Appliquer l'animation aux cartes
         document.querySelectorAll('.project-card').forEach(card => {
             card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
             observer.observe(card);
-        });
-
-        // Reset des filtres
-        document.getElementById('resetFilters').addEventListener('click', function() {
-            window.location.href = "{% url 'liste_projets' %}";
         });
     });
 </script>

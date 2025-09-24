@@ -18,15 +18,14 @@ import environ
 import os
 import dj_database_url
 #
-env = environ.Env()
-environ.Env.read_env() 
-HEDERA_OPERATOR_ID = env("HEDERA_OPERATOR_ID")
-HEDERA_OPERATOR_PRIVATE_KEY = env("HEDERA_OPERATOR_PRIVATE_KEY")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+HEDERA_OPERATOR_ID = env("HEDERA_OPERATOR_ID")
+HEDERA_OPERATOR_KEY = env("HEDERA_OPERATOR_KEY")
 
 
 # Quick-start development settings - unsuitable for production
@@ -98,7 +97,7 @@ WSGI_APPLICATION = 'solidavenir.wsgi.application'
 #
 #DATABASES = {
 #    'default': dj_database_url.config(
-#        default=env("DATABASE_URL"),
+#        default=env("DATABASE_URL_NEON"),
 #        conn_max_age=600,
 #        ssl_require=False 
 #    )
@@ -111,6 +110,19 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
+#=================
+#POSTGRES
+#==================
+#
+#DATABASES = {
+#    'default': dj_database_url.config(
+#        default=env("DATABASE_URL"),
+#        conn_max_age=600,
+#        ssl_require=False 
+#    )
+#}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -190,17 +202,9 @@ LOGOUT_REDIRECT_URL = 'accueil'
 import os
 
 # Configuration Hedera
-HEDERA_SERVICE_URL = 'http://localhost:3001'
+HEDERA_SERVICE_URL = env("HEDERA_SERVICE_URL", default="http://hedera_service:3001")
 # Configuration Email
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Affiche les emails dans la console
-
-# Pour la production (à décommenter quand vous voudrez envoyer de vrais emails)
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'  # ou votre serveur SMTP
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'votre-email@gmail.com'
-# EMAIL_HOST_PASSWORD = 'votre-mot-de-passe-application'
 
 # Adresse email par défaut
 DEFAULT_FROM_EMAIL = 'noreply@solidavenir.com'

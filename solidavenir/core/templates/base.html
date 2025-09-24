@@ -1,23 +1,27 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Solid'Avenir - Plateforme de levée de fonds participative de confiance{% endblock %}</title>
+    <title>{% block title %}Solid'Avenir - Trusted Crowdfunding Platform{% endblock %}</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Styles personnalisés -->
     <style>
-       :root {
-            --primary-color: #2563eb;       /* Bleu confiance */
-            --secondary-color: #10b981;     /* Vert croissance */
-            --accent-color: #f59e0b;        /* Orange solidarité */
-            --transparency-color: #6366f1;  /* Violet transparence */
-            --future-color: #06b6d4;        /* Cyan avenir */
-            --light-color: #f8fafc;
-            --dark-color: #1e293b;
+        /* Variables CSS étendues */
+        :root {
+            --primary-blue: #1a73e8;
+            --primary-orange: #ff6d00;
+            --success-color: #28a745;
+            --gradient-blue: linear-gradient(135deg, var(--primary-blue) 0%, #083a63 100%);
+            --gradient-orange: linear-gradient(135deg, var(--primary-orange) 0%, #e65100 100%);
+            --shadow-light: 0 4px 6px rgba(0,0,0,0.05);
+            --shadow-medium: 0 10px 15px rgba(0,0,0,0.1);
+            --shadow-heavy: 0 20px 40px rgba(0,0,0,0.15);
+            --border-radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         
         body {
@@ -25,14 +29,16 @@
             color: #334155;
             background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
             min-height: 100vh;
-         }
+        }
         
         .navbar {
-            background-color: var(--primary-color) !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: var(--gradient-blue) !important;
+            box-shadow: var(--shadow-medium);
             position: sticky;
             top: 0;
             z-index: 1020;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .navbar-brand {
@@ -44,82 +50,51 @@
         .nav-link {
             color: rgba(255, 255, 255, 0.85) !important;
             font-weight: 500;
-            transition: color 0.3s;
+            transition: var(--transition);
+            border-radius: var(--border-radius);
+            margin: 0 5px;
+            padding: 8px 15px !important;
         }
         
         .nav-link:hover {
             color: white !important;
+            background-color: rgba(255, 255, 255, 0.1);
         }
         
-        /* Style personnalisé pour le sélecteur de langue */
-        .language-select {
+        .transparency-link {
             background-color: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            border-radius: 4px;
-            padding: 0.25rem 0.5rem;
-            margin-left: 0.5rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-            height: 32px;
-            width: 60px;
-        }
-        
-        .language-select:hover {
-            background-color: rgba(255, 255, 255, 0.25);
-        }
-        
-        .language-select option {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        /* Style pour le conteneur du sélecteur de langue */
-        .language-selector-container {
-            display: flex;
-            align-items: center;
-            margin-right: 0.75rem;
-        }
-        
-        .language-flag {
-            margin-right: 0.25rem;
-            font-size: 1rem;
-        }
-        
-        .btn-primary {
-            background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
-            color: var(--dark-color);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             font-weight: 600;
         }
         
+        .btn-primary {
+            background-color: var(--primary-orange);
+            border-color: var(--primary-orange);
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
         .btn-primary:hover {
-            background-color: #e6a224;
-            border-color: #e6a224;
-            color: var(--dark-color);
+            background-color: #e65100;
+            border-color: #e65100;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
         }
         
-        .btn-outline-primary {
-            color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        
-        .btn-outline-primary:hover {
-            background-color: var(--primary-color);
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.5);
             color: white;
+            transition: var(--transition);
         }
         
-        .hero-section {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: white;
             color: white;
-            padding: 3.5rem 0;
-            margin-bottom: 2rem;
-            text-align: center;
         }
         
         .footer {
-            background-color: var(--dark-color);
+            background: var(--gradient-blue);
             color: white;
             padding: 3rem 0 1.5rem;
             margin-top: 3rem;
@@ -128,6 +103,7 @@
         .footer a {
             color: #a0d2ff;
             text-decoration: none;
+            transition: var(--transition);
         }
         
         .footer a:hover {
@@ -135,21 +111,20 @@
             text-decoration: underline;
         }
         
-        .feature-icon {
-            font-size: 2.5rem;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-        
         .card {
             border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.3s, box-shadow 0.3s;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-light);
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-medium);
         }
         
         .section-title {
-            color: var(--primary-color);
+            color: var(--primary-blue);
             font-weight: 700;
             margin-bottom: 1.5rem;
             position: relative;
@@ -163,46 +138,26 @@
             left: 0;
             width: 60px;
             height: 3px;
-            background-color: var(--secondary-color);
-        }
-        
-        .trust-badge {
-            background-color: var(--light-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            text-align: center;
-            height: 100%;
-        }
-        
-        .trust-badge i {
-            font-size: 2.5rem;
-            color: var(--accent-color);
-            margin-bottom: 1rem;
+            background-color: var(--primary-orange);
         }
         
         body {
-            overflow-x: hidden; /* supprime le décalage horizontal */
+            overflow-x: hidden;
         }
 
         .navbar-nav .nav-link {
-            font-size: 1.5rem; /* texte un peu plus grand */
+            font-size: 1.1rem;
         }
         
         /* Ajustements pour mobile */
         @media (max-width: 991.98px) {
-            .language-selector-container {
-                margin: 0.5rem 0;
-                justify-content: center;
+            .navbar-nav {
+                text-align: center;
             }
-        }
-        
-        /* Styles pour la gestion des langues */
-        .lang-hidden {
-            display: none !important;
-        }
-        
-        .lang-visible {
-            display: block;
+            
+            .nav-link {
+                margin: 5px 0;
+            }
         }
     </style>
     
@@ -227,43 +182,27 @@
                 <!-- Liens au milieu -->
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accueil' %}" data-key="nav.home">Accueil</a>
+                        <a class="nav-link" href="{% url 'accueil' %}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'about' %}" data-key="nav.about">À Propos</a>
+                        <a class="nav-link" href="{% url 'about' %}">About</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'liste_projets' %}" data-key="nav.projects">Projets</a>
+                        <a class="nav-link" href="{% url 'liste_projets' %}">Projects</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'liste_associations' %}" data-key="nav.associations">Associations</a>
+                        <a class="nav-link" href="{% url 'liste_associations' %}">Associations</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'contact' %}" data-key="nav.contact">Contact</a>
+                        <a class="nav-link transparency-link" href="{% url 'transparence' %}">Transaction History</a>
                     </li>
-                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'contact' %}">Contact</a>
+                    </li>
                 </ul>
 
                 <!-- Boutons extrême droite -->
                 <ul class="navbar-nav ms-auto">
-                    <!-- Sélecteur de langue -->
-                    
-                <li class="nav-item language-selector-container">
-                    <select class="language-select" id="google_translate_element">
-                        <option value="fr">FR</option>
-                        <option value="en">EN</option>
-                    </select>
-                </li>
-                   
-<script type="text/javascript">
-  function googleTranslateElementInit() {
-    new google.translate.TranslateElement(
-      {pageLanguage: 'fr'},
-      'google_translate_element'
-    );
-  }
-</script>
-<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
                     {% if user.is_authenticated %}
                         {% if user.is_staff or user.is_administrator %}
                             <li class="nav-item">
@@ -274,41 +213,41 @@
                         {% endif %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-person-circle me-1"></i>Mon compte
+                                <i class="bi bi-person-circle me-1"></i>My Account
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item" href="{% url 'mes_projets' %}">
-                                        <i class="bi bi-lightbulb me-2"></i>Mes projets
-                                    </a></li>
+                                <li><a class="dropdown-item" href="{% url 'mes_projets' %}">
+                                    <i class="bi bi-lightbulb me-2"></i>My Projects
+                                </a></li>
                                 {% if user.is_association %}
                                     <li><a class="dropdown-item" href="{% url 'espace_association' %}">
-                                        <i class="bi bi-people me-2"></i>Espace association
+                                        <i class="bi bi-people me-2"></i>Association Space
                                     </a></li>
                                 {% endif %}
                                 <li><a class="dropdown-item" href="{% url 'mes_dons' %}">
-                                    <i class="bi bi-heart me-2"></i>Mes contributions
+                                    <i class="bi bi-heart me-2"></i>My Contributions
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'profil' %}">
-                                    <i class="bi bi-person me-2"></i>Mon profil
+                                    <i class="bi bi-person me-2"></i>My Profile
                                 </a></li>
                                 <li><a class="dropdown-item" href="{% url 'voir_wallet' %}">
                                     Wallet
                                 </a></li>
                                 <li><a class="dropdown-item" href="{% url 'deconnexion' %}">
-                                    <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
                                 </a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="btn btn-outline-light me-2" href="{% url 'inscription' %}" data-key="nav.create_account">
-                                <i class="bi bi-person-plus me-1"></i>Créer un compte
+                            <a class="btn btn-outline-light me-2" href="{% url 'inscription' %}">
+                                <i class="bi bi-person-plus me-1"></i>Create Account
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-light" href="{% url 'connexion' %}" data-key="nav.login">
-                                <i class="bi bi-box-arrow-in-right me-1"></i>Se connecter
+                            <a class="btn btn-light" href="{% url 'connexion' %}">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Login
                             </a>
                         </li>
                     {% endif %}
@@ -316,10 +255,9 @@
             </div>
         </div>
     </nav>
+
     <!-- Contenu principal -->
     <main class="container">
-     
-        
         {% block content %}
         <!-- Le contenu spécifique à chaque page sera inséré ici -->
         {% endblock %}
@@ -330,51 +268,51 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="text-uppercase fw-bold mb-3" data-key="footer.title">Solid'Avenir</h5>
-                    <p class="mb-3" data-key="footer.description">Plateforme de finance participative transparente pour un avenir solidaire, avec traçabilité blockchain garantie.</p>
-                    <div class="d-flex gap-2">
-                        <span class="badge badge-transparency" data-key="footer.transparency">Transparence</span>
-                        <span class="badge badge-trust" data-key="footer.trust">Confiance</span>
-                        <span class="badge badge-solidarity" data-key="footer.solidarity">Solidarité</span>
-                        <span class="badge badge-future" data-key="footer.future">Avenir</span>
+                    <h5 class="text-uppercase fw-bold mb-3">Solid'Avenir</h5>
+                    <p class="mb-3">Transparent crowdfunding platform for a united future, with guaranteed blockchain traceability.</p>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="badge bg-light text-dark">Transparency</span>
+                        <span class="badge bg-light text-dark">Trust</span>
+                        <span class="badge bg-light text-dark">Solidarity</span>
+                        <span class="badge bg-light text-dark">Future</span>
                     </div>
                 </div>
                 
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="text-uppercase fw-bold mb-3" data-key="footer.navigation">Navigation</h5>
+                    <h5 class="text-uppercase fw-bold mb-3">Navigation</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'savoir_plus' %}"><i class="bi bi-info-circle me-2"></i><span data-key="footer.learn_more">En savoir plus</span></a></li>
-                        <li class="mb-2"><a href="{% url 'accueil' %}"><i class="bi bi-house me-2"></i><span data-key="nav.home">Accueil</span></a></li>
-                        <li class="mb-2"><a href="{% url 'liste_projets' %}"><i class="bi bi-lightbulb me-2"></i><span data-key="nav.projects">Projets</span></a></li>
-                        <li class="mb-2"><a href="{% url 'liste_associations' %}"><i class="bi bi-people me-2"></i><span data-key="nav.associations">Associations</span></a></li>
-                        <li class="mb-2"><a href="{% url 'transparence' %}"><i class="bi bi-shield-check me-2"></i><span data-key="footer.transactions">Transactions</span></a></li>
-                        <li class="mb-2"><a href="{% url 'about' %}"><i class="bi bi-info-circle me-2"></i><span data-key="nav.about">À propos</span></a></li>
+                        <li class="mb-2"><a href="{% url 'savoir_plus' %}"><i class="bi bi-info-circle me-2"></i>Learn More</a></li>
+                        <li class="mb-2"><a href="{% url 'accueil' %}"><i class="bi bi-house me-2"></i>Home</a></li>
+                        <li class="mb-2"><a href="{% url 'liste_projets' %}"><i class="bi bi-lightbulb me-2"></i>Projects</a></li>
+                        <li class="mb-2"><a href="{% url 'liste_associations' %}"><i class="bi bi-people me-2"></i>Associations</a></li>
+                        <li class="mb-2"><a href="{% url 'transparence' %}"><i class="bi bi-shield-check me-2"></i>Transaction History</a></li>
+                        <li class="mb-2"><a href="{% url 'about' %}"><i class="bi bi-info-circle me-2"></i>About</a></li>
                     </ul>
                 </div>
                 
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="text-uppercase fw-bold mb-3" data-key="footer.member_space">Espace membre</h5>
+                    <h5 class="text-uppercase fw-bold mb-3">Member Area</h5>
                     <ul class="list-unstyled">
                         {% if user.is_authenticated %}
-                            <li class="mb-2"><a href="{% url 'mes_projets' %}"><i class="bi bi-folder me-2"></i><span data-key="footer.my_projects">Mes projets</span></a></li>
+                            <li class="mb-2"><a href="{% url 'mes_projets' %}"><i class="bi bi-folder me-2"></i>My Projects</a></li>
                             {% if user.is_association %}
-                            <li class="mb-2"><a href="{% url 'espace_association' %}"><i class="bi bi-people me-2"></i><span data-key="footer.association_space">Espace association</span></a></li>
+                            <li class="mb-2"><a href="{% url 'espace_association' %}"><i class="bi bi-people me-2"></i>Association Space</a></li>
                             {% endif %}
-                            <li class="mb-2"><a href="{% url 'mes_dons' %}"><i class="bi bi-heart me-2"></i><span data-key="footer.my_contributions">Mes contributions</span></a></li>
-                            <li class="mb-2"><a href="{% url 'modifier_profil' %}"><i class="bi bi-person me-2"></i><span data-key="footer.my_profile">Mon profil</span></a></li>
+                            <li class="mb-2"><a href="{% url 'mes_dons' %}"><i class="bi bi-heart me-2"></i>My Contributions</a></li>
+                            <li class="mb-2"><a href="{% url 'modifier_profil' %}"><i class="bi bi-person me-2"></i>My Profile</a></li>
                         {% else %}
-                            <li class="mb-2"><a href="{% url 'inscription' %}"><i class="bi bi-person-plus me-2"></i><span data-key="nav.create_account">Créer un compte</span></a></li>
-                            <li class="mb-2"><a href="{% url 'connexion' %}"><i class="bi bi-box-arrow-in-right me-2"></i><span data-key="nav.login">Se connecter</span></a></li>
+                            <li class="mb-2"><a href="{% url 'inscription' %}"><i class="bi bi-person-plus me-2"></i>Create Account</a></li>
+                            <li class="mb-2"><a href="{% url 'connexion' %}"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a></li>
                         {% endif %}
                     </ul>
                 </div>
                 
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="text-uppercase fw-bold mb-3" data-key="footer.commitment">Engagement</h5>
-                    <p class="mb-3" data-key="footer.commitment_description">Chaque transaction est tracée sur la blockchain Hedera Hashgraph pour une transparence totale et une confiance absolue.</p>
+                    <h5 class="text-uppercase fw-bold mb-3">Commitment</h5>
+                    <p class="mb-3">Every transaction is traced on the Hedera Hashgraph blockchain for total transparency and absolute trust.</p>
                     <div class="d-flex gap-2">
-                        <a href="#" class="btn btn-sm btn-outline-light"><i class="bi bi-file-text"></i> <span data-key="footer.terms">CGU</span></a>
-                        <a href="#" class="btn btn-sm btn-outline-light"><i class="bi bi-shield"></i> <span data-key="footer.privacy">Confidentialité</span></a>
+                        <a href="#" class="btn btn-sm btn-outline-light"><i class="bi bi-file-text"></i> Terms</a>
+                        <a href="#" class="btn btn-sm btn-outline-light"><i class="bi bi-shield"></i> Privacy</a>
                     </div>
                 </div>
             </div>
@@ -385,138 +323,24 @@
                 <div class="col-md-6">
                     <p class="mb-0">
                         <i class="bi bi-heart-fill text-danger me-1"></i>
-                        &copy; {% now "Y" %} Solid'Avenir. <span data-key="footer.rights">Tous droits réservés</span>.
+                        &copy; {% now "Y" %} Solid'Avenir. All rights reserved.
                     </p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <small class="text-muted" data-key="footer.passion">
-                        Fait avec passion pour un avenir meilleur
+                    <small class="text-white">
+                        Made with passion for a better future
                     </small>
                 </div>
             </div>
         </div>
     </footer>
-     <!-- Bootstrap JS et dépendances -->
+
+    <!-- Bootstrap JS et dépendances -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Icônes Bootstrap -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <script>
-        const translations = {
-            'fr': {
-                'nav.home': 'Accueil',
-                'nav.about': 'À Propos',
-                'nav.projects': 'Projets',
-                'nav.associations': 'Associations',
-                'nav.contact': 'Contact',
-                'nav.create_account': 'Créer un compte',
-                'nav.login': 'Se connecter',
-                
-                'footer.title': 'Solid\'Avenir',
-                'footer.description': 'Plateforme de finance participative transparente pour un avenir solidaire, avec traçabilité blockchain garantie.',
-                'footer.transparency': 'Transparence',
-                'footer.trust': 'Confiance',
-                'footer.solidarity': 'Solidarité',
-                'footer.future': 'Avenir',
-                'footer.navigation': 'Navigation',
-                'footer.learn_more': 'En savoir plus',
-                'footer.transactions': 'Transactions',
-                'footer.member_space': 'Espace membre',
-                'footer.my_projects': 'Mes projets',
-                'footer.association_space': 'Espace association',
-                'footer.my_contributions': 'Mes contributions',
-                'footer.my_profile': 'Mon profil',
-                'footer.commitment': 'Engagement',
-                'footer.commitment_description': 'Chaque transaction est tracée sur la blockchain Hedera Hashgraph pour une transparence totale et une confiance absolue.',
-                'footer.terms': 'CGU',
-                'footer.privacy': 'Confidentialité',
-                'footer.rights': 'Tous droits réservés',
-                'footer.passion': 'Fait avec passion pour un avenir meilleur'
-            },
-            'en': {
-                'nav.home': 'Home',
-                'nav.about': 'About',
-                'nav.projects': 'Projects',
-                'nav.associations': 'Associations',
-                'nav.contact': 'Contact',
-                'nav.create_account': 'Create account',
-                'nav.login': 'Log in',
-                
-                'footer.title': 'Solid\'Avenir',
-                'footer.description': 'Transparent crowdfunding platform for a united future, with guaranteed blockchain traceability.',
-                'footer.transparency': 'Transparency',
-                'footer.trust': 'Trust',
-                'footer.solidarity': 'Solidarity',
-                'footer.future': 'Future',
-                'footer.navigation': 'Navigation',
-                'footer.learn_more': 'Learn more',
-                'footer.transactions': 'Transactions',
-                'footer.member_space': 'Member area',
-                'footer.my_projects': 'My projects',
-                'footer.association_space': 'Association space',
-                'footer.my_contributions': 'My contributions',
-                'footer.my_profile': 'My profile',
-                'footer.commitment': 'Commitment',
-                'footer.commitment_description': 'Every transaction is traced on the Hedera Hashgraph blockchain for total transparency and absolute trust.',
-                'footer.terms': 'Terms',
-                'footer.privacy': 'Privacy',
-                'footer.rights': 'All rights reserved',
-                'footer.passion': 'Made with passion for a better future'
-            }
-        };
-    </script>
-    <!-- Script pour le changement de langue -->
     
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const languageSelector = document.getElementById('languageSelector');
-        
-        // Récupérer la langue sauvegardée si elle existe
-        let currentLanguage = localStorage.getItem('preferredLanguage') || 'fr';
-        
-        // Mettre à jour le sélecteur (cette ligne deviendra l'unique source de vérité)
-        if (languageSelector) {
-            languageSelector.value = currentLanguage;
-            
-            languageSelector.addEventListener('change', function() {
-                const selectedLanguage = this.value;
-                changeLanguage(selectedLanguage);
-            });
-        }
-        
-        // Initialiser la langue
-        changeLanguage(currentLanguage);
-        
-        function changeLanguage(lang) {
-            // Sauvegarder la préférence
-            localStorage.setItem('preferredLanguage', lang);
-            
-            // Mettre à jour le sélecteur
-            if (languageSelector) {
-                languageSelector.value = lang;
-            }
-            
-            // Mettre à jour l'attribut lang de l'élément html
-            document.documentElement.setAttribute('lang', lang);
-            
-            // Traduire les textes avec data-key
-            document.querySelectorAll('[data-key]').forEach(element => {
-                const key = element.getAttribute('data-key');
-                if (translations[lang] && translations[lang][key]) {
-                    element.textContent = translations[lang][key];
-                }
-            });
-        }
-        
-        // Vérifier si la langue a changé pendant la navigation
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'preferredLanguage' && e.newValue !== currentLanguage) {
-                currentLanguage = e.newValue;
-                changeLanguage(currentLanguage);
-            }
-        });
-    });
-</script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

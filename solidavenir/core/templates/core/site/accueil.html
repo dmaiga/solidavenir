@@ -1,274 +1,595 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Solid'Avenir - Plateforme de financement participatif transparente et sécurisée{% endblock %}
+{% block title %}Solid'Avenir - Transparent and Secure Crowdfunding Platform{% endblock %}
 
 {% block extra_css %}
 <style>
-  .hero-section {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+    /* Variables CSS étendues */
+    :root {
+        --primary-blue: #1a73e8;
+        --primary-orange: #ff6d00;
+        --success-color: #28a745;
+        --gradient-blue: linear-gradient(135deg, var(--primary-blue) 0%, #083a63 100%);
+        --gradient-orange: linear-gradient(135deg, var(--primary-orange) 0%, #e65100 100%);
+        --shadow-light: 0 4px 6px rgba(0,0,0,0.05);
+        --shadow-medium: 0 10px 15px rgba(0,0,0,0.1);
+        --shadow-heavy: 0 20px 40px rgba(0,0,0,0.15);
+        --border-radius: 12px;
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    /* Hero Section améliorée */
+    /* Hero Section améliorée avec image plus grande */
+    .hero-section {
+        background: var(--gradient-blue);
         color: white;
-        padding: 5rem 0;
-        text-align: center;
+        padding: 6rem 0;
         width: 100vw;
         position: relative;
         left: 50%;
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
+        overflow: hidden;
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23000' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+        opacity: 0.1;
+        z-index: 1;
     }
     
     .hero-content {
         position: relative;
         z-index: 2;
+        animation: fadeInUp 0.8s ease-out;
     }
-  
     
+    .hero-image-container {
+        position: relative;
+        z-index: 2;
+        animation: fadeInRight 0.8s ease-out 0.2s both;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .hero-image {
+        width: 100%;
+        max-width: 100%;
+        height: 500px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-heavy);
+        object-fit: cover;
+        transition: var(--transition);
+        background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .hero-image:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+    }
+        
+    /* Feature Icons */
     .feature-icon {
         font-size: 2.5rem;
-        color: var(--primary-color);
+        color: var(--primary-blue);
         margin-bottom: 1rem;
+        transition: var(--transition);
     }
     
+    .feature-icon:hover {
+        transform: scale(1.1);
+        color: var(--primary-orange);
+    }
+    
+    /* Project Cards améliorées */
     .project-card {
         border: none;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        transition: transform 0.3s, box-shadow 0.3s;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-light);
+        transition: var(--transition);
         height: 100%;
+        overflow: hidden;
     }
     
+    .project-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-heavy);
+    }
     
+    .project-image-container {
+        position: relative;
+        overflow: hidden;
+        height: 200px;
+    }
+    
+    .project-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .project-card:hover .project-image {
+        transform: scale(1.05);
+    }
     
     .progress {
         height: 10px;
         border-radius: 5px;
+        overflow: hidden;
+    }
+    
+    .progress-bar-custom {
+        background: var(--gradient-orange);
+        transition: width 1s ease-in-out;
     }
     
     .category-badge {
         position: absolute;
         top: 15px;
         right: 15px;
-        background: var(--secondary-color);
-        color: var(--dark-color);
+        background: var(--success-color);
+        color: white;
         padding: 5px 10px;
         border-radius: 20px;
         font-size: 0.8rem;
         font-weight: 600;
+        z-index: 2;
+        box-shadow: var(--shadow-light);
     }
     
+    /* Stats améliorées */
     .stats-number {
-        font-size: 2rem;
+        font-size: 2.5rem;
         font-weight: 700;
-        color: var(--primary-color);
+        color: var(--primary-orange);
+        transition: var(--transition);
     }
     
+    .stats-number:hover {
+        transform: scale(1.1);
+    }
+    
+    /* Trust badges améliorés */
     .trust-badge {
-        background: var(--light-color);
-        border-radius: 10px;
+        background: white;
+        border-radius: var(--border-radius);
         padding: 2rem;
         text-align: center;
         height: 100%;
+        box-shadow: var(--shadow-light);
+        transition: var(--transition);
+    }
+    
+    .trust-badge:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-medium);
     }
     
     .trust-badge i {
         font-size: 2.5rem;
-        color: var(--accent-color);
+        color: var(--primary-orange);
         margin-bottom: 1rem;
+        transition: var(--transition);
     }
     
-    .problem-solution {
-        background: #f8f9fa;
-        border-radius: 15px;
+    .trust-badge:hover i {
+        transform: rotateY(180deg);
+    }
+    
+    /* Why Us Section améliorée */
+    .why-us-section {
+        background-color: white;
+        border-radius: var(--border-radius);
+        padding: 3rem 2rem;
+        margin: 2rem 0;
+        box-shadow: var(--shadow-medium);
+        transition: var(--transition);
+    }
+    
+    .why-us-section:hover {
+        box-shadow: var(--shadow-heavy);
+    }
+    
+    .advantage-item {
+        margin-bottom: 1.5rem;
+        padding-left: 1.5rem;
+        border-left: 3px solid var(--primary-blue);
+        transition: var(--transition);
+    }
+    
+    .advantage-item:hover {
+        border-left-color: var(--primary-orange);
+        padding-left: 2rem;
+    }
+    
+    .advantage-icon {
+        color: var(--primary-orange);
+        margin-right: 0.5rem;
+        transition: var(--transition);
+    }
+    
+    .advantage-item:hover .advantage-icon {
+        transform: scale(1.2);
+    }
+    
+    /* Competitor Comparison amélioré */
+    .competitor-comparison {
+        background-color: #f8f9fa;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        transition: var(--transition);
+    }
+    
+    .competitor-comparison:hover {
+        background-color: #e9ecef;
+    }
+    
+    .comparison-item {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e9ecef;
+        transition: var(--transition);
+    }
+    
+    .comparison-item:hover {
+        transform: translateX(5px);
+    }
+    
+    .comparison-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    /* Tech Images améliorées */
+    .tech-image-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-medium);
+    }
+    
+    .tech-image {
+        width: 100%;
+        height: auto;
+        border-radius: var(--border-radius);
+        transition: transform 0.5s ease;
+    }
+    
+    .tech-image-container:hover .tech-image {
+        transform: scale(1.05);
+    }
+    
+    .content-section {
+        padding: 4rem 0;
+        position: relative;
+    }
+    
+    .highlight-box {
+        background: var(--gradient-blue);
+        color: white;
+        border-radius: var(--border-radius);
+        padding: 3rem;
+        margin: 3rem 0;
+        box-shadow: var(--shadow-heavy);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .highlight-box::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        animation: rotate 20s linear infinite;
+        z-index: 1;
+    }
+    
+    .highlight-box > * {
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes rotate {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    /* Responsive Design amélioré */
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 4rem 0;
+            text-align: center;
+        }
         
+        .content-section {
+            padding: 2.5rem 0;
+        }
+        
+        .hero-image {
+            height: 300px;
+            margin-top: 2rem;
+        }
+        
+        .why-us-section {
+            padding: 2rem 1rem;
+        }
+        
+        .highlight-box {
+            padding: 2rem 1.5rem;
+        }
+    }
+    
+    /* Scroll animations */
+    .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    
+    .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
     }
 </style>
 {% endblock %}
 
 {% block content %}
 
-
-<!-- En-tête avec texte -->
-<header class="hero-section">
+<!-- Section Hero avec texte à gauche et image à droite -->
+<section class="hero-section">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col text-center hero-content">
-                <h1 class="display-4 fw-bold mb-3" data-key="home.hero.title">Révolutionnez le financement participatif en Afrique de l'Ouest</h1>
-                <p class="lead mb-4" data-key="home.hero.subtitle">Solid'Avenir élimine définitivement les risques de défaillance grâce à la blockchain Hedera. Chaque transaction est immuable, traçable et vérifiable par tous.</p>
-                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                    <a href="{% url 'liste_projets' %}" class="btn btn-warning btn-lg px-4 gap-3" data-key="home.hero.discover">Découvrir les projets</a>
-                    <a href="{% url 'creer_projet' %}" class="btn btn-outline-light btn-lg px-4" data-key="home.hero.launch">Lancer un projet</a>
-                    <a href="{% url 'savoir_plus' %}" class="btn btn-outline-info btn-lg px-4">
-                        <span data-key="home.hero.learn_more">En savoir plus</span> <i class="bi bi-info-circle ms-1"></i>
+            <div class="col-lg-6 hero-content">
+                <h1 class="display-4 fw-bold mb-3">Radical Transparency for Every Donation</h1>
+                <p class="lead mb-4">Built on Hedera, we bring radical transparency to every donation, tracking contributions from donor to ground. We empower communities and entrepreneurs across West Africa, ensuring every contribution is verified and makes a real impact.</p>
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-start">
+                    <a href="{% url 'liste_projets' %}" class="btn btn-primary btn-lg px-4 gap-3">Discover Projects</a>
+                    <a href="{% url 'creer_projet' %}" class="btn btn-outline-light btn-lg px-4">Launch a Project</a>
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'savoir_plus' %}" class="btn btn-link text-white">
+                        Learn More <i class="bi bi-arrow-right ms-1"></i>
                     </a>
+                </div>
+            </div>
+            <div class="col-lg-6 hero-image-container">
+                <div class="tech-image-container">
+                    <img src="{% static 'images/home/hero_section.jpg' %}" alt="Finance Technology" class="hero-image">
                 </div>
             </div>
         </div>
     </div>
-</header>
-
-<!-- Section problème/solution -->
-<section class="container problem-solution">
-    <div class="row">
-        <div class="col-md-6">
-            <h2 class="text-danger mb-4" data-key="home.problems.title"> Défaillances traditionnelles</h2>
-            <ul class="list-unstyled">
-                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong data-key="home.problems.transparency">Manque de transparence</strong> : <span data-key="home.problems.transparency_desc">Impossible de tracer l'utilisation des fonds</span></li>
-                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong data-key="home.problems.fraud">Risque de fraude</strong> : <span data-key="home.problems.fraud_desc">Projets fictifs ou détournements</span></li>
-                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong data-key="home.problems.audit">Absence d'audit</strong> : <span data-key="home.problems.audit_desc">Aucune vérification indépendante</span></li>
-                <li class="mb-3"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong data-key="home.problems.trust">Confiance limitée</strong> : <span data-key="home.problems.trust_desc">Méfiance des contributeurs potentiels</span></li>
-            </ul>
-        </div>
-        <div class="col-md-6">
-            <h2 class="text-success mb-4" data-key="home.solutions.title"> Blockchain & Transparence</h2>
-            <ul class="list-unstyled">
-                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong data-key="home.solutions.traceability">Traçabilité totale</strong> : <span data-key="home.solutions.traceability_desc">Chaque FCFA est enregistré sur blockchain</span></li>
-                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong data-key="home.solutions.real_time">Audit en temps réel</strong> : <span data-key="home.solutions.real_time_desc">Vérification indépendante automatique</span></li>
-                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong data-key="home.solutions.proof">Preuves immuables</strong> : <span data-key="home.solutions.proof_desc">Aucune modification possible des transactions</span></li>
-                <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong data-key="home.solutions.confidence">Confiance absolue</strong> : <span data-key="home.solutions.confidence_desc">Les contributeurs voient exactement où va leur argent</span></li>
-            </ul>
-        </div>
-    </div>
 </section>
 
-<!-- Section garanties de confiance -->
-<section class="container mb-5">
-    <h2 class="section-title text-center mb-4" data-key="home.guarantees.title">Nos garanties de transparence</h2>
-    
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="p-4 border rounded h-100 shadow-sm">
-                <h4 class="mb-3" data-key="home.guarantees.tech_title">Technologie de Confiance</h4>
-                <p data-key="home.guarantees.tech_desc">
-                    Chaque don ou investissement est inscrit sur Hedera Hashgraph, 
-                    une technologie moderne qui garantit que les enregistrements sont infalsifiables et consultables par tous.
-                </p>
+<!-- Section Comment nous garantissons -->
+<section class="content-section bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 fade-in">
+                <div class="tech-image-container">
+                    <img src="{% static 'images/home/femme_desktop.jpg' %}" alt="Confident woman at desk" class="tech-image">
+                </div>
             </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="p-4 border rounded h-100 shadow-sm">
-                <h4 class="mb-3" data-key="home.guarantees.tracking_title">Suivi Automatisé</h4>
-                <p data-key="home.guarantees.tracking_desc">
-                    Nos systèmes contrôlent en continu l'utilisation des fonds et produisent des alertes 
-                    en cas d'écart ou d'anomalie, pour assurer un usage conforme à l'objectif annoncé.
-                </p>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="p-4 border rounded h-100 shadow-sm">
-                <h4 class="mb-3" data-key="home.guarantees.access_title">Accès Ouvert</h4>
-                <p data-key="home.guarantees.access_desc">
-                    Toutes les transactions sont accessibles depuis la plateforme. 
-                    Chacun peut vérifier en toute indépendance l'origine et l'usage des fonds.
-                </p>
+            <div class="col-lg-6 fade-in">
+                <h2 class="section-title">How We Ensure Impact</h2>
+                
+                <div class="advantage-item">
+                    <h5><i class="bi bi-shield-check advantage-icon"></i> On-the-Ground Validation</h5>
+                    <p>Our team validates and documents each step on-site, transforming your contribution into tangible, verifiable proof that your donation made a difference.</p>
+                </div>
+                
+                <div class="advantage-item">
+                    <h5><i class="bi bi-lock advantage-icon"></i> Immutable Records</h5>
+                    <p>Every donation is recorded on Hedera's immutable public ledger, providing donors with full transparency and permanent auditability laying the foundation for unshakable trust.</p>
+                </div>
+                
+                <div class="advantage-item">
+                    <h5><i class="bi bi-graph-up advantage-icon"></i> Real Impact Tracking</h5>
+                    <p>From vital local initiatives to ambitious entrepreneurs, we make funding traceable and effective rebuilding trust and unlocking the potential of crowdfunding for social and economic growth.</p>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{% url 'transparence' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-shield-check me-2"></i>Explore Our Transparency
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Section projets populaires -->
-<section class="container mb-5">
-    <h2 class="section-title text-center mb-4" data-key="home.projects.title"> Projets certifiés en cours</h2>
-    
-    <div class="row">
-        {% for projet in projets_populaires %}
-        <div class="col-md-4 mb-4">
-            <div class="card project-card">
-                <span class="category-badge" data-key="home.projects.verified">Projet vérifié</span>
-               {% if projet.cover_image %}
-                <img src="{{ projet.cover_image.url }}" class="card-img-top" alt="{{ projet.titre }}" style="height: 200px; object-fit: cover;">
-                {% else %}
-                <!-- Image par défaut avec illustration et couleur de fond -->
-                <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #2c6e9b 0%, #1a3c5a 100%);">
-                    <div class="text-center text-white p-3">
-                        <i class="bi bi-image display-4 opacity-75 mb-2"></i>
-                        <p class="small mb-0" data-key="home.projects.no_image">Image non disponible</p>
-                    </div>
-                </div>
-                {% endif %}
-                <div class="card-body">
-                    <h5 class="card-title">{{ projet.titre }}</h5>
-                    <p class="card-text">{{ projet.description_courte|truncatewords:50|safe }}</p>
-                    <div class="progress" style="height: 10px;">
-                        <div class="progress-bar bg-success progress-bar-custom" 
-                             role="progressbar" 
-                             style="width: {{ projet.pourcentage_financement|default:0 }}%;"
-                             aria-valuenow="{{ projet.pourcentage_financement|default:0 }}" 
-                             aria-valuemin="0" 
-                             aria-valuemax="100">
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between text-muted small mb-3">
-                        <span>{{ projet.pourcentage_financement|default:0 }}% <span data-key="home.projects.reached">atteint</span></span>
-                        <span>✅ <span data-key="home.projects.audited">Projet audité</span></span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <strong>{{ projet.total_collecte|default:0|floatformat:0 }} FCFA / {{ projet.montant_demande|floatformat:0 }} FCFA</strong>
-                        <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-primary btn-sm" data-key="home.projects.contribute">Contribuer </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-12 text-center">
-            <p data-key="home.projects.none">Aucun projet actif pour le moment.</p>
-            <a href="{% url 'creer_projet' %}" class="btn btn-primary" data-key="home.projects.be_first">Soyez le premier à proposer un projet</a>
-        </div>
-        {% endfor %}
-    </div>
-    
-    {% if projets_populaires %}
-    <div class="text-center mt-4">
-        <a href="{% url 'liste_projets' %}" class="btn btn-outline-primary" data-key="home.projects.see_all">Voir tous les projets certifiés</a>
-        <a href="{% url 'transparence' %}" class="btn btn-info ms-2" data-key="home.projects.check_transactions">Vérifier les transactions</a>
-    </div>
-    {% endif %}
-</section>
-<!-- Section comment ça marche -->
-<section class="bg-light py-5 mb-5">
+<section class="content-section">
     <div class="container">
-        <h2 class="section-title text-center mb-5" data-key="home.how_it_works.title"> Comment nous garantissons la confiance</h2>
+        <h2 class="section-title text-center mb-4 fade-in">Verified Ongoing Projects</h2>
         
         <div class="row">
-            <div class="col-md-4 text-center mb-4">
-                <div class="feature-icon">
-                    <i class="bi bi-patch-check"></i>
+            {% for projet in projets_populaires %}
+            <div class="col-md-4 mb-4 fade-in">
+                <div class="card project-card">
+                    <span class="category-badge">Verified Project</span>
+                    <div class="project-image-container">
+                        {% if projet.cover_image %}
+                        <img src="{{ projet.cover_image.url }}" class="project-image" alt="{{ projet.titre }}">
+                        {% else %}
+                        <!-- Image par défaut avec illustration et couleur de fond -->
+                        <div class="d-flex align-items-center justify-content-center h-100" style="background: var(--gradient-blue);">
+                            <div class="text-center text-white p-3">
+                                <i class="bi bi-image display-4 opacity-75 mb-2"></i>
+                                <p class="small mb-0">Image not available</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ projet.titre }}</h5>
+                        <p class="card-text">{{ projet.description_courte|truncatewords:50|safe }}</p>
+                        <div class="progress mb-3">
+                            <div class="progress-bar progress-bar-custom" 
+                                 role="progressbar" 
+                                 style="width: {{ projet.pourcentage_financement|default:0 }}%;"
+                                 aria-valuenow="{{ projet.pourcentage_financement|default:0 }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between text-muted small mb-3">
+                            <span>{{ projet.pourcentage_financement|default:0 }}% reached</span>
+                            <span>✅ Audited Project</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>{{ projet.total_collecte|default:0|floatformat:0 }} FCFA / {{ projet.montant_demande|floatformat:0 }} FCFA</strong>
+                            <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-primary btn-sm">Contribute</a>
+                        </div>
+                    </div>
                 </div>
-                <h4 data-key="home.how_it_works.step1_title">1. Vérification rigoureuse</h4>
-                <p data-key="home.how_it_works.step1_desc">Chaque projet est audité avant approbation. Seuls les initiatives légitimes et réalisables sont acceptées.</p>
             </div>
-            
-            <div class="col-md-4 text-center mb-4">
-                <div class="feature-icon">
-                    <i class="bi bi-cash-coin"></i>
-                </div>
-                <h4 data-key="home.how_it_works.step2_title">2. Financement tracé</h4>
-                <p data-key="home.how_it_works.step2_desc">Chaque contribution est instantanément enregistrée sur la blockchain Hedera, créant une preuve immuable.</p>
+            {% empty %}
+            <div class="col-12 text-center fade-in">
+                <p>No active projects at the moment.</p>
+                <a href="{% url 'creer_projet' %}" class="btn btn-primary">Be the first to propose a project</a>
             </div>
-            
-            <div class="col-md-4 text-center mb-4">
-                <div class="feature-icon">
-                    <i class="bi bi-graph-up"></i>
-                </div>
-                <h4 data-key="home.how_it_works.step3_title">3. Suivi en temps réel</h4>
-                <p data-key="home.how_it_works.step3_desc">Les porteurs de projets doivent justifier chaque dépense, visible et vérifiable par tous les contributeurs.</p>
-            </div>
+            {% endfor %}
         </div>
         
-        <div class="text-center mt-4">
-            <a href="{% url 'transparence' %}" class="btn btn-primary btn-lg">
-                <i class="bi bi-shield-check me-2"></i><span data-key="home.how_it_works.explore">Explorer notre transparence</span>
-            </a>
-           <a href="{% url 'savoir_plus' %}" class="btn btn-outline-light btn-lg px-4 text-black" >
-               <span data-key="home.hero.learn_more">En savoir plus</span>
-           </a>
+        {% if projets_populaires %}
+        <div class="text-center mt-4 fade-in">
+            <a href="{% url 'liste_projets' %}" class="btn btn-outline-primary">See all verified projects</a>
+            <a href="{% url 'transparence' %}" class="btn btn-info ms-2">Check transactions</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Section valeurs -->
+<section class="highlight-box">
+    <div class="container text-center">
+        <h2 class="mb-4">Transparency for Trust. Impact for All.</h2>
+        <p class="lead mb-4">We're rebuilding trust in crowdfunding by making every transaction visible, verifiable, and valuable to communities across West Africa.</p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <span class="badge bg-light text-dark p-2">Blockchain Verified</span>
+            <span class="badge bg-light text-dark p-2">Mobile Money Integrated</span>
+            <span class="badge bg-light text-dark p-2">Local Impact Focused</span>
+            <span class="badge bg-light text-dark p-2">Hedera Powered</span>
         </div>
     </div>
 </section>
 
+<!-- Section Pourquoi nous choisir -->
+<section class="content-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center mb-5 fade-in">
+                <h2 class="section-title">Why Solid'Avenir?</h2>
+                <p class="lead">Solid'Avenir positions itself as the first mover, offering a trusted, tech-driven solution adapted to the local context.</p>
+            </div>
+        </div>
+        
+        <div class="why-us-section fade-in">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h3 class="mb-4">The Gap We Fill</h3>
+                    
+                    <div class="competitor-comparison">
+                        <h5 class="mb-3">Current Limitations in West Africa:</h5>
+                        
+                        <div class="comparison-item">
+                            <h6><i class="bi bi-x-circle advantage-icon"></i> International Platforms</h6>
+                            <p class="small mb-0">GoFundMe, Ulule - rarely used due to high fees, complex access, and no Mobile Money integration</p>
+                        </div>
+                        
+                        <div class="comparison-item">
+                            <h6><i class="bi bi-x-circle advantage-icon"></i> Local Associations</h6>
+                            <p class="small mb-0">Relying on donations but lacking a dedicated digital platform or transparent tracking</p>
+                        </div>
+                        
+                        <div class="comparison-item">
+                            <h6><i class="bi bi-x-circle advantage-icon"></i> Informal Collections</h6>
+                            <p class="small mb-0">Through WhatsApp, Facebook, and Mobile Money, with no structure or traceability</p>
+                        </div>
+                        
+                        <div class="comparison-item">
+                            <h6><i class="bi bi-x-circle advantage-icon"></i> Personal Initiatives</h6>
+                            <p class="small mb-0">Limited to small closed circles and rarely reaching the people most in need</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <h3 class="mb-4">Our Unique Advantages</h3>
+                    
+                    <div class="advantage-item">
+                        <h5><i class="bi bi-check-circle advantage-icon"></i> First Mover Advantage</h5>
+                        <p>No existing player combines fundraising with blockchain-based transparency in West Africa.</p>
+                    </div>
+                    
+                    <div class="advantage-item">
+                        <h5><i class="bi bi-check-circle advantage-icon"></i> Local Context Adaptation</h5>
+                        <p>Designed specifically for West African markets with Mobile Money integration and local payment solutions.</p>
+                    </div>
+                    
+                    <div class="advantage-item">
+                        <h5><i class="bi bi-check-circle advantage-icon"></i> Blockchain Transparency</h5>
+                        <p>Every donation is recorded on Hedera's immutable public ledger, providing donors with full transparency.</p>
+                    </div>
+                    
+                    <div class="advantage-item">
+                        <h5><i class="bi bi-check-circle advantage-icon"></i> Rigorous Vetting</h5>
+                        <p>We rigorously vet the legitimacy of every initiative, verify regulatory compliance, and assess feasibility.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 {% endblock %}
 
@@ -301,121 +622,53 @@
             }
         });
         
-        // Ajouter les traductions pour cette page
-        if (typeof translations !== 'undefined') {
-            // Fusionner les traductions existantes avec les nouvelles
-            Object.assign(translations.fr, {
-                'home.hero.title': 'Révolutionnez le financement participatif en Afrique de l\'Ouest',
-                'home.hero.subtitle': 'Solid\'Avenir élimine définitivement les risques de défaillance grâce à la blockchain Hedera. Chaque transaction est immuable, traçable et vérifiable par tous.',
-                'home.hero.discover': 'Découvrir les projets',
-                'home.hero.launch': 'Lancer un projet',
-                'home.hero.learn_more': 'En savoir plus',
+        // Animation au défilement
+        const fadeElements = document.querySelectorAll('.fade-in');
+        
+        const fadeInOnScroll = () => {
+            fadeElements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
                 
-                'home.problems.title': 'Défaillances traditionnelles',
-                'home.problems.transparency': 'Manque de transparence',
-                'home.problems.transparency_desc': 'Impossible de tracer l\'utilisation des fonds',
-                'home.problems.fraud': 'Risque de fraude',
-                'home.problems.fraud_desc': 'Projets fictifs ou détournements',
-                'home.problems.audit': 'Absence d\'audit',
-                'home.problems.audit_desc': 'Aucune vérification indépendante',
-                'home.problems.trust': 'Confiance limitée',
-                'home.problems.trust_desc': 'Méfiance des contributeurs potentiels',
-                
-                'home.solutions.title': 'Blockchain & Transparence',
-                'home.solutions.traceability': 'Traçabilité totale',
-                'home.solutions.traceability_desc': 'Chaque FCFA est enregistré sur blockchain',
-                'home.solutions.real_time': 'Audit en temps réel',
-                'home.solutions.real_time_desc': 'Vérification indépendante automatique',
-                'home.solutions.proof': 'Preuves immuables',
-                'home.solutions.proof_desc': 'Aucune modification possible des transactions',
-                'home.solutions.confidence': 'Confiance absolue',
-                'home.solutions.confidence_desc': 'Les contributeurs voient exactement où va leur argent',
-                
-                'home.guarantees.title': 'Nos garanties de transparence',
-                'home.guarantees.tech_title': 'Technologie de Confiance',
-                'home.guarantees.tech_desc': 'Chaque don ou investissement est inscrit sur Hedera Hashgraph, une technologie moderne qui garantit que les enregistrements sont infalsifiables et consultables par tous.',
-                'home.guarantees.tracking_title': 'Suivi Automatisé',
-                'home.guarantees.tracking_desc': 'Nos systèmes contrôlent en continu l\'utilisation des fonds et produisent des alertes en cas d\'écart ou d\'anomalie, pour assurer un usage conforme à l\'objectif annoncé.',
-                'home.guarantees.access_title': 'Accès Ouvert',
-                'home.guarantees.access_desc': 'Toutes les transactions sont accessibles depuis la plateforme. Chacun peut vérifier en toute indépendance l\'origine et l\'usage des fonds.',
-                
-                'home.projects.title': 'Projets certifiés en cours',
-                'home.projects.verified': 'Projet vérifié',
-                'home.projects.no_image': 'Image non disponible',
-                'home.projects.reached': 'atteint',
-                'home.projects.audited': 'Projet audité',
-                'home.projects.contribute': 'Contribuer',
-                'home.projects.none': 'Aucun projet actif pour le moment.',
-                'home.projects.be_first': 'Soyez le premier à proposer un projet',
-                'home.projects.see_all': 'Voir tous les projets certifiés',
-                'home.projects.check_transactions': 'Vérifier les transactions',
-                
-                'home.how_it_works.title': 'Comment nous garantissons la confiance',
-                'home.how_it_works.step1_title': '1. Vérification rigoureuse',
-                'home.how_it_works.step1_desc': 'Chaque projet est audité avant approbation. Seuls les initiatives légitimes et réalisables sont acceptées.',
-                'home.how_it_works.step2_title': '2. Financement tracé',
-                'home.how_it_works.step2_desc': 'Chaque contribution est instantanément enregistrée sur la blockchain Hedera, créant une preuve immuable.',
-                'home.how_it_works.step3_title': '3. Suivi en temps réel',
-                'home.how_it_works.step3_desc': 'Les porteurs de projets doivent justifier chaque dépense, visible et vérifiable par tous les contributeurs.',
-                'home.how_it_works.explore': 'Explorer notre transparence'
+                if (elementTop < window.innerHeight - elementVisible) {
+                    element.classList.add('visible');
+                }
             });
-            
-            Object.assign(translations.en, {
-                'home.hero.title': 'Revolutionize crowdfunding in West Africa',
-                'home.hero.subtitle': 'Solid\'Avenir definitively eliminates the risk of failure thanks to Hedera blockchain. Every transaction is immutable, traceable and verifiable by all.',
-                'home.hero.discover': 'Discover projects',
-                'home.hero.launch': 'Launch a project',
-                'home.hero.learn_more': 'Learn more',
+        };
+        
+        // Vérifier au chargement
+        fadeInOnScroll();
+        
+        // Vérifier au défilement
+        window.addEventListener('scroll', fadeInOnScroll);
+        
+        // Animation des barres de progression
+        const progressBars = document.querySelectorAll('.progress-bar-custom');
+        
+        const animateProgressBars = () => {
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
                 
-                'home.problems.title': 'Traditional failures',
-                'home.problems.transparency': 'Lack of transparency',
-                'home.problems.transparency_desc': 'Impossible to track fund usage',
-                'home.problems.fraud': 'Risk of fraud',
-                'home.problems.fraud_desc': 'Fictitious projects or misappropriation',
-                'home.problems.audit': 'Absence of audit',
-                'home.problems.audit_desc': 'No independent verification',
-                'home.problems.trust': 'Limited trust',
-                'home.problems.trust_desc': 'Distrust from potential contributors',
-                
-                'home.solutions.title': 'Blockchain & Transparency',
-                'home.solutions.traceability': 'Complete traceability',
-                'home.solutions.traceability_desc': 'Every FCFA is recorded on blockchain',
-                'home.solutions.real_time': 'Real-time audit',
-                'home.solutions.real_time_desc': 'Automatic independent verification',
-                'home.solutions.proof': 'Immutable proofs',
-                'home.solutions.proof_desc': 'No modification of transactions possible',
-                'home.solutions.confidence': 'Absolute confidence',
-                'home.solutions.confidence_desc': 'Contributors see exactly where their money goes',
-                
-                'home.guarantees.title': 'Our transparency guarantees',
-                'home.guarantees.tech_title': 'Trust Technology',
-                'home.guarantees.tech_desc': 'Every donation or investment is recorded on Hedera Hashgraph, a modern technology that ensures records are unforgeable and accessible to all.',
-                'home.guarantees.tracking_title': 'Automated Tracking',
-                'home.guarantees.tracking_desc': 'Our systems continuously monitor fund usage and produce alerts in case of discrepancies or anomalies, to ensure usage complies with stated objectives.',
-                'home.guarantees.access_title': 'Open Access',
-                'home.guarantees.access_desc': 'All transactions are accessible from the platform. Everyone can independently verify the origin and use of funds.',
-                
-                'home.projects.title': 'Certified ongoing projects',
-                'home.projects.verified': 'Verified project',
-                'home.projects.no_image': 'Image not available',
-                'home.projects.reached': 'reached',
-                'home.projects.audited': 'Audited project',
-                'home.projects.contribute': 'Contribute',
-                'home.projects.none': 'No active projects at the moment.',
-                'home.projects.be_first': 'Be the first to propose a project',
-                'home.projects.see_all': 'See all certified projects',
-                'home.projects.check_transactions': 'Check transactions',
-                
-                'home.how_it_works.title': 'How we guarantee trust',
-                'home.how_it_works.step1_title': '1. Rigorous verification',
-                'home.how_it_works.step1_desc': 'Each project is audited before approval. Only legitimate and feasible initiatives are accepted.',
-                'home.how_it_works.step2_title': '2. Tracked funding',
-                'home.how_it_works.step2_desc': 'Every contribution is instantly recorded on the Hedera blockchain, creating immutable proof.',
-                'home.how_it_works.step3_title': '3. Real-time monitoring',
-                'home.how_it_works.step3_desc': 'Project leaders must justify every expense, visible and verifiable by all contributors.',
-                'home.how_it_works.explore': 'Explore our transparency'
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 300);
             });
-        }
+        };
+        
+        // Observer pour animer les barres de progression lorsqu'elles sont visibles
+        const progressObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateProgressBars();
+                    progressObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+        
+        progressBars.forEach(bar => {
+            progressObserver.observe(bar);
+        });
     });
 </script>
 {% endblock %}

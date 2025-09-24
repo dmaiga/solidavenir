@@ -1,77 +1,77 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Contact - Plateforme de Financement Participatif{% endblock %}
+{% block title %}Contact - Crowdfunding Platform{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row">
-        <!-- Colonne d'informations sur la plateforme -->
+        <!-- Platform Information Column -->
         <div class="col-lg-7 mb-4 mb-lg-0">
-            <div >
-                <h1 class="display-5 fw-bold text-primary mb-4" data-key="contact.title">Nous sommes à votre écoute</h1>
+            <div>
+                <h1 class="display-5 fw-bold mb-4" style="color: var(--primary-blue);">We're Here to Help</h1>
                 
                 <div class="mb-5">
-                    <h2 class="h3 mb-3" data-key="contact.commitment.title">Notre engagement</h2>
-                    <p class="lead" data-key="contact.commitment.lead">Chez SolidAvenir, nous croyons en la puissance de la solidarité pour construire un avenir meilleur.</p>
-                    <p data-key="contact.commitment.description">Notre plateforme met en relation des porteurs de projets inspirants avec une communauté de donateurs engagés, permettant à des initiatives positives de voir le jour.</p>
+                    <h2 class="h3 mb-3">Our Commitment</h2>
+                    <p class="lead">At SolidAvenir, we believe in the power of solidarity to build a better future.</p>
+                    <p>Our platform connects inspiring project leaders with a community of engaged donors, enabling positive initiatives to come to life.</p>
                 </div>
 
                 <div class="mb-5">
-                    <h2 class="h3 mb-3" data-key="contact.philosophy.title">Notre philosophie</h2>
+                    <h2 class="h3 mb-3">Our Philosophy</h2>
                     <div class="d-flex align-items-start mb-3">
-                        <div class="bg-primary rounded-circle p-2 me-3 flex-shrink-0">
+                        <div class="rounded-circle p-2 me-3 flex-shrink-0" style="background-color: var(--primary-blue);">
                             <i class="fas fa-hands-helping text-white"></i>
                         </div>
                         <div>
-                            <h4 class="h5" data-key="contact.philosophy.collaboration.title">Collaboration ouverte</h4>
-                            <p class="mb-0" data-key="contact.philosophy.collaboration.description">Nous sommes ouverts à toutes les suggestions et collaborations qui vont dans le sens de l'intérêt général.</p>
+                            <h4 class="h5">Open Collaboration</h4>
+                            <p class="mb-0">We welcome all suggestions and collaborations that serve the common interest.</p>
                         </div>
                     </div>
                     <div class="d-flex align-items-start mb-3">
-                        <div class="bg-primary rounded-circle p-2 me-3 flex-shrink-0">
+                        <div class="rounded-circle p-2 me-3 flex-shrink-0" style="background-color: var(--primary-blue);">
                             <i class="fas fa-shield-alt text-white"></i>
                         </div>
                         <div>
-                            <h4 class="h5" data-key="contact.philosophy.transparency.title">Transparence</h4>
-                            <p class="mb-0" data-key="contact.philosophy.transparency.description">Nous nous engageons à une gestion transparente des dons et une communication honnête avec notre communauté.</p>
+                            <h4 class="h5">Transparency</h4>
+                            <p class="mb-0">We ensure transparent donation management and honest communication with our community.</p>
                         </div>
                     </div>
                     <div class="d-flex align-items-start">
-                        <div class="bg-primary rounded-circle p-2 me-3 flex-shrink-0">
+                        <div class="rounded-circle p-2 me-3 flex-shrink-0" style="background-color: var(--primary-blue);">
                             <i class="fas fa-heart text-white"></i>
                         </div>
                         <div>
-                            <h4 class="h5" data-key="contact.philosophy.solidarity.title">Solidarité</h4>
-                            <p class="mb-0" data-key="contact.philosophy.solidarity.description">Notre mission est de créer des ponts entre ceux qui veulent aider et ceux qui ont besoin de soutien.</p>
+                            <h4 class="h5">Solidarity</h4>
+                            <p class="mb-0">Our mission is to bridge those who want to help with those who need support.</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-light p-4 rounded">
-                    <h3 class="h4 mb-3" data-key="contact.faq.title">Questions fréquentes</h3>
+                <div class="p-4 rounded" style="background-color: var(--gray-light);">
+                    <h3 class="h4 mb-3">Frequently Asked Questions</h3>
                     <div class="accordion" id="faqAccordion">
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="headingOne">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne" data-key="contact.faq.question1">
-                                    Comment proposer un projet ?
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                    How to propose a project?
                                 </button>
                             </h2>
                             <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body" data-key="contact.faq.answer1">
-                                    Rendez-vous sur la page "Proposer un projet" après vous être connecté à votre compte. Notre équipe examinera votre proposition sous 72h.
+                                <div class="accordion-body">
+                                    Visit the "Propose a Project" page after logging into your account. Our team will review your proposal within 72 hours.
                                 </div>
                             </div>
                         </div>
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="headingTwo">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" data-key="contact.faq.question2">
-                                    Comment fonctionnent les dons ?
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    How do donations work?
                                 </button>
                             </h2>
                             <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body" data-key="contact.faq.answer2">
-                                    Les dons sont sécurisés et ne sont débités que si le projet atteint son objectif de financement. Vous recevrez un reçu fiscal pour chaque don.
+                                <div class="accordion-body">
+                                    Donations are secure and only processed if the project reaches its funding goal. You'll receive a tax receipt for each donation.
                                 </div>
                             </div>
                         </div>
@@ -80,16 +80,15 @@
             </div>
         </div>
 
-        <!-- Colonne du formulaire de contact -->
+        <!-- Contact Form Column -->
         <div class="col-lg-5">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="h4 mb-0" data-key="contact.form.title">Contactez-nous</h2>
+            <div class="card shadow-lg">
+                <div class="card-header text-white" style="background-color: var(--primary-blue);">
+                    <h2 class="h4 mb-0">Contact Us</h2>
                 </div>
                 <div class="card-body p-4">
-                    <p class="text-muted mb-4" data-key="contact.form.description">
-                        Vous avez une question, une suggestion ou besoin d'assistance ? 
-                        Notre équipe est là pour vous aider. Remplissez ce formulaire et nous vous répondrons dans les plus brefs délais.
+                    <p class="text-muted mb-4">
+                        Have a question, suggestion, or need assistance? Our team is here to help. Fill out this form and we'll respond promptly.
                     </p>
 
                     {% if messages %}
@@ -112,7 +111,7 @@
                             </div>
                         {% endif %}
 
-                        <!-- Champ Sujet -->
+                        <!-- Subject Field -->
                         <div class="mb-3">
                             <label for="{{ form.sujet.id_for_label }}" class="form-label">
                                 {{ form.sujet.label }}
@@ -124,8 +123,7 @@
                                 id="{{ form.sujet.id_for_label }}" 
                                 name="{{ form.sujet.name }}" 
                                 value="{{ form.sujet.value|default_if_none:'' }}"
-                                placeholder="Ex: Explication sur la blockchain"
-                                data-key="contact.form.subject_placeholder"
+                                placeholder="e.g., Blockchain explanation"
                             >
                             {% if form.sujet.errors %}
                                 <div class="invalid-feedback">
@@ -136,7 +134,7 @@
                             {% endif %}
                         </div>
 
-                        <!-- Champ Email -->
+                        <!-- Email Field -->
                         <div class="mb-3">
                             <label for="{{ form.email.id_for_label }}" class="form-label">
                                 {{ form.email.label }}
@@ -148,8 +146,7 @@
                                 id="{{ form.email.id_for_label }}" 
                                 name="{{ form.email.name }}" 
                                 value="{{ form.email.value|default_if_none:'' }}"
-                                placeholder="votre@email.com"
-                                data-key="contact.form.email_placeholder"
+                                placeholder="your@email.com"
                             >
                             {% if form.email.errors %}
                                 <div class="invalid-feedback">
@@ -160,7 +157,7 @@
                             {% endif %}
                         </div>
 
-                        <!-- Champ Message -->
+                        <!-- Message Field -->
                         <div class="mb-3">
                             <label for="{{ form.message.id_for_label }}" class="form-label">
                                 {{ form.message.label }}
@@ -171,8 +168,7 @@
                                 id="{{ form.message.id_for_label }}" 
                                 name="{{ form.message.name }}" 
                                 rows="5"
-                                placeholder="Décrivez votre demande en détail..."
-                                data-key="contact.form.message_placeholder"
+                                placeholder="Please describe your request in detail..."
                             >{{ form.message.value|default_if_none:'' }}</textarea>
                             {% if form.message.errors %}
                                 <div class="invalid-feedback">
@@ -183,14 +179,14 @@
                             {% endif %}
                         </div>
 
-                        <!-- Champ CAPTCHA -->
+                        <!-- CAPTCHA Field -->
                         <div class="mb-4">
                             <label for="{{ form.captcha_answer.id_for_label }}" class="form-label">
                                 {{ form.captcha_answer.label }}
                                 {% if form.captcha_answer.field.required %}<span class="text-danger">*</span>{% endif %}
                             </label>
                             <small class="form-text text-muted d-block mb-2">
-                                <span data-key="contact.form.captcha_question">Combien font</span> <strong>{{ form.captcha_display_question }}</strong> ?
+                                How much is <strong>{{ form.captcha_display_question }}</strong>?
                             </small>
                             <input 
                                 type="text" 
@@ -198,8 +194,7 @@
                                 id="{{ form.captcha_answer.id_for_label }}" 
                                 name="{{ form.captcha_answer.name }}" 
                                 value="{{ form.captcha_answer.value|default_if_none:'' }}"
-                                placeholder="Votre réponse"
-                                data-key="contact.form.captcha_placeholder"
+                                placeholder="Your answer"
                             >
                             {{ form.captcha_question }}
                             {% if form.captcha_answer.errors %}
@@ -212,24 +207,24 @@
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg" data-key="contact.form.submit">
-                                <i class="fas fa-paper-plane me-2"></i>Envoyer le message
+                            <button type="submit" class="btn btn-lg text-white" style="background-color: var(--primary-orange);">
+                                <i class="fas fa-paper-plane me-2"></i>Send Message
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- Informations de contact supplémentaires -->
+            <!-- Additional Contact Information -->
             <div class="mt-4">
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-body text-center p-4">
-                                <div class="bg-primary rounded-circle p-3 d-inline-block mb-3">
+                                <div class="rounded-circle p-3 d-inline-block mb-3" style="background-color: var(--primary-blue);">
                                     <i class="fas fa-envelope fa-2x text-white"></i>
                                 </div>
-                                <h5 class="card-title" data-key="contact.info.email_title">Email</h5>
+                                <h5 class="card-title">Email</h5>
                                 <p class="card-text">support@solidavenir.org</p>
                             </div>
                         </div>
@@ -237,127 +232,30 @@
                     <div class="col-md-6 mb-3">
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-body text-center p-4">
-                                <div class="bg-primary rounded-circle p-3 d-inline-block mb-3">
+                                <div class="rounded-circle p-3 d-inline-block mb-3" style="background-color: var(--primary-blue);">
                                     <i class="fas fa-clock fa-2x text-white"></i>
                                 </div>
-                                <h5 class="card-title" data-key="contact.info.response_title">Temps de réponse</h5>
-                                <p class="card-text" data-key="contact.info.response_time">Sous 24-48 heures</p>
+                                <h5 class="card-title">Response Time</h5>
+                                <p class="card-text">Within 24-48 hours</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Section engagement supplémentaire -->
-           
         </div>
     </div>
-     <div class="mt-5 bg-light p-4 rounded">
-                <h3 class="h4 mb-3" data-key="contact.commitment_extra.title">Notre engagement envers vous</h3>
-                <p data-key="contact.commitment_extra.intro">Nous nous engageons à:</p>
-                <ul class="list-unstyled">
-                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><span data-key="contact.commitment_extra.item1">Répondre à toutes vos demandes dans les meilleurs délais</span></li>
-                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><span data-key="contact.commitment_extra.item2">Prendre en compte toutes vos suggestions pour améliorer notre plateforme</span></li>
-                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><span data-key="contact.commitment_extra.item3">Vous offrir un service personnalisé et adapté à vos besoins</span></li>
-                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><span data-key="contact.commitment_extra.item4">Assurer la confidentialité de vos données personnelles</span></li>
-                </ul>
-                <p class="mb-0" data-key="contact.commitment_extra.conclusion">Nous sommes fiers de compter sur une communauté engagée et ouverte au dialogue. Votre feedback est essentiel pour faire évoluer notre plateforme dans le sens de l'intérêt collectif.</p>
-            </div>
+    
+    <!-- Additional Commitment Section -->
+    <div class="mt-5 p-4 rounded" style="background-color: var(--gray-light);">
+        <h3 class="h4 mb-3">Our Commitment to You</h3>
+        <p>We are committed to:</p>
+        <ul class="list-unstyled">
+            <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: var(--secondary-green);"></i>Responding to all inquiries promptly</li>
+            <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: var(--secondary-green);"></i>Considering all suggestions to improve our platform</li>
+            <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: var(--secondary-green);"></i>Providing personalized service tailored to your needs</li>
+            <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: var(--secondary-green);"></i>Ensuring the confidentiality of your personal data</li>
+        </ul>
+        <p class="mb-0">We're proud to serve an engaged community open to dialogue. Your feedback helps us evolve our platform for collective benefit.</p>
+    </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Ajouter les traductions pour cette page
-        if (typeof translations !== 'undefined') {
-            // Fusionner les traductions existantes avec les nouvelles
-            Object.assign(translations.fr, {
-                'contact.title': 'Nous sommes à votre écoute',
-                
-                'contact.commitment.title': 'Notre engagement',
-                'contact.commitment.lead': 'Chez SolidAvenir, nous croyons en la puissance de la solidarité pour construire un avenir meilleur.',
-                'contact.commitment.description': 'Notre plateforme met en relation des porteurs de projets inspirants avec une communauté de donateurs engagés, permettant à des initiatives positives de voir le jour.',
-                
-                'contact.philosophy.title': 'Notre philosophie',
-                'contact.philosophy.collaboration.title': 'Collaboration ouverte',
-                'contact.philosophy.collaboration.description': 'Nous sommes ouverts à toutes les suggestions et collaborations qui vont dans le sens de l\'intérêt général.',
-                'contact.philosophy.transparency.title': 'Transparence',
-                'contact.philosophy.transparency.description': 'Nous nous engageons à une gestion transparente des dons et une communication honnête avec notre communauté.',
-                'contact.philosophy.solidarity.title': 'Solidarité',
-                'contact.philosophy.solidarity.description': 'Notre mission est de créer des ponts entre ceux qui veulent aider et ceux qui ont besoin de soutien.',
-                
-                'contact.faq.title': 'Questions fréquentes',
-                'contact.faq.question1': 'Comment proposer un projet ?',
-                'contact.faq.answer1': 'Rendez-vous sur la page "Proposer un projet" après vous être connecté à votre compte. Notre équipe examinera votre proposition sous 72h.',
-                'contact.faq.question2': 'Comment fonctionnent les dons ?',
-                'contact.faq.answer2': 'Les dons sont sécurisés et ne sont débités que si le projet atteint son objectif de financement. Vous recevrez un reçu fiscal pour chaque don.',
-                
-                'contact.form.title': 'Contactez-nous',
-                'contact.form.description': 'Vous avez une question, une suggestion ou besoin d\'assistance ? Notre équipe est là pour vous aider. Remplissez ce formulaire et nous vous répondrons dans les plus brefs délais.',
-                'contact.form.subject_placeholder': 'Ex: Explication sur la blockchain',
-                'contact.form.email_placeholder': 'votre@email.com',
-               
-                'contact.form.captcha_question': 'Combien font',
-                'contact.form.captcha_placeholder': 'Votre réponse',
-                'contact.form.submit': 'Envoyer le message',
-                
-                'contact.info.email_title': 'Email',
-                'contact.info.response_title': 'Temps de réponse',
-                'contact.info.response_time': 'Sous 24-48 heures',
-                
-                'contact.commitment_extra.title': 'Notre engagement envers vous',
-                'contact.commitment_extra.intro': 'Nous nous engageons à:',
-                'contact.commitment_extra.item1': 'Répondre à toutes vos demandes dans les meilleurs délais',
-                'contact.commitment_extra.item2': 'Prendre en compte toutes vos suggestions pour améliorer notre plateforme',
-                'contact.commitment_extra.item3': 'Vous offrir un service personnalisé et adapté à vos besoins',
-                'contact.commitment_extra.item4': 'Assurer la confidentialité de vos données personnelles',
-                'contact.commitment_extra.conclusion': 'Nous sommes fiers de compter sur une communauté engagée et ouverte au dialogue. Votre feedback est essentiel pour faire évoluer notre plateforme dans le sens de l\'intérêt collectif.'
-            });
-            
-            Object.assign(translations.en, {
-                'contact.title': 'We are here to listen to you',
-                
-                'contact.commitment.title': 'Our commitment',
-                'contact.commitment.lead': 'At SolidAvenir, we believe in the power of solidarity to build a better future.',
-                'contact.commitment.description': 'Our platform connects inspiring project leaders with a community of engaged donors, enabling positive initiatives to come to life.',
-                
-                'contact.philosophy.title': 'Our philosophy',
-                'contact.philosophy.collaboration.title': 'Open collaboration',
-                'contact.philosophy.collaboration.description': 'We are open to all suggestions and collaborations that serve the common interest.',
-                'contact.philosophy.transparency.title': 'Transparency',
-                'contact.philosophy.transparency.description': 'We commit to transparent management of donations and honest communication with our community.',
-                'contact.philosophy.solidarity.title': 'Solidarity',
-                'contact.philosophy.solidarity.description': 'Our mission is to create bridges between those who want to help and those who need support.',
-                
-                'contact.faq.title': 'Frequently asked questions',
-                'contact.faq.question1': 'How to propose a project?',
-                'contact.faq.answer1': 'Go to the "Propose a project" page after logging into your account. Our team will review your proposal within 72 hours.',
-                'contact.faq.question2': 'How do donations work?',
-                'contact.faq.answer2': 'Donations are secure and are only debited if the project reaches its funding goal. You will receive a tax receipt for each donation.',
-                
-                'contact.form.title': 'Contact us',
-                'contact.form.description': 'Do you have a question, suggestion, or need assistance? Our team is here to help you. Fill out this form and we will respond as soon as possible.',
-                'contact.form.subject_placeholder': 'Ex: Explanation about blockchain',
-                'contact.form.email_placeholder': 'your@email.com',
-             
-                'contact.form.captcha_question': 'How much is',
-                'contact.form.captcha_placeholder': 'Your answer',
-                'contact.form.submit': 'Send message',
-                
-                'contact.info.email_title': 'Email',
-                'contact.info.response_title': 'Response time',
-                'contact.info.response_time': 'Within 24-48 hours',
-                
-                'contact.commitment_extra.title': 'Our commitment to you',
-                'contact.commitment_extra.intro': 'We commit to:',
-                'contact.commitment_extra.item1': 'Respond to all your requests as quickly as possible',
-                'contact.commitment_extra.item2': 'Take into account all your suggestions to improve our platform',
-                'contact.commitment_extra.item3': 'Provide you with personalized service tailored to your needs',
-                'contact.commitment_extra.item4': 'Ensure the confidentiality of your personal data',
-                'contact.commitment_extra.conclusion': 'We are proud to count on an engaged community open to dialogue. Your feedback is essential to evolve our platform in the direction of the collective interest.'
-            });
-        }
-    });
-</script>
 {% endblock %}

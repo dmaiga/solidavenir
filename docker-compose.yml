@@ -1,0 +1,43 @@
+name: solidavenir
+services:
+  db:
+    image: postgres:15
+    container_name: solidavenir_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-solidavenir}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-solidavenir}
+      POSTGRES_DB: ${POSTGRES_DB:-solidavenir_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - solidavenir_net
+
+  django:
+    image: ./solidavenir
+    container_name: solidavenir_django
+    env_file:
+      - ./solidavenir/.env
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    networks:
+      - solidavenir_net
+    entrypoint: ["/entrypoint.sh"]
+
+  hedera_service:
+    image: ./hedera_service
+    container_name: solidavenir_hedera
+    env_file:
+      - ./hedera_service/.env
+    ports:
+      - "3001:3001"
+    networks:
+      - solidavenir_net
+
+volumes:
+  postgres_data:
+
+networks:
+  solidavenir_net:
+    driver: bridge

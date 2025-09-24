@@ -27,25 +27,6 @@ class CustomUserAdmin(UserAdmin):
     def make_donateur(self, request, queryset):
         queryset.update(user_type='donateur')
     make_donateur.short_description = "Définir comme donateur"
-@admin.register(Transaction)
-class TransactionAdmin(admin.ModelAdmin):
-    list_display = ('montant', 'contributeur_anonymise', 'projet', 'statut', 'date_transaction')
-    list_filter = ('statut', 'date_transaction')
-    search_fields = ('hedera_transaction_hash', 'projet__titre')
-    readonly_fields = ('audit_uuid', 'date_transaction', 'hedera_transaction_hash')
-    actions = ['verify_transactions', 'mark_as_refunded']
-    
-    def verify_transactions(self, request, queryset):
-        for transaction in queryset:
-            transaction.statut = 'confirme'
-            transaction.verifie_par = request.user
-            transaction.date_verification = timezone.now()
-            transaction.save()
-    verify_transactions.short_description = "Marquer comme vérifiées"
-    
-    def mark_as_refunded(self, request, queryset):
-        queryset.update(statut='rembourse')
-    mark_as_refunded.short_description = "Marquer comme remboursées"
 
 @admin.register(AuditLog)
 class AuditLogAdmin(admin.ModelAdmin):
@@ -233,6 +214,8 @@ class ProjetAdmin(admin.ModelAdmin):
         css = {
             'all': ('css/admin_paliers.css',)
         }
+
+
 @admin.register(Palier)
 class PalierAdmin(admin.ModelAdmin):
     list_display = ('projet', 'pourcentage', 'montant', 'montant_minimum', 'transfere', 'date_transfert')
@@ -247,3 +230,38 @@ class PalierAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         # Empêcher la suppression des paliers
         return False
+from django.contrib import admin
+from .models import Transaction, TransactionAdmin
+
+# Admin pour Transaction « classique »
+@admin.register(Transaction)
+class TransactionAdminModel(admin.ModelAdmin):
+    list_display = ('montant', 'contributeur_anonymise', 'projet', 'statut', 'date_transaction')
+    list_filter = ('statut', 'date_transaction')
+    search_fields = ('hedera_transaction_hash', 'projet__titre')
+    readonly_fields = ('audit_uuid', 'date_transaction', 'hedera_transaction_hash')
+    actions = ['verify_transactions', 'mark_as_refunded']
+    
+    def verify_transactions(self, request, queryset):
+        for transaction in queryset:
+            transaction.statut = 'confirme'
+            transaction.verifie_par = request.user
+            transaction.date_verification = timezone.now()
+            transaction.save()
+    verify_transactions.short_description = "Marquer comme vérifiées"
+    
+    def mark_as_refunded(self, request, queryset):
+        queryset.update(statut='rembourse')
+    mark_as_refunded.short_description = "Marquer comme remboursées"
+
+# Admin pour TransactionAdmin (suivi financier admin)
+@admin.register(TransactionAdmin)
+class TransactionAdminFinancial(admin.ModelAdmin):
+    list_display = (
+        'id', 'projet', 'palier', 'beneficiaire', 'initiateur',
+        'montant_brut', 'montant_net', 'commission', 'commission_pourcentage',
+        'transaction_hash', 'type_transaction', 'date_creation'
+    )
+    list_filter = ('type_transaction', 'date_creation', 'projet')
+    search_fields = ('transaction_hash', 'beneficiaire__username', 'projet__titre')
+    readonly_fields = ('transaction_hash', 'date_creation')

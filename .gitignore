@@ -21,7 +21,7 @@ __pycache__/
 
 # Node (si jamais tu utilises du JS/React)
 node_modules/
-
+node_modules
 # OS
 .DS_Store
 Thumbs.db

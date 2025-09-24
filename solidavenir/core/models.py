@@ -450,7 +450,7 @@ class Projet(models.Model):
     description = models.TextField()
     description_courte = models.CharField(max_length=300, help_text="Description résumée pour les listes")
     identifiant_unique = models.CharField(
-        max_length=20, 
+        max_length=240, 
         unique=True,
         blank=True,
         null=True,
@@ -1020,126 +1020,6 @@ class AssociationImage(models.Model):
         return f"Image pour {self.association.nom}"
 
 
-
-class Transaction(models.Model):
-    STATUTS = (
-        ('en_attente', 'En attente'),
-        ('confirme', 'Confirmé'),
-        ('erreur', 'Erreur'),
-        ('rembourse', 'Remboursé'),
-    )
-    destination = models.CharField(max_length=20, choices=[
-        ('operator', 'Vers opérateur'),
-        ('project', 'Vers projet direct'),
-        ('beneficiary', 'Vers bénéficiaire')
-    ], default='operator')
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
-    audit_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    montant = models.DecimalField(max_digits=15, decimal_places=0, validators=[MinValueValidator(0)])
-    
-    date_transaction = models.DateTimeField(auto_now_add=True)
-    hedera_transaction_hash = models.CharField(max_length=150, unique=True)
-    hedera_hashscan_url = models.URLField(
-        blank=True, 
-        null=True,
-        help_text="URL HashScan pour visualiser la transaction"
-    )
-    hedera_status = models.CharField(
-        max_length=20, 
-        blank=True, 
-        null=True,
-        help_text="Statut Hedera de la transaction (SUCCESS, FAILED, etc.)"
-    )
-    hedera_message_id = models.CharField(
-        max_length=150, 
-        blank=True, 
-        null=True,
-        help_text="ID du message HCS envoyé pour cette transaction"
-    )
-    hedera_message_hashscan_url = models.URLField(
-        blank=True, 
-        null=True,
-        help_text="URL HashScan pour le message HCS"
-    )
-    
-    topic = models.ForeignKey(
-        'Projet',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='transactions_by_topic',
-        to_field='topic_id',  # Lien sur le champ topic_id
-        help_text="Topic HCS du projet associé à cette transaction"
-    )
-    
-    contributeur = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE, 
-        limit_choices_to={'user_type__in': ['porteur', 'donateur', 'investisseur', 'association']}
-    ) 
-    projet = models.ForeignKey(Projet, on_delete=models.CASCADE)
-    
-    statut = models.CharField(max_length=10, choices=STATUTS, default='en_attente')
-    contributeur_anonymise = models.CharField(max_length=100, editable=False)
-    
-    # Suivi administratif
-    verifie_par = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
-                                   related_name='transactions_verifiees', limit_choices_to={'user_type': 'admin'})
-    date_verification = models.DateTimeField(null=True, blank=True)
-    notes_verification = models.TextField(blank=True, null=True)
-    
-    class Meta:
-        indexes = [
-            models.Index(fields=['hedera_transaction_hash']),
-            models.Index(fields=['date_transaction']),
-            models.Index(fields=['contributeur']),
-            models.Index(fields=['projet']),
-            models.Index(fields=['topic']),
-        ]
-        permissions = [
-            ("verify_transaction", "Peut vérifier une transaction"),
-            ("refund_transaction", "Peut rembourser une transaction"),
-        ]
-    
-    def save(self, *args, **kwargs):
-        # ✅ Auto-remplissage du topic à partir du projet
-        if self.projet and self.projet.topic_id and not self.topic:
-            self.topic = self.projet
-        
-        if self.contributeur and not self.contributeur_anonymise:
-            salt = getattr(settings, 'ANONYMIZATION_SALT', '')
-            self.contributeur_anonymise = self.anonymiser_contributeur(salt)
-            
-        super().save(*args, **kwargs)
-    
-    @property
-    def is_hedera_confirmed(self):
-        return self.hedera_status == 'SUCCESS'
-    
-    @property
-    def has_hedera_message(self):
-        return bool(self.hedera_message_id)
-    
-    @property
-    def topic_hashscan_link(self):
-        """Retourne le lien HashScan du topic"""
-        if self.topic and self.topic.topic_id:
-            return f"https://hashscan.io/testnet/topic/{self.topic.topic_id}"
-        return None
-    
-    def anonymiser_contributeur(self, salt):
-        """Anonymisation du contributeur"""
-        unique_id = f"{self.contributeur.audit_uuid}{salt}"
-        return f"Contributeur_{hashlib.sha256(unique_id.encode()).hexdigest()[:20]}"
-    
-    def clean(self):
-        """Validation: Empêcher les admins de contribuer"""
-        if self.contributeur and self.contributeur.user_type == 'admin':
-            raise ValidationError("Les administrateurs ne peuvent pas effectuer de contributions.")
-
-
-
 class AuditLog(models.Model):
     ACTION_TYPES = (
         ('create', 'Création'),
@@ -1322,19 +1202,145 @@ class FichierPreuve(models.Model):
         verbose_name_plural = "Fichiers preuves"
 
 
+
+class Transaction(models.Model):
+    STATUTS = (
+        ('en_attente', 'En attente'),
+        ('confirme', 'Confirmé'),
+        ('erreur', 'Erreur'),
+        ('rembourse', 'Remboursé'),
+    )
+    destination = models.CharField(max_length=20, choices=[
+        ('operator', 'Vers opérateur'),
+        ('project', 'Vers projet direct'),
+        ('beneficiary', 'Vers bénéficiaire')
+    ], default='operator')
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
+    audit_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    montant = models.DecimalField(max_digits=15, decimal_places=0, validators=[MinValueValidator(0)])
+    
+    date_transaction = models.DateTimeField(auto_now_add=True)
+    hedera_transaction_hash = models.CharField(max_length=150, unique=True)
+    hedera_hashscan_url = models.URLField(
+        blank=True, 
+        null=True,
+        help_text="URL HashScan pour visualiser la transaction"
+    )
+    hedera_status = models.CharField(
+        max_length=20, 
+        blank=True, 
+        null=True,
+        help_text="Statut Hedera de la transaction (SUCCESS, FAILED, etc.)"
+    )
+    
+    hedera_message_hashscan_url = models.URLField(
+        blank=True, 
+        null=True,
+        help_text="URL HashScan pour le message HCS"
+    )
+    
+    topic = models.ForeignKey(
+        'Projet',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='transactions_by_topic',
+        to_field='topic_id',  # Lien sur le champ topic_id
+        help_text="Topic HCS du projet associé à cette transaction"
+    )
+    
+    contributeur = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        limit_choices_to={'user_type__in': ['porteur', 'donateur', 'investisseur', 'association']}
+    ) 
+    projet = models.ForeignKey(Projet, on_delete=models.CASCADE)
+    
+    statut = models.CharField(max_length=10, choices=STATUTS, default='en_attente')
+    contributeur_anonymise = models.CharField(max_length=100, editable=False)
+    
+    # Suivi administratif
+    verifie_par = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
+                                   related_name='transactions_verifiees', limit_choices_to={'user_type': 'admin'})
+    date_verification = models.DateTimeField(null=True, blank=True)
+    notes_verification = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['hedera_transaction_hash']),
+            models.Index(fields=['date_transaction']),
+            models.Index(fields=['contributeur']),
+            models.Index(fields=['projet']),
+            models.Index(fields=['topic']),
+        ]
+        permissions = [
+            ("verify_transaction", "Peut vérifier une transaction"),
+            ("refund_transaction", "Peut rembourser une transaction"),
+        ]
+    
+    def save(self, *args, **kwargs):
+        # ✅ Auto-remplissage du topic à partir du projet
+        if self.projet and self.projet.topic_id and not self.topic:
+            self.topic = self.projet
+        
+        if self.contributeur and not self.contributeur_anonymise:
+            salt = getattr(settings, 'ANONYMIZATION_SALT', '')
+            self.contributeur_anonymise = self.anonymiser_contributeur(salt)
+            
+        super().save(*args, **kwargs)
+    
+    @property
+    def is_hedera_confirmed(self):
+        return self.hedera_status == 'SUCCESS'
+    
+    @property
+    def has_hedera_message(self):
+        return bool(self.hedera_message_id)
+    
+    @property
+    def topic_hashscan_link(self):
+        """Retourne le lien HashScan du topic"""
+        if self.topic and self.topic.topic_id:
+            return f"https://hashscan.io/testnet/topic/{self.topic.topic_id}"
+        return None
+    
+    def anonymiser_contributeur(self, salt):
+        """Anonymisation du contributeur"""
+        unique_id = f"{self.contributeur.audit_uuid}{salt}"
+        return f"Contributeur_{hashlib.sha256(unique_id.encode()).hexdigest()[:20]}"
+    
+    def clean(self):
+        """Validation: Empêcher les admins de contribuer"""
+        if self.contributeur and self.contributeur.user_type == 'admin':
+            raise ValidationError("Les administrateurs ne peuvent pas effectuer de contributions.")
+
+
+
+
 class TransactionAdmin(models.Model):
     projet = models.ForeignKey(Projet, on_delete=models.CASCADE)
+    palier = models.ForeignKey('Palier', on_delete=models.SET_NULL, null=True, blank=True)  # lien vers le palier si applicable
     montant_brut = models.DecimalField(max_digits=15, decimal_places=2)
     montant_net = models.DecimalField(max_digits=15, decimal_places=2)
     commission = models.DecimalField(max_digits=15, decimal_places=2)
     commission_pourcentage = models.DecimalField(max_digits=5, decimal_places=2)
     transaction_hash = models.CharField(max_length=100)
-    beneficiaire = models.ForeignKey(User, on_delete=models.CASCADE)
+    beneficiaire = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions_reçues')
+    initiateur = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions_initiées')  # admin qui déclenche
     date_creation = models.DateTimeField(auto_now_add=True)
+    hedera_message_id = models.CharField(max_length=150, blank=True, null=True)
+    hedera_message_hashscan_url = models.URLField(blank=True, null=True)
+
     type_transaction = models.CharField(max_length=20, choices=[
         ('distribution', 'Distribution'),
         ('commission', 'Commission')
     ])
+
+    def __str__(self):
+        return f"{self.type_transaction} {self.montant_net} → {self.beneficiaire}"
+
+
 
 class ContactSubmission(models.Model): 
 
@@ -1351,7 +1357,6 @@ class ContactSubmission(models.Model):
     
     def __str__(self):
         return f"{self.sujet} - {self.email}"
-    
     
 class TopicMessage(models.Model):
     projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name="messages")
