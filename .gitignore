@@ -7,7 +7,7 @@ env/
 *.db
 
 # Fichiers sensibles
-.env
+
 *.env.local
 
 # Fichiers Python compilés
