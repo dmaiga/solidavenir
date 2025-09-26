@@ -3,256 +3,278 @@
 {% load custom_filters %}
 {% block title %}Solid'Avenir - Admin Dashboard{% endblock %}
 
-{% block extra_css %}
+{% block content %}
 <link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css" rel="stylesheet">
 <style>
-    .dashboard-container {
-        min-height: 80vh;
-        padding: 1.5rem 0;
-        background: #f8f9fa;
-    }
-    
-    .dashboard-header {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    
+.dashboard-container {
+    min-height: 80vh;
+    padding: 1.5rem 0;
+    background: #f8f9fa;
+}
+
+.dashboard-header {
+    background: white;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.quick-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+}
+
+.quick-link {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 0.75rem;
+    text-align: center;
+    text-decoration: none;
+    color: #2c3e50;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+}
+
+.quick-link:hover {
+    border-color: #3498db;
+    text-decoration: none;
+    color: #3498db;
+    transform: translateY(-1px);
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 1.5rem 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.priority-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.priority-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 4px solid;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    min-height: 120px;
+}
+
+.priority-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    text-decoration: none;
+    color: inherit;
+}
+
+.priority-card.projects { border-left-color: #e74c3c; }
+.priority-card.associations { border-left-color: #f39c12; }
+.priority-card.milestones { border-left-color: #3498db; }
+.priority-card.proofs { border-left-color: #9b59b6; }
+
+.priority-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.priority-card.projects .priority-number { color: #e74c3c; }
+.priority-card.associations .priority-number { color: #f39c12; }
+.priority-card.milestones .priority-number { color: #3498db; }
+.priority-card.proofs .priority-number { color: #9b59b6; }
+
+.priority-label {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #2c3e50;
+}
+
+.priority-description {
+    color: #6c757d;
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    text-align: center;
+    border-top: 3px solid #3498db;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+    border: none;
+    min-height: 200px; /* Ensure cards are always visible */
+}
+
+.card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.card-body {
+    padding: 1rem;
+    min-height: 100px; /* Ensure card body has minimum height */
+}
+
+.empty-card-body {
+    padding: 2rem;
+    text-align: center;
+    color: #6c757d;
+}
+
+.chart-container {
+    position: relative;
+    height: 200px;
+    margin: 0.5rem 0;
+}
+
+.action-item {
+    padding: 0.75rem;
+    border-left: 3px solid;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    background: #f8f9fa;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.action-item:hover {
+    background: #e9ecef;
+    text-decoration: none;
+    color: inherit;
+}
+
+.action-item.project { border-left-color: #e74c3c; }
+.action-item.association { border-left-color: #f39c12; }
+.action-item.milestone { border-left-color: #3498db; }
+.action-item.proof { border-left-color: #9b59b6; }
+
+/* Fixed progress bar styles */
+.progress {
+    height: 8px;
+    border-radius: 4px;
+    background: #e9ecef;
+    margin: 0.5rem 0;
+    overflow: visible;
+}
+
+.progress-bar {
+    border-radius: 4px;
+    font-size: 0.7rem;
+    line-height: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Ensure proper spacing between sections */
+.row {
+    margin-bottom: 1rem;
+}
+
+.col-lg-6, .col-lg-8, .col-lg-4, .col-md-6 {
+    margin-bottom: 1rem;
+}
+
+/* Fix chart container spacing */
+.card .chart-container {
+    height: 180px;
+}
+
+/* Badge styles */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+@media (max-width: 768px) {
     .priority-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
-    }
-    
-    .priority-card {
-        background: white;
-        border-radius: 10px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        border-top: 4px solid;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        text-decoration: none;
-        color: inherit;
-        display: block;
-    }
-    
-    .priority-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-        text-decoration: none;
-        color: inherit;
-    }
-    
-    .priority-card.projects {
-        border-top-color: #e74c3c;
-    }
-    
-    .priority-card.associations {
-        border-top-color: #f39c12;
-    }
-    
-    .priority-card.milestones {
-        border-top-color: #3498db;
-    }
-    
-    .priority-card.proofs {
-        border-top-color: #9b59b6;
-    }
-    
-    .priority-card.transactions {
-        border-top-color: #2ecc71;
-    }
-    
-    .priority-number {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-    
-    .priority-card.projects .priority-number { color: #e74c3c; }
-    .priority-card.associations .priority-number { color: #f39c12; }
-    .priority-card.milestones .priority-number { color: #3498db; }
-    .priority-card.proofs .priority-number { color: #9b59b6; }
-    .priority-card.transactions .priority-number { color: #2ecc71; }
-    
-    .priority-label {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: #2c3e50;
-    }
-    
-    .priority-description {
-        color: #7f8c8d;
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
+        grid-template-columns: 1fr;
     }
     
     .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
+        grid-template-columns: repeat(2, 1fr);
     }
     
-    .stat-card {
-        background: white;
-        border-radius: 10px;
-        padding: 1.25rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        text-align: center;
-        border-left: 4px solid #3498db;
-        transition: transform 0.2s ease;
-    }
-    
-    .stat-card:hover {
-        transform: translateY(-2px);
-    }
-    
-    .stat-number {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #2c3e50;
-        margin-bottom: 0.25rem;
-    }
-    
-    .stat-label {
-        color: #7f8c8d;
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-    
-    .card {
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        margin-bottom: 1.5rem;
-        border: none;
-        height: fit-content;
-    }
-    
-    .card-header {
-        background: transparent;
-        border-bottom: 1px solid #f1f3f4;
-        padding: 1.25rem 1.25rem 0.75rem;
-        font-weight: 600;
-        color: #2c3e50;
-        font-size: 1.1rem;
-        display: flex;
-        justify-content: between;
-        align-items: center;
-    }
-    
-    .card-body {
-        padding: 1.25rem;
+    .priority-number {
+        font-size: 1.75rem;
     }
     
     .chart-container {
-        position: relative;
-        height: 250px;
-        margin: 0.75rem 0;
+        height: 160px;
     }
     
-    .action-item {
-        padding: 1rem;
-        border-left: 4px solid;
-        margin-bottom: 0.75rem;
-        border-radius: 6px;
-        background: #f8f9fa;
-        transition: all 0.2s ease;
+    .card {
+        min-height: 180px;
     }
-    
-    .action-item:hover {
-        background: #e9ecef;
-        transform: translateX(2px);
-    }
-    
-    .action-item.project { border-left-color: #e74c3c; }
-    .action-item.association { border-left-color: #f39c12; }
-    .action-item.milestone { border-left-color: #3498db; }
-    .action-item.proof { border-left-color: #9b59b6; }
-    .action-item.transaction { border-left-color: #2ecc71; }
-    
-    .progress {
-        height: 8px;
-        border-radius: 4px;
-        background: #e9ecef;
-        margin: 0.5rem 0;
-    }
-    
-    .progress-bar {
-        border-radius: 4px;
-    }
-    
-    .empty-state {
-        text-align: center;
-        padding: 2rem;
-        color: #7f8c8d;
-    }
-    
-    .empty-state i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
-    
-    .quick-links {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 0.75rem;
-        margin: 1.5rem 0;
-    }
-    
-    .quick-link {
-        background: white;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 1rem;
-        text-align: center;
-        text-decoration: none;
-        color: #2c3e50;
-        transition: all 0.2s ease;
-        font-size: 0.9rem;
-    }
-    
-    .quick-link:hover {
-        border-color: #3498db;
-        text-decoration: none;
-        color: #3498db;
-        transform: translateY(-1px);
-    }
-    
-    .section-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #3498db;
-    }
-    
-    @media (max-width: 768px) {
-        .priority-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        
-        .priority-number {
-            font-size: 2rem;
-        }
-    }
+}
 </style>
-{% endblock %}
-
-{% block content %}
 
 <div class="dashboard-container">
     <div class="container">
@@ -260,7 +282,7 @@
         <div class="dashboard-header">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 class="h2 fw-bold">Admin Dashboard</h1>
+                    <h1 class="h3 fw-bold">Admin Dashboard</h1>
                     <p class="text-muted mb-0">Priority actions and platform monitoring</p>
                 </div>
                 <div class="text-end">
@@ -272,10 +294,6 @@
 
         <!-- QUICK LINKS -->
         <div class="quick-links">
-            <a href="{% url 'liste_projets' %}" class="quick-link">
-                <i class="bi bi-grid-3x3-gap"></i><br>
-                All Projects
-            </a>
             <a href="{% url 'liste_membres' %}" class="quick-link">
                 <i class="bi bi-people"></i><br>
                 Manage Users
@@ -292,29 +310,16 @@
                 <i class="bi bi-cash-coin"></i><br>
                 Distributions
             </a>
-            <a href="{% url 'liste_transactions_validation' %}" class="quick-link">
-                <i class="bi bi-credit-card"></i><br>
-                Transactions
-            </a>
         </div>
 
         <!-- PRIORITY ACTIONS SECTION -->
         <h3 class="section-title">Priority Actions</h3>
         <div class="priority-grid">
-            <!-- Projects to Validate -->
-            <a href="{% url 'liste_projets' %}?statut=en_attente" class="priority-card projects">
-                <div class="priority-number">{{ stats.projets_attente }}</div>
-                <div class="priority-label">Projects Pending</div>
-                <div class="priority-description">New projects awaiting validation</div>
-                <small class="text-muted">Click to review pending projects</small>
-            </a>
-            
             <!-- Associations to Validate -->
             <a href="{% url 'liste_associations_admin' %}?valide=false" class="priority-card associations">
                 <div class="priority-number">{{ stats.associations_attente }}</div>
                 <div class="priority-label">Associations Pending</div>
                 <div class="priority-description">Associations requiring validation</div>
-                <small class="text-muted">Click to validate associations</small>
             </a>
             
             <!-- Milestones Reached -->
@@ -322,7 +327,6 @@
                 <div class="priority-number">{{ stats.paliers_action }}</div>
                 <div class="priority-label">Milestones Reached</div>
                 <div class="priority-description">Ready for fund distribution</div>
-                <small class="text-muted">Click to manage distributions</small>
             </a>
             
             <!-- Proofs to Verify -->
@@ -330,15 +334,6 @@
                 <div class="priority-number">{{ stats.preuves_verification }}</div>
                 <div class="priority-label">Proofs to Verify</div>
                 <div class="priority-description">Milestone achievement proofs</div>
-                <small class="text-muted">Click to verify proofs</small>
-            </a>
-            
-            <!-- Transactions to Moderate -->
-            <a href="{% url 'liste_transactions_validation' %}" class="priority-card transactions">
-                <div class="priority-number">{{ stats.transactions_verification }}</div>
-                <div class="priority-label">Transactions Pending</div>
-                <div class="priority-description">Transactions requiring moderation</div>
-                <small class="text-muted">Click to moderate transactions</small>
             </a>
         </div>
 
@@ -366,187 +361,9 @@
             </div>
         </div>
 
-        <!-- DETAILED ACTION ITEMS -->
-        <div class="row">
-            <!-- Left Column -->
-            <div class="col-lg-6">
-                <!-- Projects Pending -->
-                {% if projets_attention %}
-                <div class="card">
-                    <div class="card-header">
-                        <span>📋 Projects Pending Validation</span>
-                        <span class="badge bg-danger">{{ projets_attention|length }}</span>
-                    </div>
-                    <div class="card-body">
-                        {% for projet in projets_attention %}
-                        <a href="{% url 'valider_projet' projet.audit_uuid %}" class="action-item project" style="display: block; text-decoration: none; color: inherit;">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">{{ projet.titre }}</h6>
-                                    <small class="text-muted">
-                                        By {{ projet.porteur.get_full_name|default:projet.porteur.username }}
-                                        • {{ projet.date_creation|date:"m/d/Y" }}
-                                    </small>
-                                    <br>
-                                    <strong>{{ projet.montant_demande|floatformat:0|intcomma }} ℏ HBAR</strong>
-                                </div>
-                                <i class="bi bi-chevron-right text-muted"></i>
-                            </div>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Associations Pending -->
-                {% if associations_attente %}
-                <div class="card">
-                    <div class="card-header">
-                        <span>🏛️ Associations Pending</span>
-                        <span class="badge bg-warning">{{ associations_attente|length }}</span>
-                    </div>
-                    <div class="card-body">
-                        {% for association in associations_attente %}
-                        <div class="action-item association">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">{{ association.nom }}</h6>
-                                    <small class="text-muted">
-                                        {{ association.get_domaine_principal_display }}
-                                        • {{ association.ville }}
-                                        • {{ association.date_creation_profile|date:"m/d/Y" }}
-                                    </small>
-                                </div>
-                                <div class="btn-group">
-                                    <a href="{% url 'valider_association' association.id %}" class="btn btn-sm btn-success">
-                                        ✓ Validate
-                                    </a>
-                                    <a href="{% url 'preview_association_admin' association.id %}" target="_blank" class="btn btn-sm btn-info">
-                                        👁️ Preview
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Right Column -->
-            <div class="col-lg-6">
-                <!-- Milestones Reached -->
-                {% if paliers_action %}
-                <div class="card">
-                    <div class="card-header">
-                        <span>🎯 Milestones Reached</span>
-                        <span class="badge bg-primary">{{ paliers_action|length }}</span>
-                    </div>
-                    <div class="card-body">
-                        {% for item in paliers_action %}
-                        {% with palier=item.palier %}
-                        <a href="{% url 'gerer_distributions' %}?projet={{ palier.projet.id }}" class="action-item milestone" style="display: block; text-decoration: none; color: inherit;">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">{{ palier.projet.titre|truncatewords:4 }}</h6>
-                                    <small class="text-muted">
-                                        Milestone {{ palier.pourcentage }}% • 
-                                        Raised: {{ item.montant_collecte|floatformat:0|intcomma }} ℏ HBAR
-                                    </small>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-primary" style="width: {{ item.pourcentage_atteint|floatformat:0 }}%">
-                                            {{ item.pourcentage_atteint|floatformat:0 }}%
-                                        </div>
-                                    </div>
-                                    <small>Amount to distribute: <strong>{{ palier.montant|floatformat:0|intcomma }} ℏ HBAR</strong></small>
-                                </div>
-                                <i class="bi bi-chevron-right text-muted"></i>
-                            </div>
-                        </a>
-                        {% endwith %}
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Proofs to Verify -->
-                {% if preuves_a_verifier %}
-                <div class="card">
-                    <div class="card-header">
-                        <span>📸 Proofs to Verify</span>
-                        <span class="badge bg-purple">{{ preuves_a_verifier|length }}</span>
-                    </div>
-                    <div class="card-body">
-                        {% for preuve in preuves_a_verifier %}
-                        <a href="#" class="action-item proof" style="display: block; text-decoration: none; color: inherit;">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">{{ preuve.palier.projet.titre|truncatewords:4 }}</h6>
-                                    <small class="text-muted">
-                                        Milestone {{ preuve.palier.pourcentage }}% • 
-                                        Submitted {{ preuve.date_soumission|date:"m/d/Y" }}
-                                    </small>
-                                    <br>
-                                    <span class="badge {% if preuve.statut == 'en_attente' %}bg-warning{% else %}bg-info{% endif %}">
-                                        {{ preuve.get_statut_display }}
-                                    </span>
-                                </div>
-                                <i class="bi bi-chevron-right text-muted"></i>
-                            </div>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Transactions Pending -->
-                {% if transactions_verification %}
-                <div class="card">
-                    <div class="card-header">
-                        <span>💳 Transactions Pending</span>
-                        <span class="badge bg-success">{{ transactions_verification|length }}</span>
-                    </div>
-                    <div class="card-body">
-                        {% for transaction in transactions_verification %}
-                        <a href="{% url 'liste_transactions_validation' %}" class="action-item transaction" style="display: block; text-decoration: none; color: inherit;">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">{{ transaction.montant|floatformat:0|intcomma }} ℏ HBAR</h6>
-                                    <small class="text-muted">
-                                        {{ transaction.contributeur_anonymise }}
-                                        • {{ transaction.date_transaction|timesince }} ago
-                                    </small>
-                                    <br>
-                                    <small>Project: {{ transaction.projet.titre|truncatewords:3 }}</small>
-                                </div>
-                                <i class="bi bi-chevron-right text-muted"></i>
-                            </div>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- EMPTY STATE -->
-        {% if not projets_attention and not associations_attente and not paliers_action and not preuves_a_verifier and not transactions_verification %}
-        <div class="card">
-            <div class="card-body">
-                <div class="empty-state">
-                    <i class="bi bi-check-circle-fill text-success"></i>
-                    <h4>All caught up!</h4>
-                    <p class="text-muted">No pending actions at the moment.</p>
-                    <a href="{% url 'liste_projets' %}" class="btn btn-primary">
-                        Browse All Projects
-                    </a>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
         <!-- CHARTS AND ANALYTICS -->
-        <div class="row mt-4">
+        <h3 class="section-title">Charts and Analytics</h3>
+        <div class="row">
             <div class="col-lg-8">
                 <div class="card">
                     <div class="card-header">
@@ -574,7 +391,161 @@
             </div>
         </div>
 
-        <!-- RECENT ACTIVITY -->
+        <!-- MIXED COLUMN - PROJECTS & ASSOCIATIONS -->
+        <div class="row">
+            <div class="col-lg-6">
+                <!-- Projects Pending - ALWAYS VISIBLE -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>📋 Projects Pending Validation</span>
+                        <span class="badge bg-danger">{{ projets_attention|length }}</span>
+                    </div>
+                    <div class="card-body">
+                        {% if projets_attention %}
+                            {% for projet in projets_attention %}
+                            <a href="{% url 'valider_projet' projet.audit_uuid %}" class="action-item project">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ projet.titre }}</h6>
+                                        <small class="text-muted">
+                                            By {{ projet.porteur.get_full_name|default:projet.porteur.username }}
+                                            • {{ projet.date_creation|date:"m/d/Y" }}
+                                        </small>
+                                        <br>
+                                        <strong>{{ projet.montant_demande|floatformat:0|intcomma }} ℏ HBAR</strong>
+                                    </div>
+                                    <i class="bi bi-chevron-right text-muted"></i>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-card-body">
+                                <i class="bi bi-check-circle text-success"></i>
+                                <p class="mb-0">No projects pending validation</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Associations Pending - ALWAYS VISIBLE -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>🏛️ Associations Pending</span>
+                        <span class="badge bg-warning">{{ associations_attente|length }}</span>
+                    </div>
+                    <div class="card-body">
+                        {% if associations_attente %}
+                            {% for association in associations_attente %}
+                            <div class="action-item association">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ association.nom }}</h6>
+                                        <small class="text-muted">
+                                            {{ association.get_domaine_principal_display }}
+                                            • {{ association.ville }}
+                                            • {{ association.date_creation_profile|date:"m/d/Y" }}
+                                        </small>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a href="{% url 'valider_association' association.id %}" class="btn btn-sm btn-success">
+                                            ✓ Validate
+                                        </a>
+                                        <a href="{% url 'preview_association_admin' association.id %}" target="_blank" class="btn btn-sm btn-info">
+                                            👁️ Preview
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-card-body">
+                                <i class="bi bi-check-circle text-success"></i>
+                                <p class="mb-0">No associations pending validation</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN - MILESTONES & PROOFS -->
+            <div class="col-lg-6">
+                <!-- Milestones Reached - ALWAYS VISIBLE -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>🎯 Milestones Reached</span>
+                        <span class="badge bg-primary">{{ paliers_action|length }}</span>
+                    </div>
+                    <div class="card-body">
+                        {% if paliers_action %}
+                            {% for item in paliers_action %}
+                            {% with palier=item.palier %}
+                            <a href="{% url 'gerer_distributions' %}?projet={{ palier.projet.id }}" class="action-item milestone">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ palier.projet.titre|truncatewords:4 }}</h6>
+                                        <small class="text-muted">
+                                            Milestone {{ palier.pourcentage }}% • 
+                                            Raised: {{ item.montant_collecte|floatformat:0|intcomma }} ℏ HBAR
+                                        </small>
+                                        <div class="progress mt-2">
+                                            <div class="progress-bar bg-primary" style="width: {{ item.pourcentage_atteint|floatformat:0 }}%">
+                                                {{ item.pourcentage_atteint|floatformat:0 }}%
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">Amount to distribute: <strong>{{ palier.montant|floatformat:0|intcomma }} ℏ HBAR</strong></small>
+                                    </div>
+                                    <i class="bi bi-chevron-right text-muted"></i>
+                                </div>
+                            </a>
+                            {% endwith %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-card-body">
+                                <i class="bi bi-flag text-muted"></i>
+                                <p class="mb-0">No milestones reached yet</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Proofs to Verify - ALWAYS VISIBLE -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>📸 Proofs to Verify</span>
+                        <span class="badge bg-purple">{{ preuves_a_verifier|length }}</span>
+                    </div>
+                    <div class="card-body">
+                        {% if preuves_a_verifier %}
+                            {% for preuve in preuves_a_verifier %}
+                            <a href="#" class="action-item proof">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ preuve.palier.projet.titre|truncatewords:4 }}</h6>
+                                        <small class="text-muted">
+                                            Milestone {{ preuve.palier.pourcentage }}% • 
+                                            Submitted {{ preuve.date_soumission|date:"m/d/Y" }}
+                                        </small>
+                                        <br>
+                                        <span class="badge {% if preuve.statut == 'en_attente' %}bg-warning{% else %}bg-info{% endif %}">
+                                            {{ preuve.get_statut_display }}
+                                        </span>
+                                    </div>
+                                    <i class="bi bi-chevron-right text-muted"></i>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-card-body">
+                                <i class="bi bi-check-circle text-success"></i>
+                                <p class="mb-0">No proofs to verify</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM SECTION - RECENT ACTIVITY -->
         <div class="row">
             <div class="col-md-6">
                 <div class="card">
@@ -582,18 +553,25 @@
                         ⚡ Recent Confirmed Transactions
                     </div>
                     <div class="card-body">
-                        {% for transaction in recent_transactions %}
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <div>
-                                <strong>{{ transaction.montant|floatformat:0|intcomma }} ℏ HBAR</strong>
-                                <br>
-                                <small class="text-muted">
-                                    {{ transaction.projet.titre|truncatewords:2 }}
-                                </small>
+                        {% if recent_transactions %}
+                            {% for transaction in recent_transactions %}
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <div>
+                                    <strong>{{ transaction.montant|floatformat:0|intcomma }} ℏ HBAR</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ transaction.projet.titre|truncatewords:2 }}
+                                    </small>
+                                </div>
+                                <small class="text-muted">{{ transaction.date_transaction|timesince }} ago</small>
                             </div>
-                            <small class="text-muted">{{ transaction.date_transaction|timesince }} ago</small>
-                        </div>
-                        {% endfor %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-card-body">
+                                <i class="bi bi-credit-card text-muted"></i>
+                                <p class="mb-0">No recent transactions</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -604,20 +582,27 @@
                         📋 Recent Activities
                     </div>
                     <div class="card-body">
-                        {% for audit in recent_audits %}
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <div>
-                                <small>
-                                    <strong>{{ audit.get_action_display }}</strong> - {{ audit.modele }}
-                                </small>
-                                <br>
-                                <small class="text-muted">
-                                    {{ audit.utilisateur.get_full_name|default:audit.utilisateur.username }}
-                                </small>
+                        {% if recent_audits %}
+                            {% for audit in recent_audits %}
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <div>
+                                    <small>
+                                        <strong>{{ audit.get_action_display }}</strong> - {{ audit.modele }}
+                                    </small>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ audit.utilisateur.get_full_name|default:audit.utilisateur.username }}
+                                    </small>
+                                </div>
+                                <small class="text-muted">{{ audit.date_action|date:"H:i" }}</small>
                             </div>
-                            <small class="text-muted">{{ audit.date_action|date:"H:i" }}</small>
-                        </div>
-                        {% endfor %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-card-body">
+                                <i class="bi bi-activity text-muted"></i>
+                                <p class="mb-0">No recent activities</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -660,6 +645,7 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 interaction: {
                     mode: 'index',
                     intersect: false,
@@ -715,6 +701,7 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'bottom'

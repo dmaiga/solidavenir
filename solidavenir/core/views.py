@@ -1773,12 +1773,12 @@ def tableau_de_bord(request):
     # 1. Projets en attente de validation
     projets_attention = Projet.objects.filter(
         statut='en_attente'
-    ).select_related('porteur').order_by('date_creation')[:10]
+    ).select_related('porteur').order_by('date_creation')[:5]
     
     # 2. Associations en attente de validation
     associations_attente = Association.objects.filter(
         valide=False
-    ).select_related('user').order_by('date_creation_association')[:10]
+    ).select_related('user').order_by('date_creation_association')[:5]
     
     # 3. Paliers atteints nécessitant une action
     paliers_atteints = Palier.objects.filter(
@@ -1804,7 +1804,7 @@ def tableau_de_bord(request):
     # 4. Preuves de palier à vérifier
     preuves_a_verifier = PreuvePalier.objects.filter(
         statut__in=['en_attente', 'modification']
-    ).select_related('palier', 'palier__projet').order_by('-date_soumission')[:10]
+    ).select_related('palier', 'palier__projet').order_by('-date_soumission')[:5]
     
     # 5. Transactions à vérifier (pour la modération)
     transactions_verification = Transaction.objects.filter(

@@ -61,11 +61,7 @@
             background-color: rgba(255, 255, 255, 0.1);
         }
         
-        .transparency-link {
-            background-color: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            font-weight: 600;
-        }
+        
         
         .btn-primary {
             background-color: var(--primary-orange);
@@ -193,11 +189,12 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'liste_associations' %}">Associations</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link transparency-link" href="{% url 'transparence' %}">Transaction History</a>
-                    </li>
+                   
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'contact' %}">Contact</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link " href="{% url 'transparence' %}">Transaction History</a>
                     </li>
                 </ul>
 
@@ -232,7 +229,7 @@
                                     <i class="bi bi-person me-2"></i>My Profile
                                 </a></li>
                                 <li><a class="dropdown-item" href="{% url 'voir_wallet' %}">
-                                    Wallet
+                                    <i class="bi bi-wallet me-2"></i>  Wallet
                                 </a></li>
                                 <li><a class="dropdown-item" href="{% url 'deconnexion' %}">
                                     <i class="bi bi-box-arrow-right me-2"></i>Logout

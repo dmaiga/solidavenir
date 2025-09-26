@@ -418,30 +418,30 @@ class Projet(models.Model):
     )
 
     TYPES_FINANCEMENT = (
-        ('don', 'Dons uniquement'),
-        ('pret', 'Prêt avec remboursement'),
-        ('equity', 'Investissement en equity'),
-        ('recompense', 'Financement avec récompenses'),
-        ('mixte', 'Financement mixte'),
-    )
+        ('don', 'Donations only'),
+        ('pret', 'Loan with repayment'),
+        ('equity', 'Equity investment'),
+        ('recompense', 'Reward-based funding'),
+        ('mixte', 'Mixed funding'),
+        )
     
     
     CATEGORIES = (
-        ('agriculture', 'Agriculture et Agroalimentaire'),
-        ('artisanat', 'Artisanat et Métiers'),
-        ('commerce', 'Commerce et Vente'),
-        ('education', 'Éducation et Formation'),
-        ('sante', 'Santé et Bien-être'),
-        ('technologie', 'Technologie et Innovation'),
-        ('energie', 'Énergie et Environnement'),
-        ('tourisme', 'Tourisme et Hôtellerie'),
-        ('culture', 'Culture et Arts'),
-        ('social', 'Social et Communautaire'),
-        ('sport', 'Sport et Loisirs'),
-        ('immobilier', 'Immobilier et Construction'),
-        ('transport', 'Transport et Mobilité'),
-        ('finance', 'Finance et Microcrédit'),
-        ('autre', 'Autre domaine'),
+        ('agriculture', 'Agriculture & Agribusiness'),
+        ('artisanat', 'Crafts & Trades'),
+        ('commerce', 'Commerce & Sales'),
+        ('education', 'Education & Training'),
+        ('sante', 'Health & Wellness'),
+        ('technologie', 'Technology & Innovation'),
+        ('energie', 'Energy & Environment'),
+        ('tourisme', 'Tourism & Hospitality'),
+        ('culture', 'Culture & Arts'),
+        ('social', 'Social & Community'),
+        ('sport', 'Sports & Leisure'),
+        ('immobilier', 'Real Estate & Construction'),
+        ('transport', 'Transport & Mobility'),
+        ('finance', 'Finance & Microcredit'),
+        ('autre', 'Other'),
     )
 
     audit_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)

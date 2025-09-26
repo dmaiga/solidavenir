@@ -4,13 +4,13 @@
 {% block content %}
 <div class="container py-5">
     <div class="row">
-        <!-- Section d'information -->
+        <!-- Information Section -->
         <div class="col-lg-6 mb-4">
             <div class="text-center text-lg-start">
-                <h1 class="display-5 fw-bold text-primary mb-3">Rejoignez notre communauté solidaire</h1>
+                <h1 class="display-5 fw-bold text-primary mb-3">Join Our Caring Community</h1>
                 <p class="lead mb-4">
-                    Une plateforme transparente pour financer des projets qui changent le monde, 
-                    avec une traçabilité blockchain garantie.
+                    A transparent platform to fund projects that change the world, 
+                    with guaranteed blockchain traceability.
                 </p>
                 
                 <div class="benefits-list">
@@ -19,8 +19,8 @@
                             <i class="fas fa-shield-alt text-white"></i>
                         </div>
                         <div>
-                            <h5 class="mb-1">Transparence totale</h5>
-                            <p class="mb-0 text-muted">Chaque transaction est tracée sur la blockchain Hedera Hashgraph</p>
+                            <h5 class="mb-1">Total Transparency</h5>
+                            <p class="mb-0 text-muted">Every transaction is traced on Hedera Hashgraph blockchain</p>
                         </div>
                     </div>
                     
@@ -29,8 +29,8 @@
                             <i class="fas fa-hand-holding-heart text-white"></i>
                         </div>
                         <div>
-                            <h5 class="mb-1">Impact réel</h5>
-                            <p class="mb-0 text-muted">Soutenez des projets qui font la différence dans votre communauté</p>
+                            <h5 class="mb-1">Real Impact</h5>
+                            <p class="mb-0 text-muted">Support projects that make a difference in your community</p>
                         </div>
                     </div>
                     
@@ -39,8 +39,8 @@
                             <i class="fas fa-users text-white"></i>
                         </div>
                         <div>
-                            <h5 class="mb-1">Communauté engagée</h5>
-                            <p class="mb-0 text-muted">Connectez-vous avec des porteurs de projets et des donateurs passionnés</p>
+                            <h5 class="mb-1">Engaged Community</h5>
+                            <p class="mb-0 text-muted">Connect with passionate project creators and donors</p>
                         </div>
                     </div>
                     
@@ -49,49 +49,47 @@
                             <i class="fas fa-lock text-white"></i>
                         </div>
                         <div>
-                            <h5 class="mb-1">Sécurité garantie</h5>
-                            <p class="mb-0 text-muted">Plateforme sécurisée avec technologie blockchain de pointe</p>
+                            <h5 class="mb-1">Guaranteed Security</h5>
+                            <p class="mb-0 text-muted">Secure platform with cutting-edge blockchain technology</p>
                         </div>
                     </div>
                 </div>
                 
                 <div class="card bg-light border-0">
                     <div class="card-body">
-                        <h6 class="card-title">💡 Pourquoi nous rejoindre ?</h6>
+                        <h6 class="card-title">💡 Why Join Us?</h6>
                         <ul class="list-unstyled mb-0">
-                            <li>✓ Financez des projets qui vous tiennent à cœur</li>
-                            <li>✓ Suivez l'impact réel de vos contributions</li>
-                            <li>✓ Rejoignez une communauté de acteurs du changement</li>
-                            <li>✓ Bénéficiez d'une transparence absolue grâce à la blockchain</li>
+                            <li>✓ Fund projects you care about</li>
+                            <li>✓ Track the real impact of your contributions</li>
+                            <li>✓ Join a community of change-makers</li>
+                            <li>✓ Benefit from absolute transparency through blockchain</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Formulaire d'inscription -->
+        <!-- Registration Form -->
         <div class="col-lg-6">
             <div class="card shadow border-0">
                 <div class="card-header bg-primary text-white text-center py-4">
-                    <h2 class="mb-1">Créer votre compte</h2>
-                    <p class="mb-0 opacity-75">Rejoignez-nous en 2 minutes</p>
+                    <h2 class="mb-1">Create Your Account</h2>
+                    <p class="mb-0 opacity-75">Join us in 2 minutes</p>
                 </div>
                 
                 <div class="card-body p-4">
-                    
-
                     <form method="post" novalidate class="needs-validation">
                         {% csrf_token %}
                         {{ form.username }}
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Prénom</label>
+                                <label class="form-label fw-semibold">First Name</label>
                                 {{ form.first_name }}
                             </div>
                             
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Nom</label>
+                                <label class="form-label fw-semibold">Last Name</label>
                                 {{ form.last_name }}
                             </div>
                         </div>
@@ -99,27 +97,27 @@
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Email *</label>
                             {{ form.email }}
-                            <div class="form-text">Nous ne partagerons jamais votre email</div>
+                            <div class="form-text">We will never share your email</div>
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Je suis *</label>
+                            <label class="form-label fw-semibold">I am a *</label>
                             {{ form.user_type }}
                         </div>
                         
                         <div id="association-field" class="mb-3" style="display: none;">
-                            <label class="form-label fw-semibold">Nom de votre association *</label>
+                            <label class="form-label fw-semibold">Your Association Name *</label>
                             {{ form.nom_association }}
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Mot de passe *</label>
+                            <label class="form-label fw-semibold">Password *</label>
                             {{ form.password1 }}
-                            <div class="form-text">Minimum 8 caractères avec chiffres et lettres</div>
+                            <div class="form-text">Minimum 8 characters with numbers and letters</div>
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Confirmer le mot de passe *</label>
+                            <label class="form-label fw-semibold">Confirm Password *</label>
                             {{ form.password2 }}
                         </div>
                         
@@ -127,21 +125,21 @@
                             <div class="form-check">
                                 {{ form.consentement_rgpd }}
                                 <label class="form-check-label" for="{{ form.consentement_rgpd.id_for_label }}">
-                                    J'accepte les <a href="#" target="_blank">conditions d'utilisation</a> 
-                                    et la <a href="" target="_blank">politique de confidentialité</a> *
+                                    I accept the <a href="#" target="_blank">Terms of Service</a> 
+                                    and <a href="" target="_blank">Privacy Policy</a> *
                                 </label>
                             </div>
                         </div>
                         
                         <button type="submit" class="btn btn-primary w-100 btn-lg fw-semibold py-3">
-                            🚀 Rejoindre la communauté
+                            🚀 Join the Community
                         </button>
                     </form>
                     
                     <div class="text-center mt-4 pt-3 border-top">
-                        <p class="mb-0">Déjà membre ? 
+                        <p class="mb-0">Already a member? 
                             <a href="{% url 'connexion' %}" class="fw-semibold text-decoration-none">
-                                Connectez-vous ici
+                                Sign in here
                             </a>
                         </p>
                     </div>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load static humanize %}
-{% block title %}{{ projet.titre }} - Plateforme de Financement Participatif{% endblock %}
+{% block title %}{{ projet.titre }} - Crowdfunding Platform{% endblock %}
 
 {% block content %}
 {% if messages %}
@@ -16,43 +16,43 @@
 {% endif %}
 
 <div class="container py-5">
-    <!-- Alertes de statut -->
+    <!-- Status Alerts -->
     {% if is_preview %}
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <strong>Mode Preview</strong> - Ce projet n'est pas encore publié. Seul vous pouvez le visualiser.
+        <strong>Preview Mode</strong> - This project is not yet published. Only you can view it.
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endif %}
 
     {% if projet.statut == 'brouillon' %}
     <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <strong>Projet en brouillon</strong> - Votre projet est en cours de préparation.
+        <strong>Draft Project</strong> - Your project is currently being prepared.
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% elif projet.statut == 'en_attente' %}
     <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <strong>En attente de validation</strong> - Votre projet est en cours de validation par notre équipe.
+        <strong>Pending Validation</strong> - Your project is under review by our team.
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endif %}
 
-    <!-- Boutons d'action -->
+    <!-- Action Buttons -->
     {% if user.is_porteur_projet or user.is_association %}
     <div class="mb-4">
         <div class="btn-group">
             <a href="{% url 'mes_projets' %}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Retour
+                <i class="fas fa-arrow-left me-2"></i>Back
             </a>
             
             {% if can_edit %}
             <a href="{% url 'modifier_projet' projet.audit_uuid %}" class="btn btn-primary">
-                <i class="fas fa-edit me-2"></i>Modifier
+                <i class="fas fa-edit me-2"></i>Edit
             </a>
             {% endif %}
             
             {% if projet.statut in 'brouillon rejete' %}
             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                <i class="fas fa-trash me-2"></i>Supprimer
+                <i class="fas fa-trash me-2"></i>Delete
             </button>
             {% endif %}
         </div>
@@ -60,9 +60,9 @@
     {% endif %}
 
     <div class="row">
-        <!-- Contenu principal -->
+        <!-- Main Content -->
         <div class="col-lg-8">
-            <!-- En-tête du projet -->
+            <!-- Project Header -->
             <div class="card mb-4 shadow-sm">
                 {% if projet.cover_image %}
                 <img src="{{ projet.cover_image.url }}" class="card-img-top" alt="{{ projet.titre }}" style="max-height: 400px; object-fit: cover;">
@@ -76,18 +76,18 @@
                     <h1 class="card-title mb-2">{{ projet.titre }}</h1>
                     <p class="text-muted mb-3">
                         {% if projet.est_associe_a_une_association %}
-                            Porté par l'association <strong>{{ projet.association.nom }}</strong>
+                            Managed by association <strong>{{ projet.association.nom }}</strong>
                         {% else %}
-                            Porté par {{ projet.porteur.get_full_name|default:projet.porteur.username }}
+                            Managed by {{ projet.porteur.get_full_name|default:projet.porteur.username }}
                         {% endif %}
                     </p>
 
-                   <!-- Barre de progression double -->
+                   <!-- Dual Progress Bars -->
                     <div class="mb-4">
-                        <!-- Financement global -->
+                        <!-- Overall Funding -->
                         <div class="mb-3">
                             <div class="d-flex justify-content-between mb-2">
-                                <span><strong>Objectif de financement</strong></span>
+                                <span><strong>Funding Goal</strong></span>
                                 <strong class="text-success">{{ projet.pourcentage_financement }}%</strong>
                             </div>
                             <div class="progress" style="height: 20px;">
@@ -101,10 +101,10 @@
                             </small>
                         </div>
                         
-                        <!-- Distribution aux paliers -->
+                        <!-- Distribution Progress -->
                         <div class="mb-3">
                             <div class="d-flex justify-content-between mb-2">
-                                <span><strong>Fonds distribués</strong></span>
+                                <span><strong>Funds Distributed</strong></span>
                                 <strong class="text-info">{{ projet.pourcentage_distribue }}%</strong>
                             </div>
                             <div class="progress" style="height: 20px;">
@@ -114,7 +114,7 @@
                                 </div>
                             </div>
                             <small class="text-muted d-block mt-1">
-                                Commission: {{ projet.taux_commission }} ({{ projet.montant_commission_total|intcomma }} HBAR retenus)
+                                Commission: {{ projet.taux_commission }} ({{ projet.montant_commission_total|intcomma }} HBAR retained)
                             </small>
                         </div>
                     </div>
@@ -124,54 +124,59 @@
                             {{ projet.get_statut_display }}
                         </span>
                         {% if projet.statut == 'actif' %}
-                        <span><i class="fas fa-clock me-1"></i>{{ projet.jours_restants }} jours restants</span>
+                        <span><i class="fas fa-clock me-1"></i>{{ projet.jours_restants }} days remaining</span>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
-            <!-- Paliers de distribution -->
+            <!-- Distribution Milestones -->
             {% if paliers %}
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-light">
-                    <h3 class="mb-0"><i class="fas fa-target me-2"></i>Paliers de distribution</h3>
+                    <h3 class="mb-0"><i class="fas fa-target me-2"></i>Distribution Milestones</h3>
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    <div class="list-group">
                         {% for palier_info in paliers %}
-                        <div class="col-md-6 mb-3">
-                            <div class="border rounded p-3 h-100 {% if palier_info.distribue %}bg-light{% elif palier_info.statut_preuve == 'approuve' %}border-success{% else %}border-secondary{% endif %}">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <strong>Palier {{ palier_info.palier.pourcentage }}%</strong>
-                                    <span class="badge {% if palier_info.distribue %}bg-success{% elif palier_info.statut_preuve == 'approuve' %}bg-info{% else %}bg-secondary{% endif %}">
-                                        {% if palier_info.distribue %}
-                                            <i class="fas fa-check"></i> Distribué
-                                        {% elif palier_info.statut_preuve == 'approuve' %}
-                                            <i class="fas fa-check-double"></i> Approuvé
-                                        {% elif palier_info.statut_preuve == 'en_attente' %}
-                                            <i class="fas fa-clock"></i> En attente
-                                        {% else %}
-                                            En préparation
-                                        {% endif %}
-                                    </span>
+                        <div class="list-group-item {% if palier_info.distribue %}list-group-item-success{% elif palier_info.statut_preuve == 'approuve' %}list-group-item-info{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">Milestone {{ palier_info.palier.pourcentage }}%</h6>
+                                    <p class="mb-1 text-muted">
+                                        Amount: <strong>{{ palier_info.palier.montant|intcomma }} HBAR</strong>
+                                        ({{ palier_info.montant_fcfa|intcomma }} FCFA)
+                                    </p>
                                 </div>
-                                
-                                <div class="mb-2">
-                                    <small class="text-muted">Montant:</small>
-                                    <div class="fw-bold">{{ palier_info.palier.montant|intcomma }} HBAR</div>
-                                    <small class="text-muted">({{ palier_info.montant_fcfa|intcomma }} FCFA)</small>
-                                </div>
-                                
-                                {% if palier_info.distribue and palier_info.palier.transaction_hash %}
-                                <div class="mt-2">
-                                    <small class="text-muted">Transaction:</small>
-                                    <a href="https://hashscan.io/testnet/transaction/{{ palier_info.palier.transaction_hash }}" 
-                                       target="_blank" class="d-block text-truncate">
-                                        <code>{{ palier_info.palier.transaction_hash|truncatechars:20 }}</code>
-                                    </a>
-                                </div>
-                                {% endif %}
+                                <span class="badge {% if palier_info.distribue %}bg-success{% elif palier_info.statut_preuve == 'approuve' %}bg-info{% else %}bg-secondary{% endif %}">
+                                    {% if palier_info.distribue %}
+                                        Distributed
+                                    {% elif palier_info.statut_preuve == 'approuve' %}
+                                        Approved
+                                    {% elif palier_info.statut_preuve == 'en_attente' %}
+                                        Pending Review
+                                    {% else %}
+                                        In Preparation
+                                    {% endif %}
+                                </span>
                             </div>
+                            
+                            {% if palier_info.distribue and palier_info.palier.transaction_hash %}
+                            <div class="mt-2">
+                                <small class="text-muted">Transaction:</small>
+                                <a href="https://hashscan.io/testnet/transaction/{{ palier_info.palier.transaction_hash }}" 
+                                   target="_blank" class="d-block text-truncate small">
+                                    <code>{{ palier_info.palier.transaction_hash|truncatechars:30 }}</code>
+                                </a>
+                            </div>
+                            {% endif %}
+                            
+                            {% if palier_info.palier.description %}
+                            <div class="mt-2">
+                                <small class="text-muted">Objective:</small>
+                                <p class="mb-0 small">{{ palier_info.palier.description }}</p>
+                            </div>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -179,11 +184,10 @@
             </div>
             {% endif %}
 
-
-            <!-- Description du projet -->
+            <!-- Project Description -->
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-light">
-                    <h3 class="mb-0"><i class="bi bi-info-circle me-2"></i>Description du projet</h3>
+                    <h3 class="mb-0"><i class="bi bi-info-circle me-2"></i>Project Description</h3>
                 </div>
                 <div class="card-body">
                     <div class="projet-description">
@@ -192,11 +196,11 @@
                 </div>
             </div>
 
-            <!-- Contreparties -->
+            <!-- Contributor Rewards -->
             {% if recompenses %}
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-gift me-2"></i>Contreparties pour les contributeurs</h5>
+                    <h5 class="mb-0"><i class="bi bi-gift me-2"></i>Contributor Rewards</h5>
                 </div>
                 <div class="card-body">
                     <div class="recompenses-content">
@@ -206,43 +210,43 @@
             </div>
             {% endif %}
 
-            <!-- Activité Blockchain -->
+            <!-- Blockchain Activity -->
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-light">
                     <h3 class="d-flex justify-content-between align-items-center mb-0">
-                        <span><i class="bi bi-link-45deg me-2"></i>Activité Blockchain</span>
+                        <span><i class="bi bi-link-45deg me-2"></i>Blockchain Activity</span>
                         {% if projet.has_hedera_topic %}
-                        <span class="badge bg-success">HCS Actif</span>
+                        <span class="badge bg-success">HCS Active</span>
                         {% endif %}
                     </h3>
                 </div>
                 <div class="card-body">
-                    <!-- Info Topic -->
+                    <!-- Topic Information -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
-                            <strong><i class="bi bi-hash me-1"></i>Topic:</strong> 
+                            <strong><i class="bi bi-hash me-1"></i>Topic ID:</strong> 
                             {% if projet.topic_id %}
                             <code class="ms-1">{{ projet.topic_id }}</code>
                             {% else %}
-                            <span class="text-muted">Non configuré</span>
+                            <span class="text-muted">Not configured</span>
                             {% endif %}
                         </div>
                         {% if projet.has_hedera_topic %}
                         <a href="{{ projet.topic_hashscan_link }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-box-arrow-up-right me-1"></i>Explorer
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Explore
                         </a>
                         {% endif %}
                     </div>
 
-                    <!-- Transactions -->
-                    <h5 class="mb-3"><i class="bi bi-currency-exchange me-2"></i>Transactions Récentes</h5>
+                    <!-- Recent Transactions -->
+                    <h5 class="mb-3"><i class="bi bi-currency-exchange me-2"></i>Recent Transactions</h5>
                     {% if transactions %}
                     <div class="list-group">
                         {% for transaction in transactions %}
                         <div class="list-group-item">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <small class="text-muted">{{ transaction.date_transaction|date:"d/m/Y H:i" }}</small>
+                                    <small class="text-muted">{{ transaction.date_transaction|date:"M d, Y H:i" }}</small>
                                     <div class="mt-1">
                                         {% if transaction.hedera_transaction_hash %}
                                         <a href="https://hashscan.io/testnet/transaction/{{ transaction.hedera_transaction_hash }}" 
@@ -268,26 +272,26 @@
                     {% else %}
                     <div class="text-center py-4">
                         <i class="bi bi-wallet2 display-4 text-muted mb-3"></i>
-                        <p class="text-muted">Aucune transaction enregistrée</p>
+                        <p class="text-muted">No transactions recorded</p>
                     </div>
                     {% endif %}
 
-                    <!-- Stats résumées -->
-                    <div class="mt-4 p-3 bg-dark text-white rounded">
+                    <!-- Summary Statistics -->
+                    <div class="mt-4 p-3 bg-light rounded">
                         <div class="row text-center">
                             <div class="col-4">
-                                <h4 class="text-warning mb-1">{{ transactions|length }}</h4>
-                                <small>Transactions</small>
+                                <h5 class="text-primary mb-1">{{ transactions|length }}</h5>
+                                <small class="text-muted">Transactions</small>
                             </div>
                             <div class="col-4">
-                                <h4 class="text-success mb-1">{{ projet.montant_engage|floatformat:0 }} ℏ</h4>
-                                <small>Total</small>
+                                <h5 class="text-success mb-1">{{ projet.montant_engage|floatformat:0 }} ℏ</h5>
+                                <small class="text-muted">Total Raised</small>
                             </div>
                             <div class="col-4">
-                                <h4 class="{% if projet.has_hedera_topic %}text-success{% else %}text-warning{% endif %} mb-1">
-                                    {% if projet.has_hedera_topic %}✅{% else %}❌{% endif %}
-                                </h4>
-                                <small>HCS</small>
+                                <h5 class="{% if projet.has_hedera_topic %}text-success{% else %}text-warning{% endif %} mb-1">
+                                    {% if projet.has_hedera_topic %}Active{% else %}Inactive{% endif %}
+                                </h5>
+                                <small class="text-muted">HCS Status</small>
                             </div>
                         </div>
                     </div>
@@ -297,10 +301,14 @@
 
         <!-- Sidebar -->
         <div class="col-lg-4">
-            <!-- Formulaire de don -->
+            <!-- Donation Form -->
             <div class="card donation-card shadow-lg mb-4">
-                <div class="card-header bg-primary text-white text-center py-3">
-                    <h3 class="mb-0"><i class="bi bi-heart-fill me-2"></i>Soutenir ce projet</h3>
+                <div class="card-header  text-white text-center py-3" 
+                style='background: linear-gradient(45deg, #0d6efd, #6f42c1);
+                       border: none;
+                       transition: all 0.3s ease;'>
+                    <h3>
+                        <i class="bi bi-heart-fill me-2"></i>Support this Project</h3>
                 </div>
                 <div class="card-body">
                     {% if user.is_authenticated and projet.est_actif %}
@@ -308,28 +316,28 @@
                             <form method="post" action="{% url 'process_donation' projet.id %}">
                                 {% csrf_token %}
                                 <div class="mb-3">
-                                    <label for="amount" class="form-label">Montant (HBAR)</label>
+                                    <label for="amount" class="form-label">Amount (HBAR)</label>
                                     <input type="number" class="form-control form-control-lg" id="amount" name="amount" 
                                            min="1" step="1" required placeholder="10">
-                                      1 HBAR ≈ {{ conversions.hbar_to_fcfa_rate|floatformat:2 }} FCFA
+                                    <small class="text-muted">1 HBAR ≈ {{ conversions.hbar_to_fcfa_rate|floatformat:2 }} FCFA</small>
                                 </div>
                                  
                                 <button type="submit" class="btn btn-primary w-100 py-2">
-                                    <i class="bi bi-heart-fill me-2"></i>Contribuer
+                                    <i class="bi bi-heart-fill me-2"></i>Contribute
                                 </button>
                             </form>
                             
-                            <!-- Info wallet -->
+                            <!-- Wallet Info -->
                             <div class="mt-3 p-3 bg-light rounded">
                                 <div class="d-flex align-items-center">
                                     <i class="bi bi-wallet2 text-success me-2"></i>
                                     <div>
-                                        <small class="d-block">Votre wallet:</small>
+                                        <small class="d-block">Your wallet:</small>
                                         <strong>{{ user.hedera_account_id|truncatechars:12 }}</strong>
                                     </div>
                                 </div>
                                 <a href="{% url 'voir_wallet' %}" class="btn btn-sm btn-outline-secondary w-100 mt-2">
-                                    <i class="bi bi-eye me-1"></i>Voir les détails
+                                    <i class="bi bi-eye me-1"></i>View Details
                                 </a>
                             </div>
                         {% else %}
@@ -338,9 +346,9 @@
                                     <div class="spinner-border spinner-border-sm me-2" role="status">
                                         <span class="visually-hidden">Loading...</span>
                                     </div>
-                                    <span>Configuration automatique de votre wallet...</span>
+                                    <span>Automatic wallet configuration...</span>
                                 </div>
-                                <p class="mt-2 mb-0 small">Veuillez rafraîchir la page dans quelques secondes.</p>
+                                <p class="mt-2 mb-0 small">Please refresh the page in a few seconds.</p>
                             </div>
                         {% endif %}
                     {% else %}
@@ -348,14 +356,14 @@
                             <i class="bi bi-info-circle me-2"></i>
                             {% if not user.is_authenticated %}
                                 <a href="{% url 'connexion' %}?next={{ request.path }}" class="text-decoration-none fw-bold">
-                                    Connectez-vous
-                                </a> pour contribuer à ce projet.
+                                    Sign in
+                                </a> to contribute to this project.
                             {% elif not projet.est_actif %}
-                                Ce projet n'accepte pas encore de dons.
+                                This project is not currently accepting donations.
                                 {% if projet.statut == 'termine' %}
-                                    <div class="mt-2">🎉 Le projet a atteint son objectif de financement !</div>
+                                    <div class="mt-2">🎉 Project has reached its funding goal!</div>
                                 {% elif projet.statut == 'annule' %}
-                                    <div class="mt-2">❌ Le projet a été annulé.</div>
+                                    <div class="mt-2">❌ Project has been cancelled.</div>
                                 {% endif %}
                             {% endif %}
                         </div>
@@ -363,15 +371,15 @@
                 </div>
             </div>
 
-            <!-- Informations du porteur -->
+            <!-- Project Manager Information -->
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
                     <h4 class="mb-0">
                         <i class="bi bi-person-badge me-2"></i>
                         {% if projet.est_associe_a_une_association %}
-                            À propos de l'association
+                            About the Association
                         {% else %}
-                            À propos du porteur
+                            About the Project Manager
                         {% endif %}
                     </h4>
                 </div>
@@ -380,7 +388,7 @@
                         {% if projet.est_associe_a_une_association %}
                             {% if projet.association.logo %}
                                 <img src="{{ projet.association.logo.url }}" 
-                                     alt="Logo de {{ projet.association.nom }}"
+                                     alt="Logo of {{ projet.association.nom }}"
                                      class="rounded-circle mb-3" 
                                      style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--bs-primary);">
                             {% else %}
@@ -405,7 +413,7 @@
                         {% else %}
                             {% if projet.porteur.photo_profil %}
                                 <img src="{{ projet.porteur.photo_profil.url }}" 
-                                     alt="Photo de {{ projet.porteur.get_full_name|default:projet.porteur.username }}"
+                                     alt="Photo of {{ projet.porteur.get_full_name|default:projet.porteur.username }}"
                                      class="rounded-circle mb-3" 
                                      style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--bs-primary);">
                             {% else %}
@@ -424,12 +432,12 @@
                             {% endif %}
                             
                             <span class="badge bg-primary mb-3">
-                                <i class="bi bi-person me-1"></i>Porteur de projet
+                                <i class="bi bi-person me-1"></i>Project Manager
                             </span>
                         {% endif %}
                     </div>
 
-                    <!-- Informations de contact -->
+                    <!-- Contact Information -->
                     <div class="row text-center mb-3">
                         {% if projet.est_associe_a_une_association %}
                             {% if projet.association.ville %}
@@ -458,7 +466,7 @@
                     {% if projet.est_associe_a_une_association and projet.association.description_courte %}
                         <div class="mb-3">
                             <h6 class="text-primary">
-                                <i class="bi bi-chat-quote me-1"></i>Présentation
+                                <i class="bi bi-chat-quote me-1"></i>Presentation
                             </h6>
                             <p class="mb-0 small">
                                 "{{ projet.association.description_courte|truncatewords:30 }}"
@@ -467,7 +475,7 @@
                     {% elif not projet.est_associe_a_une_association and projet.porteur.bio %}
                         <div class="mb-3">
                             <h6 class="text-primary">
-                                <i class="bi bi-chat-quote me-1"></i>Présentation
+                                <i class="bi bi-chat-quote me-1"></i>Presentation
                             </h6>
                             <p class="mb-0 small">
                                 "{{ projet.porteur.bio|truncatewords:30 }}"
@@ -480,13 +488,13 @@
                         {% if projet.est_associe_a_une_association %}
                             {% if projet.association.site_web %}
                                 <a href="{{ projet.association.site_web }}" target="_blank" class="btn btn-outline-secondary btn-sm me-2 mb-2">
-                                    <i class="bi bi-globe me-1"></i>Site web
+                                    <i class="bi bi-globe me-1"></i>Website
                                 </a>
                             {% endif %}
                         {% else %}
                             {% if projet.porteur.site_web %}
                                 <a href="{{ projet.porteur.site_web }}" target="_blank" class="btn btn-outline-secondary btn-sm me-2 mb-2">
-                                    <i class="bi bi-globe me-1"></i>Site web
+                                    <i class="bi bi-globe me-1"></i>Website
                                 </a>
                             {% endif %}
                         {% endif %}
@@ -496,11 +504,11 @@
         </div>
     </div>
 
-    <!-- Projets similaires -->
+    <!-- Similar Projects -->
     {% if projets_similaires %}
     <div class="row mt-5">
         <div class="col-12">
-            <h2 class="mb-4">Projets similaires</h2>
+            <h2 class="mb-4">Similar Projects</h2>
             <div class="row">
                 {% for projet_similaire in projets_similaires %}
                 <div class="col-md-4 mb-4">
@@ -526,13 +534,13 @@
                             </div>
                             
                             <div class="d-flex justify-content-between small text-muted">
-                                <span>{{ projet_similaire.pourcentage_financement }}% financé</span>
-                                <span>{{ projet_similaire.jours_restants }} jours restants</span>
+                                <span>{{ projet_similaire.pourcentage_financement }}% funded</span>
+                                <span>{{ projet_similaire.jours_restants }} days left</span>
                             </div>
                         </div>
                         <div class="card-footer bg-transparent">
                             <a href="{% url 'detail_projet' projet_similaire.audit_uuid %}" class="btn btn-outline-primary w-100 btn-sm">
-                                Voir le projet
+                                View Project
                             </a>
                         </div>
                     </div>
@@ -544,23 +552,23 @@
     {% endif %}
 </div>
 
-<!-- Modal de suppression -->
+<!-- Delete Confirmation Modal -->
 {% if projet.statut in 'brouillon rejete' %}
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Êtes-vous sûr de vouloir supprimer le projet "{{ projet.titre }}" ? Cette action est irréversible.
+                Are you sure you want to delete the project "{{ projet.titre }}"? This action cannot be undone.
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form method="post" action="{% url 'supprimer_projet' projet.audit_uuid %}">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Supprimer définitivement</button>
+                    <button type="submit" class="btn btn-danger">Delete Permanently</button>
                 </form>
             </div>
         </div>
@@ -575,6 +583,11 @@
     .donation-card {
         border: 2px solid var(--bs-primary);
         border-radius: 15px;
+        transition: transform 0.2s ease;
+    }
+    
+    .donation-card:hover {
+        transform: translateY(-2px);
     }
     
     .donation-card .card-header {
@@ -586,7 +599,7 @@
         font-size: 0.9rem;
     }
     
-    .btn-primary {
+    .btn-primar {
         background: linear-gradient(45deg, #0d6efd, #6f42c1);
         border: none;
         transition: all 0.3s ease;
@@ -618,6 +631,7 @@
         transition: all 0.2s ease;
         border-radius: 8px !important;
         margin-bottom: 0.5rem;
+        border: 1px solid rgba(0,0,0,0.125);
     }
     
     .list-group-item:hover {
@@ -628,10 +642,23 @@
     .card {
         border: none;
         border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     
     .card-header {
         border-radius: 15px 15px 0 0 !important;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    }
+    
+    /* Improved milestone list styling */
+    .list-group-item-success {
+        background-color: #d1e7dd;
+        border-color: #badbcc;
+    }
+    
+    .list-group-item-info {
+        background-color: #cff4fc;
+        border-color: #b6effb;
     }
 </style>
 {% endblock %}
