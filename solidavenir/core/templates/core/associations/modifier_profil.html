@@ -1,81 +1,77 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Modifier le Profil - {{ association.nom }}{% endblock %}
+{% block title %}Edit Profile - {{ association.nom }}{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <!-- En-tête -->
+    <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h1 class="h2 mb-1">
-                        <i class="bi bi-pencil-square text-primary me-2"></i>Modifier le profil
+                        <i class="bi bi-pencil-square text-primary me-2"></i>Edit Profile
                     </h1>
-                    <p class="text-muted mb-0">Complétez les informations de votre association</p>
+                    <p class="text-muted mb-0">Complete your association information</p>
                 </div>
                 <a href="{% url 'espace_association' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i>Retour
+                    <i class="bi bi-arrow-left me-1"></i>Back
                 </a>
             </div>
         </div>
     </div>
 
-
     <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
         {% csrf_token %}
         
         <div class="row">
-            <!-- Navigation latérale -->
+            <!-- Sidebar Navigation -->
             <div class="col-lg-3">
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-light">
-                        <h6 class="mb-0">Sections du profil</h6>
+                        <h6 class="mb-0">Profile Sections</h6>
                     </div>
                     <div class="list-group list-group-flush">
-                        <a href="#identite" class="list-group-item list-group-item-action">
-                            <i class="bi bi-building me-2"></i>Identité
+                        <a href="#identity" class="list-group-item list-group-item-action">
+                            <i class="bi bi-building me-2"></i>Identity
                         </a>
                         <a href="#logo" class="list-group-item list-group-item-action">
                             <i class="bi bi-image me-2"></i>Logo & Images
                         </a>
-                        <a href="#domaines" class="list-group-item list-group-item-action">
-                            <i class="bi bi-heart me-2"></i>Domaines d'action
+                        <a href="#domains" class="list-group-item list-group-item-action">
+                            <i class="bi bi-heart me-2"></i>Action Areas
                         </a>
-                        <a href="#juridique" class="list-group-item list-group-item-action">
-                            <i class="bi bi-file-text me-2"></i>Informations juridiques
+                        <a href="#legal" class="list-group-item list-group-item-action">
+                            <i class="bi bi-file-text me-2"></i>Legal Information
                         </a>
                         <a href="#contact" class="list-group-item list-group-item-action">
-                            <i class="bi bi-geo-alt me-2"></i>Contact & Localisation
+                            <i class="bi bi-geo-alt me-2"></i>Contact & Location
                         </a>
-                        <a href="#reseau" class="list-group-item list-group-item-action">
-                            <i class="bi bi-share me-2"></i>Réseaux sociaux
+                        <a href="#social" class="list-group-item list-group-item-action">
+                            <i class="bi bi-share me-2"></i>Social Networks
                         </a>
-                        <a href="#chiffres" class="list-group-item list-group-item-action">
-                            <i class="bi bi-graph-up me-2"></i>Chiffres clés
+                        <a href="#numbers" class="list-group-item list-group-item-action">
+                            <i class="bi bi-graph-up me-2"></i>Key Figures
                         </a>
                         <a href="#documents" class="list-group-item list-group-item-action">
                             <i class="bi bi-file-earmark me-2"></i>Documents
                         </a>
-                        <a href="#projets" class="list-group-item list-group-item-action">
-                            <i class="bi bi-lightbulb me-2"></i>Projets & Actions
+                        <a href="#projects" class="list-group-item list-group-item-action">
+                            <i class="bi bi-lightbulb me-2"></i>Projects & Actions
                         </a>
                     </div>
                 </div>
 
-                
-
-
-                <!-- Aperçu du logo -->
+                <!-- Logo Preview -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-light">
-                        <h6 class="mb-0">Aperçu du logo</h6>
+                        <h6 class="mb-0">Logo Preview</h6>
                     </div>
                     <div class="card-body text-center">
                         {% if association.logo %}
             <img src="{{ association.logo.url }}" 
-                 alt="Logo actuel" 
+                 alt="Current logo" 
                  class="img-fluid rounded-circle border"
                  style="width: 120px; height: 120px; object-fit: cover;">
         {% else %}
@@ -85,53 +81,53 @@
             </div>
         {% endif %}
                        
-                        <p class="small text-muted mt-2">Logo actuel</p>
+                        <p class="small text-muted mt-2">Current logo</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Contenu principal du formulaire -->
+            <!-- Main Form Content -->
             <div class="col-lg-9">
-                <!-- Section Identité -->
-                <div class="card shadow-sm mb-4" id="identite">
+                <!-- Identity Section -->
+                <div class="card shadow-sm mb-4" id="identity">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">
-                            <i class="bi bi-building text-primary me-2"></i>Identité de l'association
+                            <i class="bi bi-building text-primary me-2"></i>Association Identity
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="{{ form.nom.id_for_label }}" class="form-label">Nom de l'association *</label>
+                                <label for="{{ form.nom.id_for_label }}" class="form-label">Association Name *</label>
                                 {{ form.nom }}
-                                <div class="form-text">Le nom officiel de votre association</div>
+                                <div class="form-text">Official name of your association</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.slogan.id_for_label }}" class="form-label">Slogan</label>
                                 {{ form.slogan }}
-                                <div class="form-text">Une phrase accrocheuse qui représente votre association</div>
+                                <div class="form-text">A catchy phrase that represents your association</div>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-12 mb-3">
-                                <label for="{{ form.description_courte.id_for_label }}" class="form-label">Description courte *</label>
+                                <label for="{{ form.description_courte.id_for_label }}" class="form-label">Short Description *</label>
                                 {{ form.description_courte }}
-                                <div class="form-text">Description concise pour les listes et aperçus (max 500 caractères)</div>
+                                <div class="form-text">Concise description for lists and overviews (max 500 characters)</div>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-12 mb-3">
-                                <label for="{{ form.description_longue.id_for_label }}" class="form-label">Description détaillée *</label>
+                                <label for="{{ form.description_longue.id_for_label }}" class="form-label">Detailed Description *</label>
                                 {{ form.description_longue }}
-                                <div class="form-text">Décrivez en détail votre association, sa mission, ses valeurs</div>
+                                <div class="form-text">Describe in detail your association, its mission, its values</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section Logo & Images -->
+                <!-- Logo & Images Section -->
                 <div class="card shadow-sm mb-4" id="logo">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">
@@ -143,135 +139,134 @@
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.logo.id_for_label }}" class="form-label">Logo</label>
                                 {{ form.logo }}
-                                <div class="form-text">Format carré recommandé (min. 200x200px)</div>
+                                <div class="form-text">Square format recommended (min. 200x200px)</div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="{{ form.cover_image.id_for_label }}" class="form-label">Image de couverture</label>
+                                <label for="{{ form.cover_image.id_for_label }}" class="form-label">Cover Image</label>
                                 {{ form.cover_image }}
-                                <div class="form-text">Format paysage recommandé (1200x400px)</div>
+                                <div class="form-text">Landscape format recommended (1200x400px)</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section Domaines d'action -->
-                <div class="card shadow-sm mb-4" id="domaines">
+                <!-- Action Areas Section -->
+                <div class="card shadow-sm mb-4" id="domains">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">
-                            <i class="bi bi-heart text-danger me-2"></i>Domaines d'action
+                            <i class="bi bi-heart text-danger me-2"></i>Action Areas
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="{{ form.domaine_principal.id_for_label }}" class="form-label">Domaine principal *</label>
+                                <label for="{{ form.domaine_principal.id_for_label }}" class="form-label">Main Domain *</label>
                                 {{ form.domaine_principal }}
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="{{ form.domaines_secondaires.id_for_label }}" class="form-label">Domaines secondaires</label>
+                                <label for="{{ form.domaines_secondaires.id_for_label }}" class="form-label">Secondary Domains</label>
                                 {{ form.domaines_secondaires }}
-                                <div class="form-text">Séparés par des virgules (ex: Éducation, Santé, Environnement)</div>
+                                <div class="form-text">Separated by commas (ex: Education, Health, Environment)</div>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-12 mb-3">
-                                <label for="{{ form.causes_defendues.id_for_label }}" class="form-label">Causes défendues *</label>
+                                <label for="{{ form.causes_defendues.id_for_label }}" class="form-label">Supported Causes *</label>
                                 {{ form.causes_defendues }}
-                                <div class="form-text">Décrivez les causes principales que vous soutenez</div>
+                                <div class="form-text">Describe the main causes you support</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section Informations juridiques -->
-                <div class="card shadow-sm mb-4" id="juridique">
+                <!-- Legal Information Section -->
+                <div class="card shadow-sm mb-4" id="legal">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">
-                            <i class="bi bi-file-text text-primary me-2"></i>Informations juridiques
+                            <i class="bi bi-file-text text-primary me-2"></i>Legal Information
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
     <div class="col-md-6 mb-3">
-        <label for="{{ form.statut_juridique.id_for_label }}" class="form-label">Statut juridique *</label>
+        <label for="{{ form.statut_juridique.id_for_label }}" class="form-label">Legal Status *</label>
         {{ form.statut_juridique }}
     </div>
     <div class="col-md-6 mb-3">
-        <label for="{{ form.numero_agrement.id_for_label }}" class="form-label">Numéro d'agrément</label>
+        <label for="{{ form.numero_agrement.id_for_label }}" class="form-label">Approval Number</label>
         {{ form.numero_agrement }}
     </div>
 </div>
 
 <div class="row">
     <div class="col-md-6 mb-3">
-        <label for="{{ form.date_creation_association.id_for_label }}" class="form-label">Date de création *</label>
+        <label for="{{ form.date_creation_association.id_for_label }}" class="form-label">Creation Date *</label>
         {{ form.date_creation_association }}
     </div>
     <div class="col-md-6 mb-3">
-        <label for="{{ form.date_agrement.id_for_label }}" class="form-label">Date d'agrément</label>
+        <label for="{{ form.date_agrement.id_for_label }}" class="form-label">Approval Date</label>
         {{ form.date_agrement }}
     </div>
 </div>
+                    </div>
+                </div>
 
-</div>
-
-</div>
-                <!-- Section Contact & Localisation -->
+                <!-- Contact & Location Section -->
                 <div class="card shadow-sm mb-4" id="contact">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">
-                            <i class="bi bi-geo-alt text-primary me-2"></i>Contact & Localisation
+                            <i class="bi bi-geo-alt text-primary me-2"></i>Contact & Location
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-12 mb-3">
-                                <label for="{{ form.adresse_siege.id_for_label }}" class="form-label">Adresse du siège *</label>
+                                <label for="{{ form.adresse_siege.id_for_label }}" class="form-label">Headquarters Address *</label>
                                 {{ form.adresse_siege }}
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label for="{{ form.ville.id_for_label }}" class="form-label">Ville *</label>
+                                <label for="{{ form.ville.id_for_label }}" class="form-label">City *</label>
                                 {{ form.ville }}
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label for="{{ form.code_postal.id_for_label }}" class="form-label">Code postal *</label>
+                                <label for="{{ form.code_postal.id_for_label }}" class="form-label">Postal Code *</label>
                                 {{ form.code_postal }}
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label for="{{ form.pays.id_for_label }}" class="form-label">Pays *</label>
+                                <label for="{{ form.pays.id_for_label }}" class="form-label">Country *</label>
                                 {{ form.pays }}
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="{{ form.telephone.id_for_label }}" class="form-label">Téléphone *</label>
+                                <label for="{{ form.telephone.id_for_label }}" class="form-label">Phone *</label>
                                 {{ form.telephone }}
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="{{ form.email_contact.id_for_label }}" class="form-label">Email de contact *</label>
+                                <label for="{{ form.email_contact.id_for_label }}" class="form-label">Contact Email *</label>
                                 {{ form.email_contact }}
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-12 mb-3">
-                                <label for="{{ form.site_web.id_for_label }}" class="form-label">Site web</label>
+                                <label for="{{ form.site_web.id_for_label }}" class="form-label">Website</label>
                                 {{ form.site_web }}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section Réseaux sociaux -->
-                <div class="card shadow-sm mb-4" id="reseau">
+                <!-- Social Networks Section -->
+                <div class="card shadow-sm mb-4" id="social">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">
-                            <i class="bi bi-share text-primary me-2"></i>Réseaux sociaux
+                            <i class="bi bi-share text-primary me-2"></i>Social Networks
                         </h5>
                     </div>
                     <div class="card-body">
@@ -306,80 +301,74 @@
                     </div>
                 </div>
 
-                <!-- Section Chiffres clés -->
-                <div class="card shadow-sm mb-4" id="chiffres">
+                <!-- Key Figures Section -->
+                <div class="card shadow-sm mb-4" id="numbers">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">
-                            <i class="bi bi-graph-up text-success me-2"></i>Chiffres clés
+                            <i class="bi bi-graph-up text-success me-2"></i>Key Figures
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label for="{{ form.nombre_adherents.id_for_label }}" class="form-label">Nombre d'adhérents</label>
+                                <label for="{{ form.nombre_adherents.id_for_label }}" class="form-label">Number of Members</label>
                                 {{ form.nombre_adherents }}
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label for="{{ form.nombre_beneficiaires.id_for_label }}" class="form-label">Nombre de bénéficiaires</label>
+                                <label for="{{ form.nombre_beneficiaires.id_for_label }}" class="form-label">Number of Beneficiaries</label>
                                 {{ form.nombre_beneficiaires }}
                             </div>
-                           
                         </div>
-
-                       
                     </div>
                 </div>
 
-                
-
-                <!-- Section Projets & Actions -->
-                <div class="card shadow-sm mb-4" id="projets">
+                <!-- Projects & Actions Section -->
+                <div class="card shadow-sm mb-4" id="projects">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">
-                            <i class="bi bi-lightbulb text-warning me-2"></i>Projets & Actions
+                            <i class="bi bi-lightbulb text-warning me-2"></i>Projects & Actions
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-12 mb-3">
-                                <label for="{{ form.projets_phares.id_for_label }}" class="form-label">Projets phares</label>
+                                <label for="{{ form.projets_phares.id_for_label }}" class="form-label">Flagship Projects</label>
                                 {{ form.projets_phares }}
-                                <div class="form-text">Décrivez vos principaux projets réalisés</div>
+                                <div class="form-text">Describe your main completed projects</div>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-12 mb-3">
-                                <label for="{{ form.actions_en_cours.id_for_label }}" class="form-label">Actions en cours</label>
+                                <label for="{{ form.actions_en_cours.id_for_label }}" class="form-label">Current Actions</label>
                                 {{ form.actions_en_cours }}
-                                <div class="form-text">Décrivez vos actions actuelles</div>
+                                <div class="form-text">Describe your current actions</div>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-12 mb-3">
-                                <label for="{{ form.partenariats.id_for_label }}" class="form-label">Partenariats</label>
+                                <label for="{{ form.partenariats.id_for_label }}" class="form-label">Partnerships</label>
                                 {{ form.partenariats }}
-                                <div class="form-text">Listez vos principaux partenaires</div>
+                                <div class="form-text">List your main partners</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Boutons de soumission -->
+                <!-- Submission Buttons -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-body">
-                        
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h4 class="border-bottom pb-2 mb-3">Transparence</h4>
+                                <h4 class="border-bottom pb-2 mb-3">Transparency</h4>
                             </div>
                             
                             <div class="col-md-6 mb-3">
                                 <div class="form-check form-switch">
                                     {{ form.transparent_finances }}
                                     <label class="form-check-label fw-semibold" for="{{ form.transparent_finances.id_for_label }}">
-                                        Transparence financière
+                                        Financial Transparency
                                     </label>
                                 </div>
                                 <div class="form-text">{{ form.transparent_finances.help_text }}</div>
@@ -389,7 +378,7 @@
                                 <div class="form-check form-switch">
                                     {{ form.transparent_actions }}
                                     <label class="form-check-label fw-semibold" for="{{ form.transparent_actions.id_for_label }}">
-                                        Transparence des actions
+                                        Action Transparency
                                     </label>
                                 </div>
                                 <div class="form-text">{{ form.transparent_actions.help_text }}</div>
@@ -397,10 +386,10 @@
                         </div>
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'espace_association' %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle me-1"></i>Annuler
+                                <i class="bi bi-x-circle me-1"></i>Cancel
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle me-1"></i>Enregistrer les modifications
+                                <i class="bi bi-check-circle me-1"></i>Save Changes
                             </button>
                         </div>
                     </div>
@@ -463,7 +452,7 @@
 </style>
 
 <script>
-// Scroll doux vers les sections
+// Smooth scroll to sections
 document.querySelectorAll('.list-group-item').forEach(item => {
     item.addEventListener('click', function(e) {
         e.preventDefault();
@@ -478,7 +467,7 @@ document.querySelectorAll('.list-group-item').forEach(item => {
     });
 });
 
-// Validation du formulaire
+// Form validation
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('.needs-validation');
     

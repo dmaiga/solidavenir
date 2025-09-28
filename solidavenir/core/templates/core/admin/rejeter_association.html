@@ -1,6 +1,6 @@
 {% extends 'base_admin.html' %}
 
-{% block title %}Rejeter Association - Admin{% endblock %}
+{% block title %}Reject Association - Admin{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -9,17 +9,17 @@
             <div class="card shadow">
                 <div class="card-header bg-warning text-dark">
                     <h4 class="mb-0">
-                        <i class="bi bi-exclamation-triangle"></i> Rejeter l'association
+                        <i class="bi bi-exclamation-triangle"></i> Reject Association
                     </h4>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i> Vous êtes sur le point de rejeter cette association.
+                        <i class="bi bi-exclamation-triangle"></i> You are about to reject this association.
                     </div>
                     
                     <h5>{{ association.nom }}</h5>
-                    <p><strong>Domaine:</strong> {{ association.get_domaine_principal_display }}</p>
-                    <p><strong>Ville:</strong> {{ association.ville }}</p>
+                    <p><strong>Field:</strong> {{ association.get_domaine_principal_display }}</p>
+                    <p><strong>City:</strong> {{ association.ville }}</p>
                     <p><strong>Contact:</strong> {{ association.user.email }}</p>
                     
                     <hr>
@@ -27,17 +27,17 @@
                     <form method="post">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label for="motif" class="form-label">Motif du rejet *</label>
+                            <label for="motif" class="form-label">Reason for Rejection *</label>
                             <textarea class="form-control" id="motif" name="motif" rows="4" 
-                                      placeholder="Expliquez pourquoi cette association est rejetée..." required></textarea>
+                                      placeholder="Explain why this association is being rejected..." required></textarea>
                         </div>
                         
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-danger">
-                                <i class="bi bi-x-circle"></i> Confirmer le rejet
+                                <i class="bi bi-x-circle"></i> Confirm Rejection
                             </button>
                             <a href="{% url 'tableau_de_bord' %}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Retour
+                                <i class="bi bi-arrow-left"></i> Back
                             </a>
                         </div>
                     </form>

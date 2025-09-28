@@ -2,16 +2,16 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Projets en attente de validation</h2>
+    <h2>Projects Pending Validation</h2>
     
     <div class="table-responsive">
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>Nom du projet</th>
-                    <th>Porteur</th>
-                    <th>Date de soumission</th>
-                    <th>Statut</th>
+                    <th>Project Name</th>
+                    <th>Project Owner</th>
+                    <th>Submission Date</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -20,25 +20,25 @@
                 <tr>
                     <td>{{ projet.titre }}</td>
                     <td>{{ projet.porteur.get_full_name }}</td>
-                    <td>{{ projet.date_creation|date:"d/m/Y H:i" }}</td>
+                    <td>{{ projet.date_creation|date:"m/d/Y H:i" }}</td>
                     <td>
-                        <span class="badge bg-warning">En attente</span>
+                        <span class="badge bg-warning">Pending</span>
                     </td>
                     <td>
                         <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-sm btn-info">
-                            Voir
+                            View
                         </a>
                         <a href="{% url 'valider_projet' projet.audit_uuid %}" class="btn btn-sm btn-success">
-                            Valider
+                            Validate
                         </a>
                         <a href="#" class="btn btn-sm btn-danger">
-                            Rejeter
+                            Reject
                         </a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center">Aucun projet en attente de validation</td>
+                    <td colspan="5" class="text-center">No projects pending validation</td>
                 </tr>
                 {% endfor %}
             </tbody>

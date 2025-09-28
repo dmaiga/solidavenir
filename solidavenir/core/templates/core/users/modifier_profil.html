@@ -1,8 +1,8 @@
-<!-- core/users/modifier_profil.html -->
+<!-- core/users/edit_profile.html -->
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Modifier mon profil - Solid'Avenir{% endblock %}
+{% block title %}Edit My Profile - Solid'Avenir{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -88,15 +88,15 @@
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
                     <h2 class="h4 mb-0">
-                        <i class="bi bi-person-gear me-2"></i>Modifier mon profil
+                        <i class="bi bi-person-gear me-2"></i>Edit My Profile
                     </h2>
                 </div>
                 <div class="card-body">
                     
-                    <!-- Indicateur de complétion du profil -->
+                    <!-- Profile Completion Indicator -->
                     <div class="mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-muted">Complétion du profil</span>
+                            <span class="text-muted">Profile Completion</span>
                             <span class="fw-bold">{{ profile_completion }}%</span>
                         </div>
                         <div class="profile-completion">
@@ -107,14 +107,14 @@
                     <form method="post" enctype="multipart/form-data" id="profileForm">
                         {% csrf_token %}
                         
-                        <!-- Section Photo de profil -->
+                        <!-- Profile Picture Section -->
                         <div class="form-section">
-                            <h5><i class="bi bi-camera me-2"></i>Photo de profil</h5>
+                            <h5><i class="bi bi-camera me-2"></i>Profile Picture</h5>
                             <div class="row align-items-center">
                                 <div class="col-md-4 text-center">
                                     <div class="profile-picture-container">
                                         {% if user.photo_profil %}
-                                            <img src="{{ user.photo_profil.url }}" alt="Photo de profil" 
+                                            <img src="{{ user.photo_profil.url }}" alt="Profile Picture" 
                                                  class="profile-picture-preview rounded-circle" id="profile-preview">
                                         {% else %}
                                             <div class="avatar-initials-preview rounded-circle" id="profile-preview">
@@ -122,7 +122,7 @@
                                             </div>
                                         {% endif %}
                                         <div class="upload-overlay" onclick="document.getElementById('id_photo_profil').click()">
-                                            <i class="bi bi-camera"></i> Changer
+                                            <i class="bi bi-camera"></i> Change
                                         </div>
                                     </div>
                                 </div>
@@ -138,13 +138,13 @@
                             </div>
                         </div>
 
-                        <!-- Section Informations personnelles -->
+                        <!-- Personal Information Section -->
                         <div class="form-section">
-                            <h5><i class="bi bi-person me-2"></i>Informations personnelles</h5>
+                            <h5><i class="bi bi-person me-2"></i>Personal Information</h5>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Prénom *</label>
+                                        <label class="form-label">First Name *</label>
                                         {{ form.first_name }}
                                         {% if form.first_name.errors %}
                                         <div class="text-danger">{{ form.first_name.errors }}</div>
@@ -153,7 +153,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Nom *</label>
+                                        <label class="form-label">Last Name *</label>
                                         {{ form.last_name }}
                                         {% if form.last_name.errors %}
                                         <div class="text-danger">{{ form.last_name.errors }}</div>
@@ -174,7 +174,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Téléphone</label>
+                                        <label class="form-label">Phone</label>
                                         {{ form.telephone }}
                                         {% if form.telephone.errors %}
                                         <div class="text-danger">{{ form.telephone.errors }}</div>
@@ -186,7 +186,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Date de naissance</label>
+                                        <label class="form-label">Date of Birth</label>
                                         {{ form.date_naissance }}
                                         <small class="form-text text-muted">{{ form.date_naissance.help_text }}</small>
                                         {% if form.date_naissance.errors %}
@@ -196,7 +196,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Genre</label>
+                                        <label class="form-label">Gender</label>
                                         {{ form.genre }}
                                         {% if form.genre.errors %}
                                         <div class="text-danger">{{ form.genre.errors }}</div>
@@ -206,7 +206,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">Biographie</label>
+                                <label class="form-label">Biography</label>
                                 {{ form.bio }}
                                 <small class="form-text text-muted">{{ form.bio.help_text }}</small>
                                 {% if form.bio.errors %}
@@ -215,13 +215,13 @@
                             </div>
                         </div>
 
-                        <!-- Section Adresse -->
+                        <!-- Address Section -->
                         <div class="form-section">
-                            <h5><i class="bi bi-geo-alt me-2"></i>Adresse</h5>
+                            <h5><i class="bi bi-geo-alt me-2"></i>Address</h5>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Ville</label>
+                                        <label class="form-label">City</label>
                                         {{ form.ville }}
                                         {% if form.ville.errors %}
                                         <div class="text-danger">{{ form.ville.errors }}</div>
@@ -230,7 +230,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Pays</label>
+                                        <label class="form-label">Country</label>
                                         {{ form.pays }}
                                         {% if form.pays.errors %}
                                         <div class="text-danger">{{ form.pays.errors }}</div>
@@ -240,7 +240,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">Code postal</label>
+                                <label class="form-label">Postal Code</label>
                                 {{ form.code_postal }}
                                 {% if form.code_postal.errors %}
                                 <div class="text-danger">{{ form.code_postal.errors }}</div>
@@ -248,13 +248,13 @@
                             </div>
                         </div>
 
-                        <!-- Section Réseaux sociaux -->
+                        <!-- Social Networks Section -->
                         <div class="form-section">
-                            <h5><i class="bi bi-link-45deg me-2"></i>Réseaux sociaux</h5>
+                            <h5><i class="bi bi-link-45deg me-2"></i>Social Networks</h5>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Site web personnel</label>
+                                        <label class="form-label">Personal Website</label>
                                         {{ form.site_web_perso }}
                                         {% if form.site_web_perso.errors %}
                                         <div class="text-danger">{{ form.site_web_perso.errors }}</div>
@@ -294,9 +294,9 @@
                             </div>
                         </div>
 
-                        <!-- Section Préférences -->
+                        <!-- Preferences Section -->
                         <div class="form-section">
-                            <h5><i class="bi bi-bell me-2"></i>Préférences</h5>
+                            <h5><i class="bi bi-bell me-2"></i>Preferences</h5>
                             <div class="form-check form-switch mb-3">
                                 {{ form.newsletter }}
                                 <label class="form-check-label" for="{{ form.newsletter.id_for_label }}">
@@ -310,10 +310,10 @@
 
                         <div class="text-center mt-4">
                             <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-check-circle me-2"></i>Enregistrer les modifications
+                                <i class="bi bi-check-circle me-2"></i>Save Changes
                             </button>
                             <a href="{% url 'profil' %}" class="btn btn-outline-secondary ms-2">
-                                <i class="bi bi-x-circle me-2"></i>Annuler
+                                <i class="bi bi-x-circle me-2"></i>Cancel
                             </a>
                         </div>
                     </form>
@@ -327,7 +327,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Prévisualisation de la photo de profil
+    // Profile picture preview
     const photoInput = document.getElementById('id_photo_profil');
     const preview = document.getElementById('profile-preview');
     
@@ -340,12 +340,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (preview.tagName === 'IMG') {
                         preview.src = e.target.result;
                     } else {
-                        // Remplacer le div par une image
+                        // Replace div with image
                         const newPreview = document.createElement('img');
                         newPreview.id = 'profile-preview';
                         newPreview.className = 'profile-picture-preview rounded-circle';
                         newPreview.src = e.target.result;
-                        newPreview.alt = 'Photo de profil';
+                        newPreview.alt = 'Profile Picture';
                         preview.parentNode.replaceChild(newPreview, preview);
                     }
                 }
@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Mise à jour en temps réel de la complétion du profil
+    // Real-time profile completion update
     const form = document.getElementById('profileForm');
     const completionBar = document.querySelector('.profile-completion-bar');
     
@@ -367,8 +367,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateCompletion() {
-        // Cette fonction pourrait être améliorée pour calculer en temps réel
-        // Pour l'instant, on se contente de l'animation
+        // This function could be improved to calculate in real time
+        // For now, we'll stick with the animation
         completionBar.style.width = '{{ profile_completion }}%';
     }
 });

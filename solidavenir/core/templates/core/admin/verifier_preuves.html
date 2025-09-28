@@ -1,23 +1,22 @@
-<!-- core/admin/verifier_preuves.html -->
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Vérifier les preuves - {{ projet.titre }}{% endblock %}
+{% block title %}Verify Proofs - {{ projet.titre }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-12">
-            <!-- En-tête -->
+            <!-- Header -->
             <div class="card mb-4">
                 <div class="card-header bg-warning text-dark">
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">
                             <i class="fas fa-search me-2"></i>
-                            Vérifier les preuves - Palier {{ palier.pourcentage }}%
+                            Verify Proofs - Step {{ palier.pourcentage }}%
                         </h4>
                         <a href="{% url 'gerer_distributions' %}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-arrow-left me-1"></i>Retour
+                            <i class="fas fa-arrow-left me-1"></i>Back
                         </a>
                     </div>
                 </div>
@@ -28,16 +27,16 @@
                             <p class="text-muted">{{ projet.description }}</p>
                             <div class="row">
                                 <div class="col-md-4">
-                                    <strong>Porteur :</strong> {{ projet.porteur.get_full_name }}<br>
-                                    <strong>Email :</strong> {{ projet.porteur.email }}
+                                    <strong>Owner:</strong> {{ projet.porteur.get_full_name }}<br>
+                                    <strong>Email:</strong> {{ projet.porteur.email }}
                                 </div>
                                 <div class="col-md-4">
-                                    <strong>Montant palier :</strong> {{ palier.montant }} HBAR<br>
-                                    <strong>Pourcentage :</strong> {{ palier.pourcentage }}%
+                                    <strong>Step Amount:</strong> {{ palier.montant }} HBAR<br>
+                                    <strong>Percentage:</strong> {{ palier.pourcentage }}%
                                 </div>
                                 <div class="col-md-4">
-                                    <strong>Date soumission :</strong> {{ preuve.date_soumission|date:"d/m/Y H:i" }}<br>
-                                    <strong>Statut :</strong> 
+                                    <strong>Submission Date:</strong> {{ preuve.date_soumission|date:"d/m/Y H:i" }}<br>
+                                    <strong>Status:</strong> 
                                     <span class="badge bg-{% if preuve.statut == 'en_attente' %}warning{% elif preuve.statut == 'approuve' %}success{% else %}danger{% endif %}">
                                         {{ preuve.get_statut_display }}
                                     </span>
@@ -48,10 +47,10 @@
                 </div>
             </div>
 
-            <!-- Fichiers preuves -->
+            <!-- Submitted files -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-files me-2"></i>Fichiers soumis ({{ fichiers|length }})</h5>
+                    <h5 class="mb-0"><i class="fas fa-files me-2"></i>Submitted Files ({{ fichiers|length }})</h5>
                 </div>
                 <div class="card-body">
                     {% if fichiers %}
@@ -73,12 +72,12 @@
                                     <h6 class="card-title">{{ fichier.fichier.name|slice:"20:" }}</h6>
                                     <p class="card-text small text-muted">
                                         Type: {{ fichier.get_type_fichier_display }}<br>
-                                        Taille: {{ fichier.fichier.size|filesizeformat }}
+                                        Size: {{ fichier.fichier.size|filesizeformat }}
                                     </p>
                                 </div>
                                 <div class="card-footer">
                                     <a href="{{ fichier.fichier.url }}" target="_blank" class="btn btn-primary btn-sm w-100">
-                                        <i class="fas fa-download me-1"></i>Télécharger
+                                        <i class="fas fa-download me-1"></i>Download
                                     </a>
                                 </div>
                             </div>
@@ -88,16 +87,16 @@
                     {% else %}
                     <div class="alert alert-warning text-center">
                         <i class="fas fa-exclamation-triangle me-2"></i>
-                        Aucun fichier trouvé pour cette preuve.
+                        No files found for this proof.
                     </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Formulaire de vérification -->
+            <!-- Verification form -->
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Décision de vérification</h5>
+                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Verification Decision</h5>
                 </div>
                 <div class="card-body">
                     <form method="post">
@@ -128,7 +127,7 @@
 
                         <div class="mb-4">
                             <label for="{{ form.commentaires.id_for_label }}" class="form-label">
-                                <strong>Commentaires</strong>
+                                <strong>Comments</strong>
                             </label>
                             {{ form.commentaires }}
                             {% if form.commentaires.errors %}
@@ -139,16 +138,16 @@
                                 </div>
                             {% endif %}
                             <div class="form-text">
-                                Ces commentaires seront visibles par le porteur du projet
+                                These comments will be visible to the project owner
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'gerer_distributions' %}" class="btn btn-secondary">
-                                <i class="fas fa-times me-2"></i>Annuler
+                                <i class="fas fa-times me-2"></i>Cancel
                             </a>
                             <button type="submit" class="btn btn-success">
-                                <i class="fas fa-check me-2"></i>Valider la décision
+                                <i class="fas fa-check me-2"></i>Submit Decision
                             </button>
                         </div>
                     </form>

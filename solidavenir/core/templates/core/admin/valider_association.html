@@ -1,6 +1,6 @@
 {% extends 'base_admin.html' %}
 
-{% block title %}Valider Association - Admin{% endblock %}
+{% block title %}Validate Association - Admin{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -9,17 +9,17 @@
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">
-                        <i class="bi bi-check-circle"></i> Valider l'association
+                        <i class="bi bi-check-circle"></i> Validate Association
                     </h4>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> Vous êtes sur le point de valider cette association.
+                        <i class="bi bi-info-circle"></i> You are about to validate this association.
                     </div>
                     
                     <h5>{{ association.nom }}</h5>
-                    <p><strong>Domaine:</strong> {{ association.get_domaine_principal_display }}</p>
-                    <p><strong>Ville:</strong> {{ association.ville }}</p>
+                    <p><strong>Domain:</strong> {{ association.get_domaine_principal_display }}</p>
+                    <p><strong>City:</strong> {{ association.ville }}</p>
                     <p><strong>Contact:</strong> {{ association.user.email }}</p>
                     <p><strong>Description:</strong> {{ association.description_courte|safe }}</p>
                     
@@ -29,10 +29,10 @@
                         {% csrf_token %}
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-success">
-                                <i class="bi bi-check-lg"></i> Confirmer la validation
+                                <i class="bi bi-check-lg"></i> Confirm Validation
                             </button>
                             <a href="{% url 'tableau_de_bord' %}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Retour
+                                <i class="bi bi-arrow-left"></i> Back
                             </a>
                         </div>
                     </form>

@@ -1,7 +1,7 @@
 {% extends 'base_admin.html' %}
 {% load static humanize custom_filters %}
 
-{% block title %}Solid'Avenir - Validation de projet{% endblock %}
+{% block title %}Solid'Avenir - Project Validation{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -179,42 +179,42 @@
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <div class="validation-card">
-                    <!-- En-tête -->
+                    <!-- Header -->
                     <div class="validation-header">
                         <div class="validation-icon">
                             <i class="bi bi-clipboard-check"></i>
                         </div>
-                        <h1 class="h2 fw-bold">Validation de projet</h1>
-                        <p class="text-muted">Examinez et validez ce projet soumis par la communauté</p>
+                        <h1 class="h2 fw-bold">Project Validation</h1>
+                        <p class="text-muted">Review and validate this project submitted by the community</p>
                     </div>
 
-                    <!-- Informations du porteur -->
+                    <!-- Project Owner Information -->
                     <div class="porteur-info">
-                        <h5 class="mb-3"><i class="bi bi-person"></i> Porteur du projet</h5>
+                        <h5 class="mb-3"><i class="bi bi-person"></i> Project Owner</h5>
                         <div class="row">
                             <div class="col-md-6">
                                 <strong>{{ porteur.get_full_name|default:porteur.username }}</strong>
                                 <p class="mb-1 text-muted">{{ porteur.email }}</p>
-                                <p class="mb-0 text-muted">Téléphone: {{ porteur.telephone|default:"Non renseigné" }}</p>
+                                <p class="mb-0 text-muted">Phone: {{ porteur.telephone|default:"Not provided" }}</p>
                             </div>
                             <div class="col-md-6">
                                 <p class="mb-1">
-                                    <strong>Organisation:</strong> {{ porteur.organisation|default:"Non renseignée" }}
+                                    <strong>Organization:</strong> {{ porteur.organisation|default:"Not provided" }}
                                 </p>
                                 <p class="mb-0">
-                                    <strong>Projets créés:</strong> {{ stats.projets_utilisateur }}
+                                    <strong>Projects created:</strong> {{ stats.projets_utilisateur }}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Informations du projet -->
+                    <!-- Project Information -->
                     <div class="project-info">
                         <h4 class="mb-3">{{ projet.titre }}</h4>
                         
                         <div class="info-grid">
                             <div class="info-item">
-                                <div class="info-label">Statut actuel</div>
+                                <div class="info-label">Current Status</div>
                                 <div class="info-value">
                                     <span class="statut-badge statut-{{ projet.statut }}">
                                         {{ STATUTS|get_item:projet.statut }}
@@ -223,18 +223,18 @@
                             </div>
                             
                             <div class="info-item">
-                                <div class="info-label">Montant demandé</div>
+                                <div class="info-label">Requested Amount</div>
                                 <div class="info-value">{{ projet.montant_demande|floatformat:0|intcomma }} FCFA</div>
                             </div>
                             
                             <div class="info-item">
-                                <div class="info-label">Date de création</div>
-                                <div class="info-value">{{ projet.date_creation|date:"d/m/Y" }}</div>
+                                <div class="info-label">Creation Date</div>
+                                <div class="info-value">{{ projet.date_creation|date:"m/d/Y" }}</div>
                             </div>
                             
                             <div class="info-item">
-                                <div class="info-label">Âge du projet</div>
-                                <div class="info-value">{{ stats.duree_existence }} jours</div>
+                                <div class="info-label">Project Age</div>
+                                <div class="info-value">{{ stats.duree_existence }} days</div>
                             </div>
                         </div>
                         
@@ -247,7 +247,7 @@
                     <!-- Documents -->
                     {% if documents %}
                     <div class="mb-4">
-                        <h5 class="mb-3"><i class="bi bi-files"></i> Documents joints</h5>
+                        <h5 class="mb-3"><i class="bi bi-files"></i> Attached Documents</h5>
                         {% for doc in documents %}
                         <div class="document-card">
                             <div class="d-flex justify-content-between align-items-center">
@@ -263,7 +263,7 @@
                                     </div>
                                 </div>
                                 <a href="{{ doc.fichier.url }}" target="_blank" class="btn-download">
-                                    <i class="bi bi-download"></i> Télécharger
+                                    <i class="bi bi-download"></i> Download
                                 </a>
                             </div>
                         </div>
@@ -271,16 +271,16 @@
                     </div>
                     {% endif %}
 
-                    <!-- Formulaire de validation -->
+                    <!-- Validation Form -->
                     <form method="post" id="validationForm">
                         {% csrf_token %}
                         
-                        <h5 class="mb-3"><i class="bi bi-clipboard-check"></i> Décision de validation</h5>
+                        <h5 class="mb-3"><i class="bi bi-clipboard-check"></i> Validation Decision</h5>
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.statut.id_for_label }}" class="form-label">
-                                    Statut *
+                                    Status *
                                 </label>
                                 {{ form.statut }}
                                 {% if form.statut.errors %}
@@ -289,35 +289,35 @@
                             </div>
                         </div>
 
-                        <!-- Section commentaire (obligatoire pour rejet) -->
+                        <!-- Comment Section (required for rejection) -->
                         <div class="commentaire-section">
                             <label for="{{ form.commentaire_validation.id_for_label }}" class="form-label">
-                                Commentaire de validation *
-                                <small class="text-muted">(Obligatoire en cas de rejet)</small>
+                                Validation Comment *
+                                <small class="text-muted">(Required in case of rejection)</small>
                             </label>
                             <textarea name="commentaire_validation" class="form-control form-textarea" 
                                       id="{{ form.commentaire_validation.id_for_label }}" 
-                                      rows="4" placeholder="Donnez des détails sur votre décision...">{{ form.commentaire_validation.value|default:'' }}</textarea>
+                                      rows="4" placeholder="Provide details about your decision...">{{ form.commentaire_validation.value|default:'' }}</textarea>
                             {% if form.commentaire_validation.errors %}
                             <div class="text-danger">{{ form.commentaire_validation.errors }}</div>
                             {% endif %}
                             <div class="form-text">
-                                Ce commentaire sera visible par le porteur du projet en cas de rejet.
+                                This comment will be visible to the project owner in case of rejection.
                             </div>
                         </div>
 
-                        <!-- Boutons d'action -->
+                        <!-- Action Buttons -->
                         <div class="d-flex gap-3 mt-4">
                             <button type="submit" name="action" value="valider" class="btn btn-validate">
-                                <i class="bi bi-check-circle"></i> Valider le projet
+                                <i class="bi bi-check-circle"></i> Validate Project
                             </button>
                             
                             <button type="submit" name="action" value="rejeter" class="btn btn-reject">
-                                <i class="bi bi-x-circle"></i> Rejeter le projet
+                                <i class="bi bi-x-circle"></i> Reject Project
                             </button>
                             
                             <a href="{% url 'admin:core_projet_changelist' %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left"></i> Retour
+                                <i class="bi bi-arrow-left"></i> Back
                             </a>
                         </div>
                     </form>
@@ -336,7 +336,7 @@
         const statutSelect = document.getElementById('{{ form.statut.id_for_label }}');
         const commentaireTextarea = document.getElementById('{{ form.commentaire_validation.id_for_label }}');
         
-        // Pré-remplir le statut selon le bouton cliqué
+        // Pre-fill status based on clicked button
         document.querySelectorAll('button[type="submit"]').forEach(button => {
             button.addEventListener('click', function(e) {
                 const action = this.getAttribute('value');
@@ -348,23 +348,23 @@
             });
         });
         
-        // Validation avant soumission
+        // Validation before submission
         validationForm.addEventListener('submit', function(e) {
             const statut = statutSelect.value;
             const commentaire = commentaireTextarea.value.trim();
             
             if (statut === 'rejete' && !commentaire) {
                 e.preventDefault();
-                alert('Un commentaire est obligatoire pour le rejet d\'un projet.');
+                alert('A comment is required for project rejection.');
                 commentaireTextarea.focus();
                 return false;
             }
             
             let message = '';
             if (statut === 'actif') {
-                message = 'Êtes-vous sûr de vouloir valider ce projet ? Il sera visible par tous les utilisateurs.';
+                message = 'Are you sure you want to validate this project? It will be visible to all users.';
             } else if (statut === 'rejete') {
-                message = 'Êtes-vous sûr de vouloir rejeter ce projet ? Le porteur sera notifié.';
+                message = 'Are you sure you want to reject this project? The project owner will be notified.';
             }
             
             if (message && !confirm(message)) {
@@ -375,10 +375,10 @@
             return true;
         });
         
-        // Avertissement si rejet sans commentaire
+        // Warning if rejection without comment
         statutSelect.addEventListener('change', function() {
             if (this.value === 'rejete' && !commentaireTextarea.value.trim()) {
-                alert('Attention: Un commentaire détaillé est requis pour le rejet.');
+                alert('Warning: A detailed comment is required for rejection.');
                 commentaireTextarea.focus();
             }
         });

@@ -1,27 +1,303 @@
 <!-- templates/associations/images_list.html -->
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Photo Gallery - {{ association.nom }} | Solidavenir{% endblock %}
 
 {% block content %}
-<h1>Galerie photo de {{ association.nom }}</h1>
-
-<div class="row">
-    {% for image in images %}
-    <div class="col-md-3 mb-4">
-        <div class="card">
-            <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.legende|default:'' }}" style="height: 200px; object-fit: cover;">
-            {% if image.legende %}
-            <div class="card-body">
-                <p class="card-text">{{ image.legende }}</p>
+<div class="container py-5">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-2">
+                        <i class="bi bi-images text-primary me-2"></i>Photo Gallery
+                    </h1>
+                    <p class="text-muted mb-0">Discover the visual story of {{ association.nom }}</p>
+                </div>
+                <a href="{% url 'detail_association' association.slug %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Association
+                </a>
             </div>
-            {% endif %}
         </div>
     </div>
-    {% empty %}
-    <div class="col-12">
-        <p>Aucune photo pour le moment.</p>
+
+    <!-- Gallery Stats -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-light border-0">
+                <div class="card-body py-3">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h4 class="text-primary mb-0">{{ images.count }}</h4>
+                            <small class="text-muted">Total Photos</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-primary mb-0">{{ images.count }}</h4>
+                            <small class="text-muted">Visible</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-primary mb-0">0</h4>
+                            <small class="text-muted">Albums</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-primary mb-0">{{ association.nom }}</h4>
+                            <small class="text-muted">Association</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    {% endfor %}
+
+    <!-- Gallery Grid -->
+    <div class="row">
+        {% for image in images %}
+        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+            <div class="card gallery-card h-100 shadow-sm">
+                <div class="card-img-container position-relative">
+                    <img src="{{ image.image.url }}" 
+                         class="card-img-top gallery-image" 
+                         alt="{{ image.legende|default:'Association photo' }}"
+                         loading="lazy">
+                    <div class="image-overlay">
+                        <button class="btn btn-light btn-sm view-btn" data-bs-toggle="modal" data-bs-target="#imageModal{{ image.id }}">
+                            <i class="bi bi-zoom-in"></i>
+                        </button>
+                    </div>
+                </div>
+                {% if image.legende %}
+                <div class="card-body">
+                    <p class="card-text text-muted small">{{ image.legende }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar me-1"></i>
+                            {{ image.date_upload|date:"M d, Y"|default:"Recently" }}
+                        </small>
+                        {% if image.categorie %}
+                        <span class="badge bg-primary">{{ image.categorie }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Image Modal -->
+        <div class="modal fade" id="imageModal{{ image.id }}" tabindex="-1" aria-labelledby="imageModalLabel{{ image.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="imageModalLabel{{ image.id }}">
+                            {% if image.legende %}{{ image.legende }}{% else %}Photo Details{% endif %}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="{{ image.image.url }}" 
+                             class="img-fluid rounded" 
+                             alt="{{ image.legende|default:'Association photo' }}"
+                             style="max-height: 70vh; object-fit: contain;">
+                        {% if image.legende %}
+                        <div class="mt-3">
+                            <p class="lead">{{ image.legende }}</p>
+                        </div>
+                        {% endif %}
+                        {% if image.description %}
+                        <div class="mt-2">
+                            <p class="text-muted">{{ image.description }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer justify-content-between">
+                        <small class="text-muted">
+                            Uploaded: {{ image.date_upload|date:"F d, Y"|default:"Date not specified" }}
+                        </small>
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-1"></i>Close
+                            </button>
+                            <a href="{{ image.image.url }}" download class="btn btn-primary">
+                                <i class="bi bi-download me-1"></i>Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        
+        <!-- Empty State -->
+        <div class="col-12">
+            <div class="text-center py-5">
+                <div class="empty-state-icon mb-4">
+                    <i class="bi bi-camera display-1 text-muted"></i>
+                </div>
+                <h3 class="text-muted mb-3">No Photos Available</h3>
+                <p class="text-muted mb-4">This association hasn't uploaded any photos to their gallery yet.</p>
+                <a href="{% url 'detail_association' association.slug %}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left me-1"></i>Return to Association Profile
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Load More Section (for future pagination) -->
+    {% if images.count > 12 %}
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <button class="btn btn-outline-primary" id="loadMoreBtn">
+                <i class="bi bi-plus-circle me-1"></i>Load More Photos
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-light border-0">
+                <div class="card-body text-center py-4">
+                    <h5 class="mb-3">Want to see more?</h5>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="{% url 'detail_association' association.slug %}" class="btn btn-outline-primary">
+                            <i class="bi bi-building me-1"></i>View Association Profile
+                        </a>
+                        <a href="{% url 'liste_associations' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-list-ul me-1"></i>Browse All Associations
+                        </a>
+                        {% if user.is_authenticated and user.association == association %}
+                        <a href="#" class="btn btn-success">
+                            <i class="bi bi-plus-circle me-1"></i>Add Photos
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<a href="{% url 'detail_association' association.slug %}" class="btn btn-secondary">Retour à l'association</a>
+<style>
+.gallery-card {
+    border: none;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.gallery-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.card-img-container {
+    overflow: hidden;
+    position: relative;
+}
+
+.gallery-image {
+    height: 250px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.gallery-card:hover .gallery-image {
+    transform: scale(1.05);
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.card-img-container:hover .image-overlay {
+    opacity: 1;
+}
+
+.view-btn {
+    transform: scale(0.8);
+    transition: all 0.3s ease;
+}
+
+.card-img-container:hover .view-btn {
+    transform: scale(1);
+}
+
+.empty-state-icon {
+    opacity: 0.5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .gallery-image {
+        height: 200px;
+    }
+    
+    .modal-dialog {
+        margin: 1rem;
+    }
+}
+
+/* Animation for modal images */
+.modal-content img {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Smooth loading for modal images
+    const modalImages = document.querySelectorAll('.gallery-image');
+    modalImages.forEach(img => {
+        img.addEventListener('load', function() {
+            this.style.opacity = '1';
+        });
+    });
+
+    // Load more functionality (placeholder)
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function() {
+            this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Loading...';
+            this.disabled = true;
+            // Simulate loading
+            setTimeout(() => {
+                alert('Load more functionality would be implemented here with pagination.');
+                this.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Load More Photos';
+                this.disabled = false;
+            }, 1000);
+        });
+    }
+
+    // Keyboard navigation for modals
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modals = document.querySelectorAll('.modal.show');
+            modals.forEach(modal => {
+                const modalInstance = bootstrap.Modal.getInstance(modal);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            });
+        }
+    });
+});
+</script>
 {% endblock %}

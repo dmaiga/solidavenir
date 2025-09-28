@@ -1,58 +1,57 @@
-<!-- templates/core/logs_distributions.html -->
 {% extends 'base_admin.html' %}
 {% load static humanize %}
 
-{% block title %}Logs des Distributions - SolidAvenir{% endblock %}
+{% block title %}Distribution Logs - SolidAvenir{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row">
         <div class="col-lg-12">
-            <!-- En-tête -->
+            <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h3 mb-0">
                     <i class="fas fa-history text-primary me-2"></i>
-                    Historique des Distributions
+                    Distribution History
                 </h1>
                 <div>
                     <a href="{% url 'gerer_distributions' %}" class="btn btn-outline-primary me-2">
-                        <i class="fas fa-arrow-left me-2"></i>Retour aux distributions
+                        <i class="fas fa-arrow-left me-2"></i>Back to distributions
                     </a>
                     <a href="{% url 'logs_audit' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-database me-2"></i>Voir tous les logs
+                        <i class="fas fa-database me-2"></i>View all logs
                     </a>
                 </div>
             </div>
 
-            <!-- Filtres -->
+            <!-- Filters -->
             <div class="card mb-4">
                 <div class="card-body">
                     <form method="get" class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label">Type d'action</label>
+                            <label class="form-label">Action Type</label>
                             <select name="action" class="form-select">
-                                <option value="">Toutes les actions</option>
-                                <option value="debut_distribution">Début distribution</option>
-                                <option value="distribution_success">Distribution réussie</option>
-                                <option value="distribution_failed">Échec distribution</option>
+                                <option value="">All actions</option>
+                                <option value="debut_distribution">Distribution started</option>
+                                <option value="distribution_success">Distribution successful</option>
+                                <option value="distribution_failed">Distribution failed</option>
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Statut</label>
+                            <label class="form-label">Status</label>
                             <select name="statut" class="form-select">
-                                <option value="">Tous les statuts</option>
-                                <option value="SUCCESS">Succès</option>
-                                <option value="FAILURE">Échec</option>
+                                <option value="">All statuses</option>
+                                <option value="SUCCESS">Success</option>
+                                <option value="FAILURE">Failure</option>
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">&nbsp;</label>
                             <div>
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-filter me-2"></i>Filtrer
+                                    <i class="fas fa-filter me-2"></i>Filter
                                 </button>
                                 <a href="{% url 'logs_distributions' %}" class="btn btn-outline-secondary ms-2">
-                                    Réinitialiser
+                                    Reset
                                 </a>
                             </div>
                         </div>
@@ -60,7 +59,7 @@
                 </div>
             </div>
 
-            <!-- Tableau des logs -->
+            <!-- Logs table -->
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
@@ -69,11 +68,11 @@
                                 <tr>
                                     <th>Date</th>
                                     <th>Action</th>
-                                    <th>Projet</th>
-                                    <th>Montant</th>
-                                    <th>Utilisateur</th>
-                                    <th>Statut</th>
-                                    <th>Détails</th>
+                                    <th>Project</th>
+                                    <th>Amount</th>
+                                    <th>User</th>
+                                    <th>Status</th>
+                                    <th>Details</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -105,7 +104,7 @@
                                         {% if log.utilisateur %}
                                         {{ log.utilisateur.get_full_name|default:log.utilisateur.email }}
                                         {% else %}
-                                        <span class="text-muted">Système</span>
+                                        <span class="text-muted">System</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -135,7 +134,7 @@
                                 <tr>
                                     <td colspan="7" class="text-center py-4">
                                         <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
-                                        <p class="text-muted">Aucun log de distribution trouvé</p>
+                                        <p class="text-muted">No distribution logs found</p>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -149,7 +148,7 @@
                         <ul class="pagination justify-content-center">
                             {% if logs.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ logs.previous_page_number }}">Précédent</a>
+                                <a class="page-link" href="?page={{ logs.previous_page_number }}">Previous</a>
                             </li>
                             {% endif %}
                             
@@ -161,7 +160,7 @@
                             
                             {% if logs.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ logs.next_page_number }}">Suivant</a>
+                                <a class="page-link" href="?page={{ logs.next_page_number }}">Next</a>
                             </li>
                             {% endif %}
                         </ul>
@@ -176,7 +175,7 @@
 
 {% block extra_js %}
 <script>
-// Fonction pour formater joliment le JSON
+// Function to pretty-print JSON
 function prettyPrintJson(json) {
     if (typeof json === 'string') {
         try {
@@ -188,7 +187,7 @@ function prettyPrintJson(json) {
     return JSON.stringify(json, null, 2);
 }
 
-// Appliquer le formatage à tous les pre
+// Apply formatting to all pre elements
 document.querySelectorAll('pre').forEach(pre => {
     pre.textContent = prettyPrintJson(pre.textContent);
 });

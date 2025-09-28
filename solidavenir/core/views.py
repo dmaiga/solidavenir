@@ -930,9 +930,12 @@ def espace_association(request):
     
     # Projets récents (5 derniers)
     projets_recents = projets_association.order_by('-date_creation')[:5]
-    
+    est_membre = False
+    if request.user.is_authenticated:
+        est_membre = association.est_membre(request.user)
     context = {
         'association': association,
+        'est_membre': est_membre,
         'stats': stats,
         'projets_recents': projets_recents,
     }

@@ -1,13 +1,10 @@
-
-<!-- core/projets/projets_utilisateur.html -->
 {% extends 'base.html' %}
 {% load static humanize %}
 {% load custom_filters %}
-{% block title %}Projets de {{ utilisateur.get_full_name|default:utilisateur.username }} - Solid'Avenir{% endblock %}
+{% block title %}Projects of {{ utilisateur.get_full_name|default:utilisateur.username }} - Solid'Avenir{% endblock %}
 
 {% block content %}
 <style>
-  
 .stat-number {
     font-weight: bold;
 }
@@ -43,19 +40,19 @@
     background: transparent;
 }
 
-
 .nav-tabs .nav-link:hover {
     border-bottom-color: #dee2e6;
 }
 </style> 
+
 <div class="container my-5">
-    <!-- En-tête du profil -->
+    <!-- Profile Header -->
     <div class="row mb-5">
         <div class="col-md-8 mx-auto text-center">
             <div class="d-flex justify-content-center mb-3">
                 {% if utilisateur.photo_profil %}
                     <img src="{{ utilisateur.photo_profil.url }}" 
-                         alt="Photo de {{ utilisateur.get_full_name|default:utilisateur.username }}"
+                         alt="Photo of {{ utilisateur.get_full_name|default:utilisateur.username }}"
                          class="rounded-circle" 
                          style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--primary-color);">
                 {% else %}
@@ -81,7 +78,7 @@
         </div>
     </div>
 
-    <!-- Statistiques -->
+    <!-- Statistics -->
     <div class="row mb-5">
         <div class="col-md-10 mx-auto">
             <div class="card">
@@ -91,25 +88,25 @@
                             <div class="stat-number text-primary fw-bold display-6">
                                 {{ stats.total_projets }}
                             </div>
-                            <div class="stat-label text-muted">Projets créés</div>
+                            <div class="stat-label text-muted">Projects Created</div>
                         </div>
                         <div class="col-md-3 mb-3">
                             <div class="stat-number text-success fw-bold display-6">
                                 {{ stats.total_collecte|floatformat:0|intcomma }}
                             </div>
-                            <div class="stat-label text-muted">FCFA collectés</div>
+                            <div class="stat-label text-muted">FCFA Collected</div>
                         </div>
                         <div class="col-md-3 mb-3">
                             <div class="stat-number text-info fw-bold display-6">
                                 {{ stats.taux_reussite }}%
                             </div>
-                            <div class="stat-label text-muted">Taux de réussite</div>
+                            <div class="stat-label text-muted">Success Rate</div>
                         </div>
                         <div class="col-md-3 mb-3">
                             <div class="stat-number text-warning fw-bold display-6">
                                 {{ stats.projets_actifs }}
                             </div>
-                            <div class="stat-label text-muted">Projets actifs</div>
+                            <div class="stat-label text-muted">Active Projects</div>
                         </div>
                     </div>
                 </div>
@@ -117,35 +114,35 @@
         </div>
     </div>
 
-    <!-- Navigation par onglets -->
+    <!-- Tabs Navigation -->
     <div class="row mb-4">
         <div class="col-12">
             <ul class="nav nav-tabs" id="projetsTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link {% if active_tab == 'all' %}active{% endif %}" 
                             id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
-                        <i class="bi bi-grid me-1"></i> <span style="color:#333">Tous les projets </span>
+                        <i class="bi bi-grid me-1"></i> <span style="color:#333">All Projects</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link {% if active_tab == 'active' %}active{% endif %}" 
                             id="active-tab" data-bs-toggle="tab" data-bs-target="#active" type="button" role="tab">
-                        <i class="bi bi-play-circle me-1"></i><span style="color:#333">Actifs</span>
+                        <i class="bi bi-play-circle me-1"></i><span style="color:#333">Active</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link {% if active_tab == 'completed' %}active{% endif %}" 
                             id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab">
-                        <i class="bi bi-check-circle me-1"></i><span style="color:#333">Terminés</span>
+                        <i class="bi bi-check-circle me-1"></i><span style="color:#333">Completed</span>
                     </button>
                 </li>
             </ul>
         </div>
     </div>
 
-    <!-- Contenu des onglets -->
+    <!-- Tabs Content -->
     <div class="tab-content" id="projetsTabsContent">
-        <!-- Tous les projets -->
+        <!-- All Projects -->
         <div class="tab-pane fade {% if active_tab == 'all' %}show active{% endif %}" id="all" role="tabpanel">
             <div class="row">
                 {% for projet in projets %}
@@ -155,77 +152,33 @@
                 {% empty %}
                     <div class="col-12 text-center py-5">
                         <i class="bi bi-inbox display-1 text-muted mb-3"></i>
-                        <h3 class="h4 text-muted">Aucun projet trouvé</h3>
-                        <p class="text-muted">Cet utilisateur n'a pas encore créé de projets publics.</p>
+                        <h3 class="h4 text-muted">No projects found</h3>
+                        <p class="text-muted">This user has not created any public projects yet.</p>
                     </div>
                 {% endfor %}
             </div>
         </div>
 
-        <!-- Projets actifs -->
+        <!-- Active Projects -->
         <div class="tab-pane fade {% if active_tab == 'active' %}show active{% endif %}" id="active" role="tabpanel">
             <div class="row">
                 {% for projet in projets %}
                     {% if projet.statut == 'actif' %}
                         <div class="col-lg-4 col-md-6 mb-4">
-                           
-<div class="card projet-card h-100">
-    {% if projet.cover_image %}
-        <img src="{{ projet.cover_image.url }}" class="card-img-top" alt="{{ projet.titre }}" 
-             style="height: 200px; object-fit: cover;">
-    {% else %}
-        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
-             style="height: 200px;">
-            <i class="bi bi-image text-muted display-4"></i>
-        </div>
-    {% endif %}
-    
-    <div class="card-body d-flex flex-column">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-            <span class="badge bg-{{ projet.statut }}">
-    {{ projet.statut }}
-</span>
-            <small class="text-muted">{{ projet.date_creation|date:"d/m/Y" }}</small>
-        </div>
-        
-        <h5 class="card-title">{{ projet.titre }}</h5>
-        <p class="card-text flex-grow-1">{{ projet.description_courte|truncatewords:20 }}</p>
-        
-        <!-- Barre de progression -->
-        <div class="mb-3">
-            <div class="d-flex justify-content-between small text-muted mb-1">
-                <span>{{ projet.pourcentage_financement }}% financé</span>
-                <span>{{ projet.jours_restants }} jours restants</span>
-            </div>
-            <div class="progress" style="height: 8px;">
-                <div class="progress-bar bg-success" style="width: {{ projet.pourcentage_financement }}%"></div>
-            </div>
-        </div>
-        
-        <!-- Montants -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <strong class="text-primary">{{ projet.montant_collecte|floatformat:0|intcomma }} FCFA</strong>
-            <span class="text-muted">sur {{ projet.montant_demande|floatformat:0|intcomma }} FCFA</span>
-        </div>
-        
-        <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-primary mt-auto">
-            Voir le projet
-        </a>
-    </div>
-</div>
+                            {% include 'core/projets/card_projet.html' with projet=projet %}
                         </div>
                     {% endif %}
                 {% empty %}
                     <div class="col-12 text-center py-5">
                         <i class="bi bi-play-circle display-1 text-muted mb-3"></i>
-                        <h3 class="h4 text-muted">Aucun projet actif</h3>
-                        <p class="text-muted">Cet utilisateur n'a pas de projets en cours de financement.</p>
+                        <h3 class="h4 text-muted">No active projects</h3>
+                        <p class="text-muted">This user has no projects currently in funding.</p>
                     </div>
                 {% endfor %}
             </div>
         </div>
 
-        <!-- Projets terminés -->
+        <!-- Completed Projects -->
         <div class="tab-pane fade {% if active_tab == 'completed' %}show active{% endif %}" id="completed" role="tabpanel">
             <div class="row">
                 {% for projet in projets %}
@@ -237,25 +190,24 @@
                 {% empty %}
                     <div class="col-12 text-center py-5">
                         <i class="bi bi-check-circle display-1 text-muted mb-3"></i>
-                        <h3 class="h4 text-muted">Aucun projet terminé</h3>
-                        <p class="text-muted">Cet utilisateur n'a pas encore terminé de projets.</p>
+                        <h3 class="h4 text-muted">No completed projects</h3>
+                        <p class="text-muted">This user has not completed any projects yet.</p>
                     </div>
                 {% endfor %}
             </div>
         </div>
     </div>
 
-    <!-- Bouton de retour -->
+    <!-- Back Button -->
     <div class="row mt-5">
         <div class="col-12 text-center">
             <a href="{% url 'liste_projets' %}" class="btn btn-outline-primary">
-            
-                <i class="bi bi-arrow-left me-1"></i>Retour aux projets
+                <i class="bi bi-arrow-left me-1"></i>Back to projects
             </a>
             
             {% if user.is_authenticated and user != utilisateur %}
                 <a href="#" class="btn btn-primary ms-2">
-                    <i class="bi bi-envelope me-1"></i>Contacter {{ utilisateur.first_name }}
+                    <i class="bi bi-envelope me-1"></i>Contact {{ utilisateur.first_name }}
                 </a>
             {% endif %}
         </div>
@@ -266,13 +218,13 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Activation des onglets
+    // Activate tabs
     const triggerTabList = document.querySelectorAll('#projetsTabs button')
     triggerTabList.forEach(triggerEl => {
         new bootstrap.Tab(triggerEl)
     })
     
-    // Filtrage en temps réel (optionnel)
+    // Optional real-time filtering
     const searchInput = document.getElementById('projetSearch');
     if (searchInput) {
         searchInput.addEventListener('input', function() {

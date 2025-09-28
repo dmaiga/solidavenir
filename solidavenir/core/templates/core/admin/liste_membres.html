@@ -7,23 +7,23 @@
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
-            <!-- En-tête avec titre et bouton d'export -->
+            <!-- Header with title and export button -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h3 mb-0">{{ title }}</h1>
                 <div>
                     <a href="{% url 'liste_membres' %}?export=csv" class="btn btn-outline-primary">
-                        <i class="bi bi-download me-1"></i>Exporter CSV
+                        <i class="bi bi-download me-1"></i>Export CSV
                     </a>
                 </div>
             </div>
 
-            <!-- Statistiques -->
+            <!-- Statistics -->
             <div class="row mb-4">
                 <div class="col-xl-2 col-md-4 mb-3">
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
                             <h2 class="text-primary mb-1">{{ stats.total|intcomma }}</h2>
-                            <p class="text-muted mb-0">Total membres</p>
+                            <p class="text-muted mb-0">Total members</p>
                         </div>
                     </div>
                 </div>
@@ -31,7 +31,7 @@
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
                             <h2 class="text-success mb-1">{{ stats.porteurs|intcomma }}</h2>
-                            <p class="text-muted mb-0">Porteurs</p>
+                            <p class="text-muted mb-0">Project Owners</p>
                         </div>
                     </div>
                 </div>
@@ -39,7 +39,7 @@
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
                             <h2 class="text-info mb-1">{{ stats.donateurs|intcomma }}</h2>
-                            <p class="text-muted mb-0">Donateurs</p>
+                            <p class="text-muted mb-0">Donors</p>
                         </div>
                     </div>
                 </div>
@@ -55,7 +55,7 @@
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
                             <h2 class="text-danger mb-1">{{ stats.investisseur|intcomma }}</h2>
-                            <p class="text-muted mb-0">Investisseurs</p>
+                            <p class="text-muted mb-0">Investors</p>
                         </div>
                     </div>
                 </div>
@@ -63,21 +63,21 @@
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
                             <h2 class="text-success mb-1">{{ stats.actifs|intcomma }}</h2>
-                            <p class="text-muted mb-0">Comptes actifs</p>
+                            <p class="text-muted mb-0">Active accounts</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Carte principale -->
+            <!-- Main card -->
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
                     <h5 class="card-title mb-0">
-                        <i class="bi bi-filter me-2"></i>Filtres et recherche
+                        <i class="bi bi-filter me-2"></i>Filters and Search
                     </h5>
                 </div>
                 <div class="card-body">
-                    <!-- Formulaire de filtres -->
+                    <!-- Filters form -->
                     <form method="get" class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label fw-bold">{{ form.user_type.label }}</label>
@@ -101,21 +101,21 @@
                         </div>
                         <div class="col-12">
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-funnel me-1"></i>Appliquer les filtres
+                                <i class="bi bi-funnel me-1"></i>Apply Filters
                             </button>
                             <a href="{% url 'liste_membres' %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-clockwise me-1"></i>Réinitialiser
+                                <i class="bi bi-arrow-clockwise me-1"></i>Reset
                             </a>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- Carte des résultats -->
+            <!-- Results card -->
             <div class="card shadow-sm mt-4">
                 <div class="card-header bg-light">
                     <h5 class="card-title mb-0">
-                        <i class="bi bi-people me-2"></i>Liste des membres
+                        <i class="bi bi-people me-2"></i>Members List
                         <span class="badge bg-primary ms-2">{{ membres.paginator.count }}</span>
                     </h5>
                 </div>
@@ -124,11 +124,11 @@
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Nom complet</th>
+                                    <th>Full Name</th>
                                     <th>Email</th>
                                     <th>Type</th>
-                                    <th>Inscription</th>
-                                    <th>Statut</th>
+                                    <th>Registration</th>
+                                    <th>Status</th>
                                     <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
@@ -164,14 +164,14 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <small>{{ membre.date_joined|date:"d/m/Y" }}</small>
+                                        <small>{{ membre.date_joined|date:"m/d/Y" }}</small>
                                         <br>
-                                        <small class="text-muted">{{ membre.date_joined|timesince }}</small>
+                                        <small class="text-muted">{{ membre.date_joined|timesince }} ago</small>
                                     </td>
                                     <td>
                                         <span class="badge {% if membre.is_active %}bg-success{% else %}bg-danger{% endif %}">
                                             <i class="bi {% if membre.is_active %}bi-check-circle{% else %}bi-x-circle{% endif %} me-1"></i>
-                                            {{ membre.is_active|yesno:"Actif,Inactif" }}
+                                            {{ membre.is_active|yesno:"Active,Inactive" }}
                                         </span>
                                     </td>
                                     <td class="text-end">
@@ -191,9 +191,9 @@
                                 <tr>
                                     <td colspan="6" class="text-center py-5">
                                         <i class="bi bi-people display-4 text-muted d-block mb-3"></i>
-                                        <p class="text-muted">Aucun membre ne correspond à vos critères de recherche</p>
+                                        <p class="text-muted">No members match your search criteria</p>
                                         <a href="{% url 'liste_membres' %}" class="btn btn-primary">
-                                            Réinitialiser les filtres
+                                            Reset Filters
                                         </a>
                                     </td>
                                 </tr>
@@ -206,7 +206,7 @@
                 <!-- Pagination -->
                 {% if membres.has_other_pages %}
                 <div class="card-footer">
-                    <nav aria-label="Navigation des pages">
+                    <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center mb-0">
                             {% if membres.has_previous %}
                             <li class="page-item">
@@ -247,14 +247,14 @@
 
 {% block extra_js %}
 <script>
-// Script pour améliorer l'expérience utilisateur
+// Script to enhance user experience
 document.addEventListener('DOMContentLoaded', function() {
-    // Mise à jour automatique des statistiques lors du filtrage
+    // Automatic statistics update when filtering
     const updateStats = function() {
-        // Ici vous pourriez ajouter une requête AJAX pour mettre à jour les stats en temps réel
+        // Here you could add an AJAX request to update stats in real time
     };
     
-    // Écouter les changements sur les filtres
+    // Listen to filter changes
     document.querySelectorAll('select, input').forEach(element => {
         element.addEventListener('change', updateStats);
     });

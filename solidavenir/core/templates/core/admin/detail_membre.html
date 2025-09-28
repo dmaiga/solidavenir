@@ -11,19 +11,19 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{% url 'tableau_de_bord' %}">Administration</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'liste_membres' %}">Membres</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Profil</li>
+                    <li class="breadcrumb-item"><a href="{% url 'liste_membres' %}">Members</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Profile</li>
                 </ol>
             </nav>
         </div>
     </div>
 
     <div class="row">
-        <!-- Informations du membre -->
+        <!-- Member Information -->
         <div class="col-md-4 mb-4">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">Informations personnelles</h5>
+                    <h5 class="card-title mb-0">Personal Information</h5>
                 </div>
                 <div class="card-body">
                     <div class="text-center mb-3">
@@ -34,43 +34,43 @@
                     <h5 class="card-title">{{ membre.get_full_name|default:membre.username }}</h5>
                     <p class="card-text">
                         <strong>Email:</strong> {{ membre.email }}<br>
-                        <strong>Date d'inscription:</strong> {{ membre.date_joined|date:"d/m/Y" }}<br>
-                        <strong>Dernière connexion:</strong> {{ membre.last_login|date:"d/m/Y H:i"|default:"Jamais" }}<br>
-                        <strong>Statut:</strong> 
+                        <strong>Registration Date:</strong> {{ membre.date_joined|date:"m/d/Y" }}<br>
+                        <strong>Last Login:</strong> {{ membre.last_login|date:"m/d/Y H:i"|default:"Never" }}<br>
+                        <strong>Status:</strong> 
                         <span class="badge {% if membre.is_active %}bg-success{% else %}bg-danger{% endif %}">
-                            {% if membre.is_active %}Actif{% else %}Inactif{% endif %}
+                            {% if membre.is_active %}Active{% else %}Inactive{% endif %}
                         </span>
                     </p>
                     
                     <div class="mt-3">
-                        <h6>Rôles:</h6>
+                        <h6>Roles:</h6>
                         {% if membre.is_porteur %}
-                        <span class="badge bg-info me-1">Porteur de projet</span>
+                        <span class="badge bg-info me-1">Project Owner</span>
                         {% endif %}
                         {% if membre.is_donateur %}
-                        <span class="badge bg-warning me-1">Donateur</span>
+                        <span class="badge bg-warning me-1">Donor</span>
                         {% endif %}
                         {% if membre.is_admin %}
-                        <span class="badge bg-danger">Administrateur</span>
+                        <span class="badge bg-danger">Administrator</span>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Statistiques -->
+        <!-- Statistics -->
         <div class="col-md-8">
             <div class="row">
                 {% if membre.is_porteur %}
                 <div class="col-md-6 mb-4">
                     <div class="card shadow-sm border-primary">
                         <div class="card-header bg-primary text-white">
-                            <h5 class="card-title mb-0">Statistiques Porteur</h5>
+                            <h5 class="card-title mb-0">Project Owner Statistics</h5>
                         </div>
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
-                                    <h6 class="card-subtitle mb-1 text-muted">Projets créés</h6>
+                                    <h6 class="card-subtitle mb-1 text-muted">Projects Created</h6>
                                     <h3 class="mb-0">{{ stats.projets_crees|default:0 }}</h3>
                                 </div>
                                 <div class="text-primary">
@@ -79,7 +79,7 @@
                             </div>
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
-                                    <h6 class="card-subtitle mb-1 text-muted">Projets actifs</h6>
+                                    <h6 class="card-subtitle mb-1 text-muted">Active Projects</h6>
                                     <h3 class="mb-0">{{ stats.projets_actifs|default:0 }}</h3>
                                 </div>
                                 <div class="text-success">
@@ -88,7 +88,7 @@
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="card-subtitle mb-1 text-muted">Montant collecté</h6>
+                                    <h6 class="card-subtitle mb-1 text-muted">Amount Raised</h6>
                                     <h3 class="mb-0">{{ stats.montant_collecte|default:0 }} ℏ HBAR</h3>
                                 </div>
                                 <div class="text-warning">
@@ -104,12 +104,12 @@
                 <div class="col-md-6 mb-4">
                     <div class="card shadow-sm border-warning">
                         <div class="card-header bg-warning text-dark">
-                            <h5 class="card-title mb-0">Statistiques Donateur</h5>
+                            <h5 class="card-title mb-0">Donor Statistics</h5>
                         </div>
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
-                                    <h6 class="card-subtitle mb-1 text-muted">Dons effectués</h6>
+                                    <h6 class="card-subtitle mb-1 text-muted">Donations Made</h6>
                                     <h3 class="mb-0">{{ stats.dons_total|default:0 }}</h3>
                                 </div>
                                 <div class="text-info">
@@ -118,7 +118,7 @@
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="card-subtitle mb-1 text-muted">Montant total donné</h6>
+                                    <h6 class="card-subtitle mb-1 text-muted">Total Amount Donated</h6>
                                     <h3 class="mb-0">{{ stats.montant_donne|default:0 }} ℏ HBAR</h3>
                                 </div>
                                 <div class="text-success">
@@ -131,27 +131,27 @@
                 {% endif %}
             </div>
 
-            <!-- Actions administratives -->
+            <!-- Administrative Actions -->
             <div class="card shadow-sm mt-4">
                 <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">Actions administratives</h5>
+                    <h5 class="card-title mb-0">Administrative Actions</h5>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2 d-md-flex">
                         <a href="mailto:{{ membre.email }}" class="btn btn-outline-primary me-md-2">
-                            <i class="fas fa-envelope me-1"></i> Envoyer un email
+                            <i class="fas fa-envelope me-1"></i> Send Email
                         </a>
                         {% if membre.is_active %}
                         <a href="#" class="btn btn-outline-danger me-md-2">
-                            <i class="fas fa-user-slash me-1"></i> Désactiver le compte
+                            <i class="fas fa-user-slash me-1"></i> Deactivate Account
                         </a>
                         {% else %}
                         <a href="#" class="btn btn-outline-success me-md-2">
-                            <i class="fas fa-user-check me-1"></i> Activer le compte
+                            <i class="fas fa-user-check me-1"></i> Activate Account
                         </a>
                         {% endif %}
                         <a href="#" class="btn btn-outline-secondary">
-                            <i class="fas fa-history me-1"></i> Voir l'historique
+                            <i class="fas fa-history me-1"></i> View History
                         </a>
                     </div>
                 </div>

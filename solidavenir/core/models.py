@@ -125,26 +125,26 @@ def convert_fcfa_to_hbar(fcfa_amount):
 
 class User(AbstractUser):
     USER_TYPES = (
-        ('admin', 'Administrateur'),
-        ('porteur', 'Porteur de Projet'),
-        ('donateur', 'Donateur/Philanthrope'),
-        ('investisseur', 'Investisseur'),
-        ('association', 'Association/ONG'),
+        ('admin', 'Administrator'),
+        ('porteur', 'Project Owner'),
+        ('donateur', 'Donor/Philanthropist'),
+        ('investisseur', 'Investor'),
+        ('association', 'Association/NGO'),
     )
     
     FINANCEMENT_CHOICES = (
-        ('don', 'Don pur'),
-        ('pret', 'Prêt'),
-        ('equity', 'Investissement en equity'),
-        ('mixte', 'Financement mixte'),
-        ('autre', 'Autre type de financement'),
+        ('don', 'Pure Donation'),
+        ('pret', 'Loan'),
+        ('equity', 'Equity Investment'),
+        ('mixte', 'Mixed Financing'),
+        ('autre', 'Other Financing Type'),
     )
     
     GENRE_CHOICES = (
-        ('homme', 'Homme'),
-        ('femme', 'Femme'),
-        ('autre', 'Autre'),
-        ('non_specifie', 'Non spécifié'),
+        ('homme', 'Male'),
+        ('femme', 'Female'),
+        ('autre', 'Other'),
+        ('non_specifie', 'Unspecified'),
     )
     
     user_type = models.CharField(max_length=15, choices=USER_TYPES, default='porteur')
@@ -398,7 +398,7 @@ class User(AbstractUser):
                 # Appeler le service Node.js pour créer un wallet
                 response = requests.post(
                     'http://localhost:3001/create-wallet',
-                    json={'initialBalance': 50},
+                    json={'initialBalance': 10},
                     timeout=10
                 )
                 
@@ -1068,22 +1068,23 @@ class Association(models.Model):
     transparency commitments, and metadata for validation and publication.
     """
     DOMAINES_ACTION = (
-        ('education', 'Éducation'),
-        ('sante', 'Santé'),
-        ('environnement', 'Environnement'),
-        ('droits_humains', 'Droits humains'),
-        ('developpement', 'Développement communautaire'),
+        ('education', 'Education'),
+        ('sante', 'Health'),
+        ('environnement', 'Environment'),
+        ('droits_humains', 'Human Rights'),
+        ('developpement', 'Community Development'),
         ('culture', 'Culture'),
-        ('urgence', 'Aide humanitaire'),
-        ('autre', 'Autre'),
+        ('urgence', 'Humanitarian Aid'),
+        ('autre', 'Other'),
     )
     
     STATUT_JURIDIQUE_CHOICES = (
         ('association', 'Association'),
-        ('ong', 'ONG'),
-        ('fondation', 'Fondation'),
-        ('autre', 'Autre statut'),
+        ('ong', 'NGO'),
+        ('fondation', 'Foundation'),
+        ('autre', 'Other Status'),
     )
+    
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='association_profile')
     

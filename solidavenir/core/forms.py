@@ -27,6 +27,42 @@ from django_summernote.widgets import SummernoteWidget
 from decimal import Decimal
 from .models import Projet
 
+from django import forms
+from .models import User
+from django.core.validators import FileExtensionValidator
+
+
+# forms.py
+import random
+from django import forms
+from django.core.exceptions import ValidationError
+import random
+from django import forms
+from django.core.exceptions import ValidationError
+
+    
+
+from django import forms
+from .models import User
+
+
+
+
+from django import forms
+from .models import EmailLog
+
+from django import forms
+from .models import ContactSubmission
+import random
+from django import forms
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
+
+from django import forms
+from django.utils.html import format_html
+
+
+
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
@@ -56,19 +92,31 @@ class MultiFileInput(forms.ClearableFileInput):
         if hasattr(files, 'getlist'):
             return files.getlist(name)
         return None
-    
+
 class InscriptionFormSimplifiee(UserCreationForm):
+    """
+    Simplified registration form for creating users without admin access.
+
+    Supports the following user types:
+    - Project Owner ('porteur')
+    - Donor/Philanthropist ('donateur')
+    - Investor ('investisseur')
+    - Association/NGO ('association')
+
+    Handles optional association name field and GDPR consent.
+    Automatically generates a unique username based on first name, last name, or email.
+    """
     # Types d'utilisateurs sans admin
     USER_TYPES_WITHOUT_ADMIN = [
-        ('porteur', 'Porteur de Projet'),
-        ('donateur', 'Donateur/Philanthrope'),
-        ('investisseur', 'Investisseur'),
-        ('association', 'Association/ONG'),
+        ('porteur', 'Project Owner'),
+        ('donateur', 'Donor/Philanthropist'),
+        ('investisseur', 'Investor'),
+        ('association', 'Association/NGO'),
     ]
     
     user_type = forms.ChoiceField(
         choices=USER_TYPES_WITHOUT_ADMIN, 
-        label="Je suis",
+        label="I am",
         widget=forms.Select(attrs={
             'class': 'form-control', 
             'onchange': "showRelevantFields()",
@@ -82,27 +130,27 @@ class InscriptionFormSimplifiee(UserCreationForm):
         label="Email",
         widget=forms.EmailInput(attrs={
             'class': 'form-control', 
-            'placeholder': 'votre.email@exemple.com'
+            'placeholder': 'your.email@example.com'
         })
     )
     
     first_name = forms.CharField(
         max_length=30, 
         required=False, 
-        label="Prénom",
+        label="First Name",
         widget=forms.TextInput(attrs={
             'class': 'form-control', 
-            'placeholder': 'Votre prénom'
+            'placeholder': 'Your first name'
         })
     )
     
     last_name = forms.CharField(
         max_length=30, 
         required=False, 
-        label="Nom",
+        label="Last Name",
         widget=forms.TextInput(attrs={
             'class': 'form-control', 
-            'placeholder': 'Votre nom'
+            'placeholder': 'Your last name'
         })
     )
     
@@ -110,17 +158,17 @@ class InscriptionFormSimplifiee(UserCreationForm):
     nom_association = forms.CharField(
         max_length=200, 
         required=False, 
-        label="Nom de votre association",
+        label="Your association name",
         widget=forms.TextInput(attrs={
             'class': 'form-control', 
-            'placeholder': 'Ex: Association pour le développement durable',
+            'placeholder': 'Ex: Association for Sustainable Development',
             
         })
     )
     
     consentement_rgpd = forms.BooleanField(
         required=True, 
-        label="J'accepte les conditions d'utilisation et la politique de confidentialité",
+        label="I accept the terms of use and privacy policy",
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
     
@@ -131,25 +179,25 @@ class InscriptionFormSimplifiee(UserCreationForm):
             'username': forms.HiddenInput(),
             'password1': forms.PasswordInput(attrs={
                 'class': 'form-control', 
-                'placeholder': 'Créez un mot de passe sécurisé'
+                'placeholder': 'Create a secure password'
             }),
             'password2': forms.PasswordInput(attrs={
                 'class': 'form-control', 
-                'placeholder': 'Confirmez votre mot de passe'
+                'placeholder': 'Confirm your password'
             }),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Personnalisation des labels
-        self.fields['password1'].label = "Mot de passe"
-        self.fields['password2'].label = "Confirmation du mot de passe"
+        self.fields['password1'].label = "Password"
+        self.fields['password2'].label = "Password Confirmation"
         
         # Génération automatique du username
         self.fields['username'].required = False
         
         # Aide contextuelle
-        self.fields['password1'].help_text = "Utilisez au moins 8 caractères avec des lettres, chiffres et symboles"
+        self.fields['password1'].help_text = "Use at least 8 characters with letters, numbers and symbols"
         
         # Afficher le champ nom_association seulement si le type est association
         if 'user_type' in self.data:
@@ -165,14 +213,14 @@ class InscriptionFormSimplifiee(UserCreationForm):
         
         # Validation spécifique pour les associations
         if user_type == 'association' and not nom_association:
-            self.add_error('nom_association', "Le nom de l'association est requis pour ce type de compte.")
+            self.add_error('nom_association', "Association name is required for this account type.")
         
         return cleaned_data
     
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
-            raise ValidationError("Un compte existe déjà avec cette adresse email.")
+            raise ValidationError("An account already exists with this email address.")
         return email
      
     def generate_username(self, first_name, last_name, email):
@@ -229,17 +277,13 @@ class InscriptionFormSimplifiee(UserCreationForm):
                         user=user,
                         nom=nom_association or f"Association {user.username}",
                         domaine_principal='autre',
-                        causes_defendues="Causes à définir",
-                        statut_juridique='association', 
-                        adresse_siege="Adresse à compléter",
-                        ville="Bamako", 
-                        code_postal="00000",
-                        telephone="0000000000",
+                        
                         email_contact=user.email,
                         date_creation=timezone.now().date()
                     )
 
         return user
+    
 
 
 #
@@ -247,6 +291,21 @@ class InscriptionFormSimplifiee(UserCreationForm):
 #
 from .models import Association,AssociationImage
 class AssociationForm(forms.ModelForm):
+    """
+    Form for editing an Association profile.
+
+    Allows updating key information such as:
+    - Basic information (name, slogan, short/long description)
+    - Visuals (logo, cover image)
+    - Main and secondary domains, causes supported
+    - Legal status, registration number, creation date, approval date
+    - Contact information and social media links
+    - Key figures (members, beneficiaries)
+    - Projects, ongoing actions, partnerships
+    - Transparency indicators for finances and actions
+
+    All fields are optional, with placeholders and help texts to guide users.
+    """
     """Formulaire pour la modification du profil association"""
     
     class Meta:
@@ -265,37 +324,38 @@ class AssociationForm(forms.ModelForm):
             'description_courte': forms.Textarea(attrs={
                 'rows': 3, 
                 'class': 'form-control',
-                'placeholder': 'Description brève de votre association (200 caractères max)'
+                'placeholder': 'Brief description of your association (max 200 characters)'
             }),
             'description_longue': forms.Textarea(attrs={
                 'rows': 5, 
                 'class': 'form-control',
-                'placeholder': 'Description détaillée de votre association'
-            }),
+                'placeholder': 'Detailed description of your association'
+             }),
             'causes_defendues': forms.Textarea(attrs={
                 'rows': 3, 
                 'class': 'form-control',
-                'placeholder': 'Les causes que vous défendez'
+                'placeholder': 'Causes you support'
+
             }),
             'adresse_siege': forms.Textarea(attrs={
                 'rows': 2, 
                 'class': 'form-control',
-                'placeholder': 'Adresse complète du siège social'
+                'placeholder':'Full address of the head office'
             }),
             'projets_phares': forms.Textarea(attrs={
                 'rows': 3, 
                 'class': 'form-control',
-                'placeholder': 'Vos projets les plus importants'
+                'placeholder': 'Your main projects'
             }),
             'actions_en_cours': forms.Textarea(attrs={
                 'rows': 3, 
                 'class': 'form-control',
-                'placeholder': 'Vos actions actuelles'
+                'placeholder': 'Current actions'
             }),
             'partenariats': forms.Textarea(attrs={
                 'rows': 2, 
                 'class': 'form-control',
-                'placeholder': 'Vos principaux partenaires'
+                'placeholder': 'Your main partners'
             }),
             'date_creation_association': forms.DateInput(attrs={
                 'type': 'date', 
@@ -308,6 +368,15 @@ class AssociationForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
+        """
+        Initialize the form.
+
+        - Makes all fields optional.
+        - Adds Bootstrap classes for styling.
+        - Sets placeholders for numeric and URL fields.
+        - Adds help texts for transparency fields.
+        - Reorders fields for logical grouping.
+        """
         super().__init__(*args, **kwargs)
         
         # Rendre tous les champs optionnels
@@ -321,20 +390,19 @@ class AssociationForm(forms.ModelForm):
         self.fields['cover_image'].widget.attrs['class'] = 'form-control'
         
         # Textes d'aide conviviaux
-        self.fields['transparent_finances'].help_text = "Partager nos informations financières nous aide à gagner la confiance des donateurs"
-        self.fields['transparent_actions'].help_text = "Montrer nos actions concrètes permet de mieux nous faire connaître"
-        
+        self.fields['transparent_finances'].help_text =   "Sharing financial information helps gain donor trust."
+        self.fields['transparent_actions'].help_text =   "Showing concrete actions helps increase visibility."
         # Placeholders pour les champs numériques
-        self.fields['nombre_adherents'].widget.attrs['placeholder'] = 'Nombre approximatif'
-        self.fields['nombre_beneficiaires'].widget.attrs['placeholder'] = 'Nombre approximatif'
+        self.fields['nombre_adherents'].widget.attrs['placeholder'] = 'Approximate number'
+        self.fields['nombre_beneficiaires'].widget.attrs['placeholder'] = 'Approximate number'
         
         # Placeholders pour les URLs
-        self.fields['site_web'].widget.attrs['placeholder'] = 'https://votre-site.org'
-        self.fields['facebook'].widget.attrs['placeholder'] = 'https://facebook.com/votre-page'
-        self.fields['twitter'].widget.attrs['placeholder'] = 'https://twitter.com/votre-compte'
-        self.fields['instagram'].widget.attrs['placeholder'] = 'https://instagram.com/votre-compte'
-        self.fields['linkedin'].widget.attrs['placeholder'] = 'https://linkedin.com/company/votre-entreprise'
-        self.fields['youtube'].widget.attrs['placeholder'] = 'https://youtube.com/c/votre-chaine'
+        self.fields['site_web'].widget.attrs['placeholder'] = 'https://your-site.org'
+        self.fields['facebook'].widget.attrs['placeholder'] = 'https://facebook.com/your-page'
+        self.fields['twitter'].widget.attrs['placeholder'] = 'https://twitter.com/your-account'
+        self.fields['instagram'].widget.attrs['placeholder'] = 'https://instagram.com/your-account'
+        self.fields['linkedin'].widget.attrs['placeholder'] = 'https://linkedin.com/company/your-company'
+        self.fields['youtube'].widget.attrs['placeholder'] = 'https://youtube.com/c/your-channel'
         
         # Réorganiser l'ordre des champs de manière logique
         self.order_fields([
@@ -365,14 +433,28 @@ class AssociationForm(forms.ModelForm):
 
 class AssociationImageForm(forms.ModelForm):
     """
+       
+    Simplified form for uploading an image associated with an Association.
+
+    This form only includes the 'image' field, allowing users to upload
+    a single image without additional metadata or fields.
+ 
     Formulaire ultra-simplifié pour l'upload d'images
     """
     class Meta:
         model = AssociationImage
         fields = ['image']
 
+
 class ProfilUtilisateurForm(forms.ModelForm):
-    """Formulaire de modification du profil utilisateur avec photo"""
+    """
+    User profile update form including profile picture.
+
+    Allows users to update personal information such as name, email,
+    contact details, biography, social media links, and newsletter preference.
+    Also supports uploading a profile picture with size and format validation.
+    
+    Formulaire de modification du profil utilisateur avec photo"""
     
     class Meta:
         model = User
@@ -384,29 +466,36 @@ class ProfilUtilisateurForm(forms.ModelForm):
         ]
         widgets = {
             'date_naissance': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'bio': forms.Textarea(attrs={'rows': 4, 'class': 'form-control', 'placeholder': 'Parlez-nous un peu de vous...'}),
+            'bio': forms.Textarea(attrs={'rows': 4, 'class': 'form-control', 'placeholder': 'Tell us a bit about yourself...' }),
             'photo_profil': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         }
         labels = {
-            'photo_profil': 'Photo de profil',
-            'site_web_perso': 'Site web personnel',
-            'newsletter': 'Recevoir la newsletter',
+            'photo_profil': 'Profile Picture',
+            'site_web_perso': 'Personal Website',
+            'newsletter': 'Subscribe to newsletter',
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
         # Personnaliser les help texts
-        self.fields['photo_profil'].help_text = "Image carrée recommandée (JPG, PNG, max 5 Mo)"
-        self.fields['bio'].help_text = "Une brève description de vous-même (optionnel)"
-        self.fields['date_naissance'].help_text = "Format: JJ/MM/AAAA"
+        self.fields['photo_profil'].help_text = "Recommended square image (JPG, PNG, max 5 MB)"
+        self.fields['bio'].help_text = "A brief description about yourself (optional)"
+        self.fields['date_naissance'].help_text = "Format: DD/MM/YYYY" 
         
         # Ajouter des classes Bootstrap à tous les champs
+        
         for field_name, field in self.fields.items():
             if field_name != 'photo_profil':  # Le champ fichier a déjà une classe
                 field.widget.attrs['class'] = field.widget.attrs.get('class', '') + ' form-control'
     
     def clean_photo_profil(self):
+        """
+        Validates the uploaded profile picture.
+
+        Checks that the file size does not exceed 5 MB and that the file format
+        is among the allowed image types (JPG, PNG, GIF).
+        """
         photo = self.cleaned_data.get('photo_profil')
         if photo:
             # Vérifier la taille (5 Mo max)
@@ -417,27 +506,39 @@ class ProfilUtilisateurForm(forms.ModelForm):
             valid_extensions = ['jpg', 'jpeg', 'png', 'gif']
             extension = photo.name.split('.')[-1].lower()
             if extension not in valid_extensions:
-                raise forms.ValidationError("Format d'image non supporté. Utilisez JPG, PNG ou GIF.")
+                raise forms.ValidationError("Unsupported image format. Use JPG, PNG, or GIF.")
         
         return photo
     
     def clean_date_naissance(self):
+        """
+        Validates the user's date of birth.
+
+        Ensures that the user is at least 13 years old to use the platform.
+        """
         date_naissance = self.cleaned_data.get('date_naissance')
         if date_naissance:
             from datetime import date
             # Vérifier que l'utilisateur a au moins 13 ans
             age_minimum = date.today().year - date_naissance.year
             if age_minimum < 13:
-                raise forms.ValidationError("Vous devez avoir au moins 13 ans pour utiliser cette plateforme.")
+                raise forms.ValidationError("You must be at least 13 years old to use this platform.")
         return date_naissance
+    
 
 class ValidationProjetForm(forms.ModelForm):
+    """
+    Form for project validation by administrators.
+
+    Allows admins to set the project status to either 'Active' or 'Rejected'.
+    Includes an optional validation comment, which becomes mandatory if the project is rejected.
+    """
     # Formulaire pour la validation des projets par les administrateurs
     commentaire_validation = forms.CharField(
         widget=forms.Textarea(attrs={'rows': 3}),
         required=False,
-        label="Commentaire de validation",
-        help_text="Commentaire optionnel sur la validation du projet"
+        label="Validation Comment",
+        help_text="Optional comment regarding the project validation"
     )
     
     class Meta:
@@ -445,14 +546,20 @@ class ValidationProjetForm(forms.ModelForm):
         fields = ['statut']  # On ne montre que le statut pour la validation
     
     def clean(self):
+        """
+        Ensures that a comment is provided when the project is rejected.
+        """
         cleaned_data = super().clean()
         statut = cleaned_data.get("statut")
         commentaire = cleaned_data.get("commentaire_validation")
         if statut == 'rejete' and not commentaire:
-            raise ValidationError("Un commentaire est obligatoire en cas de rejet.")
+            raise ValidationError("A comment is required when rejecting a project.")
         return cleaned_data
 
     def __init__(self, *args, **kwargs):
+        """
+        Initializes the form and restricts the status choices for validation purposes.
+        """
         super().__init__(*args, **kwargs)
         # Limiter les choix de statut pour la validation
         self.fields['statut'].choices = [
@@ -463,18 +570,24 @@ class ValidationProjetForm(forms.ModelForm):
 
 
 class AdminCreationForm(UserCreationForm):
+    """
+    Form for creating administrator accounts.
+
+    This form is intended for use in the admin panel or backoffice.
+    Includes fields for department and administrator role, in addition to basic user info.
+    """
     """Formulaire pour créer des administrateurs (à utiliser dans l'admin ou backoffice)"""
     
     departement = forms.CharField(
         max_length=100, 
         required=True, 
-        label="Département",
+        label="Department",
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
     role_admin = forms.CharField(
         max_length=100, 
         required=True, 
-        label="Rôle administrateur",
+        label="Administrator Role",
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
     
@@ -491,6 +604,11 @@ class AdminCreationForm(UserCreationForm):
         }
     
     def save(self, commit=True):
+        """
+        Saves the user instance as an administrator.
+
+        Sets the user_type to 'admin' and assigns department and admin role.
+        """
         user = super().save(commit=False)
         user.user_type = 'admin'
         user.departement = self.cleaned_data.get('departement')
@@ -501,115 +619,118 @@ class AdminCreationForm(UserCreationForm):
         return user
     
 
-from django import forms
-from .models import User
-from django.core.validators import FileExtensionValidator
-
-
-# forms.py
-import random
-from django import forms
-from django.core.exceptions import ValidationError
-import random
-from django import forms
-from django.core.exceptions import ValidationError
-
-    
-
-from django import forms
-from .models import User
-
 class FiltreMembresForm(forms.Form):
+    """
+    Form for filtering users/members in the admin panel or dashboard.
+
+    Allows filtering by user type, account status, registration date range, 
+    and a search field for name, email, or organization.
+    """
+    
     TYPE_CHOICES = [
-        ('', 'Tous les types'),
-        ('porteur', 'Porteur de projet'),
-        ('donateur', 'Donateur'),
-        ('investisseur', 'Investisseur'),
-        ('association', 'Association'),
-        ('admin', 'Administrateur'),
+        ('', 'All types'),
+        ('porteur', 'Project Owner'),
+        ('donateur', 'Donor'),
+        ('investisseur', 'Investor'),
+        ('association', 'Association/NGO'),
+        ('admin', 'Administrator'),
     ]
     
     STATUT_CHOICES = [
-        ('', 'Tous les statuts'),
-        ('true', 'Actif'),
-        ('false', 'Inactif'),
+        ('', 'All statuses'),
+        ('true', 'Active'),
+        ('false', 'Inactive'),
     ]
     
     user_type = forms.ChoiceField(
         choices=TYPE_CHOICES,
         required=False,
-        label="Type d'utilisateur"
+        label="User Type"
     )
     
     actif = forms.ChoiceField(
         choices=STATUT_CHOICES,
         required=False,
-        label="Statut du compte"
+        label="Account Status"
     )
     
     date_debut = forms.DateField(
         required=False,
-        label="Date d'inscription (début)",
+        label="Registration Date (start)",
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
     
     date_fin = forms.DateField(
         required=False,
-        label="Date d'inscription (fin)",
+        label="Registration Date (end)",
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
     
     recherche = forms.CharField(
         required=False,
-        label="Recherche",
+        label="Search",
         widget=forms.TextInput(attrs={
-            'placeholder': 'Nom, email, organisation...',
+            'placeholder': 'Name, email, organization...',
             'class': 'form-control'
         })
     )
 
 
 class FiltreTransactionsForm(forms.Form):
+    """
+    Form for filtering financial transactions.
+
+    Allows filtering by date range, minimum and maximum amount, 
+    and associated project name.
+    """
+    
     date_debut = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={'type': 'date'}),
-        label='Date (début)'
+        label='Start Date'
     )
     date_fin = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={'type': 'date'}),
-        label='Date (fin)'
+        label='End Date'
     )
     montant_min = forms.DecimalField(
         required=False,
         min_value=0,
-        label='Montant min (FCFA)'
+        label='Minimum Amount (FCFA)'
     )
     montant_max = forms.DecimalField(
         required=False,
         min_value=0,
-        label='Montant max (FCFA)'
+        label='Maximum Amount (FCFA)'
     )
     projet = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Nom du projet...'}),
-        label='Projet'
+        widget=forms.TextInput(attrs={'placeholder': 'Project name...'}),
+        label='Project'
     )
 
 class FiltreAuditForm(forms.Form):
+    """
+    Form for filtering audit logs.
+
+    Allows filtering by user, action type, model name, 
+    date range, and a general search term.
+    """
+    
     ACTION_CHOICES = [
-        ('', 'Toutes les actions'),
-        ('create', 'Création'),
-        ('update', 'Modification'),
-        ('delete', 'Suppression'),
+        ('', 'All actions'),
+        ('create', 'Creation'),
+        ('update', 'Update'),
+        ('delete', 'Deletion'),
         ('validate', 'Validation'),
-        ('reject', 'Rejet'),
+        ('reject', 'Rejection'),
     ]
     
     utilisateur = forms.ModelChoiceField(
         queryset=User.objects.all(),
         required=False,
-        label='Utilisateur'
+        label='User'
     )
     action = forms.ChoiceField(
         choices=ACTION_CHOICES,
@@ -618,60 +739,79 @@ class FiltreAuditForm(forms.Form):
     )
     modele = forms.CharField(
         required=False,
-        label='Modèle'
+        label='Model'
     )
     date_debut = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={'type': 'date'}),
-        label='Date (début)'
+        label='Start Date'
     )
     date_fin = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={'type': 'date'}),
-        label='Date (fin)'
+        label='End Date'
     )
     recherche = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Modèle, ID objet, détails...'}),
-        label='Recherche'
+        widget=forms.TextInput(attrs={'placeholder': 'Model, Object ID, Details...'}),
+        label='Search'
     )
-#
+
 
 class Transfer_fond(forms.ModelForm):
-    # Montant en FCFA
+    """
+    Form for contributing funds to a project.
+
+    Fields:
+        montant (DecimalField): Amount to contribute in FCFA.
+            Must be a positive integer, minimum 1,000 FCFA, and not exceed the remaining amount required by the project.
+            Displays the current HBAR conversion rate in the help text.
+        
+        contribution_anonyme (BooleanField): Option to contribute anonymously.
+            If checked, the contributor's name will not appear publicly.
+
+    Attributes:
+        projet (Projet, optional): The project to which the contribution is made.
+        contributeur (User, optional): The user making the contribution.
+
+    Methods:
+        get_taux_conversion_actuel(): Retrieves the current FCFA to HBAR conversion rate from an external API.
+        clean_montant(): Validates the 'montant' field according to the rules described above.
+    """
+    
     montant = forms.DecimalField(
         max_digits=10, 
         decimal_places=0,
-        label="Montant de la contribution (FCFA)",  # Texte changé
-        help_text="Montant en FCFA que vous souhaitez contribuer",  # Texte changé
+        label="Contribution amount (FCFA)",
+        help_text="Amount in FCFA you wish to contribute",
         widget=forms.NumberInput(attrs={'placeholder': '10000', 'min': '1'})
     )
     
-    # Option de contribution anonyme
-    contribution_anonyme = forms.BooleanField(  # Nom changé
+    contribution_anonyme = forms.BooleanField(
         required=False, 
-        label="Contribuer anonymement",  # Texte changé
-        help_text="Votre nom n'apparaîtra pas publiquement"
+        label="Contribute anonymously",
+        help_text="Your name will not appear publicly"
     )
     
     class Meta:
         model = Transaction
-        fields = ['montant', 'contribution_anonyme']  # Nom changé
+        fields = ['montant', 'contribution_anonyme']
     
     def __init__(self, *args, **kwargs):
         self.projet = kwargs.pop('projet', None)
-        self.contributeur = kwargs.pop('contributeur', None)  # Nom changé
+        self.contributeur = kwargs.pop('contributeur', None)
         super().__init__(*args, **kwargs)
         
         if self.projet:
             montant_restant = self.projet.montant_demande - self.projet.montant_collecte
             if montant_restant > 0:
-                self.fields['montant'].help_text += f". Il reste {montant_restant:.0f} FCFA à collecter."
+                self.fields['montant'].help_text += f". Remaining amount to collect: {montant_restant:.0f} FCFA."
         
         taux_conversion = self.get_taux_conversion_actuel()
         self.fields['montant'].help_text += f" (≈ 1 HBAR = {taux_conversion} FCFA)"
     
     def get_taux_conversion_actuel(self):
+        """Fetches the current conversion rate from FCFA to HBAR."""
         try:
             response = requests.get('https://api.taux-conversion.com/fcfa/hbar')
             data = response.json()
@@ -680,76 +820,126 @@ class Transfer_fond(forms.ModelForm):
             return Decimal('0.8')
     
     def clean_montant(self):
+        """
+        Validates the contribution amount.
+
+        Checks:
+            - Positive number
+            - Integer value
+            - Minimum 1,000 FCFA
+            - Does not exceed remaining amount required
+            - Project is still active
+        """
         montant = self.cleaned_data.get('montant')
         
         if montant <= 0:
-            raise ValidationError("Le montant doit être positif.")
+            raise ValidationError("Amount must be positive.")
         
         if montant % 1 != 0:
-            raise ValidationError("Le montant doit être un nombre entier pour le FCFA.")
+            raise ValidationError("Amount must be an integer in FCFA.")
         
         if montant < 1000:
-            raise ValidationError("Le montant minimum de contribution est de 1 000 FCFA.")  # Texte changé
+            raise ValidationError("Minimum contribution is 1,000 FCFA.")
         
         if self.projet and self.projet.statut != 'actif':
-            raise ValidationError("Ce projet n'accepte plus de contributions.")  # Texte changé
+            raise ValidationError("This project no longer accepts contributions.")
         
         if self.projet:
             montant_restant = self.projet.montant_demande - self.projet.montant_collecte
             if montant > montant_restant:
-                raise ValidationError(f"Le montant ne peut pas dépasser les {montant_restant:.0f} FCFA restants.")
+                raise ValidationError(f"Amount cannot exceed the remaining {montant_restant:.0f} FCFA.")
         
         return montant
 
 
-
-
-from django import forms
-from .models import EmailLog
-
 class EmailForm(forms.ModelForm):
+    """
+    Form for composing and sending emails.
+
+    Fields:
+        destinataire (EmailField): Recipient's email address.
+            Must be a valid email format.
+        
+        sujet (CharField): Subject of the email.
+        
+        corps (TextField): Body/content of the email.
+        
+        type_email (ChoiceField): Type of email.
+            Allows selection from predefined email types.
+
+    Widgets:
+        - 'destinataire': Email input with placeholder.
+        - 'sujet': Text input with placeholder.
+        - 'corps': Textarea with placeholder and 5 rows.
+        - 'type_email': Select dropdown.
+
+    Labels:
+        - destinataire: "Recipient"
+        - sujet: "Subject"
+        - corps: "Message"
+        - type_email: "Email Type"
+    """
+    
     class Meta:
         model = EmailLog
         fields = ['destinataire', 'sujet', 'corps', 'type_email']
         widgets = {
             'destinataire': forms.EmailInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'email@exemple.com'
+                'placeholder': 'email@example.com'
             }),
             'sujet': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Sujet de votre email'
+                'placeholder': 'Subject of your email'
             }),
             'corps': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 5,
-                'placeholder': 'Contenu de votre message...'
+                'placeholder': 'Write your message here...'
             }),
             'type_email': forms.Select(attrs={
                 'class': 'form-select'
             })
         }
         labels = {
-            'destinataire': 'Destinataire',
-            'sujet': 'Sujet',
+            'destinataire': 'Recipient',
+            'sujet': 'Subject',
             'corps': 'Message',
-            'type_email': 'Type d\'email'
+            'type_email': 'Email Type'
         }
 
+
+
 class EmailFormSimple(forms.Form):
+    """
+    Simple form for composing an email.
+
+    Fields:
+        destinataire (EmailField): Recipient's email address. Must be a valid email.
+        sujet (CharField): Subject of the email, maximum 200 characters.
+        message (CharField): Body/content of the email.
+        type_email (ChoiceField): Type of email, selected from predefined choices (EmailLog.TYPES).
+
+    Widgets:
+        - destinataire: Email input with Bootstrap styling and placeholder.
+        - sujet: Text input with Bootstrap styling and placeholder.
+        - message: Textarea with 5 rows, Bootstrap styling, and placeholder.
+        - type_email: Select dropdown with Bootstrap styling.
+    """
+    
     destinataire = forms.EmailField(
-        label="Destinataire",
+        label="Recipient",
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
-            'placeholder': 'email@exemple.com'
+            'placeholder': 'email@example.com'
         })
     )
     sujet = forms.CharField(
-        label="Sujet",
+        label="Subject",
         max_length=200,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Sujet de votre email'
+            'placeholder': 'Subject of your email'
         })
     )
     message = forms.CharField(
@@ -757,21 +947,17 @@ class EmailFormSimple(forms.Form):
         widget=forms.Textarea(attrs={
             'class': 'form-control',
             'rows': 5,
-            'placeholder': 'Contenu de votre message...'
+            'placeholder': 'Write your message here...'
         })
     )
     type_email = forms.ChoiceField(
-        label="Type d'email",
+        label="Email Type",
         choices=EmailLog.TYPES,
         widget=forms.Select(attrs={
             'class': 'form-select'
         })
     )
 
-
-from django import forms
-from .models import ContactSubmission
-import random
 
 class ContactForm(forms.ModelForm):
     # CAPTCHA plus sécurisé avec opération aléatoire
@@ -1125,53 +1311,79 @@ class AjoutImagesProjetForm(forms.Form):
         
         return images_crees
 
-from django import forms
-from django.utils.html import format_html
-from django.utils.safestring import mark_safe
 
-from django import forms
-from django.utils.html import format_html
 
 
 class PreuveForm(forms.Form):
+    """
+    Form for submitting proof files for a project milestone.
+
+    Fields:
+        fichiers (FileField): One or more proof files to be uploaded. Acceptable file types include images, PDFs, videos, and documents.
+            - Widget: MultiFileInput
+            - Help text: "Select one or more files (max 10 files, 50 MB in total)"
+            - Required: Yes
+        description (CharField): Optional text field to describe the submitted proofs.
+            - Widget: Textarea with 3 rows
+            - Help text: "Optional: explain how these proofs demonstrate milestone completion"
+            - Required: No
+
+    Validation:
+        - clean_fichiers(): Returns the uploaded files; additional validation (like size/count limits) can be added here if needed.
+    """
     """Formulaire pour soumettre des preuves pour un palier"""
 
     fichiers = forms.FileField(
-        label="Fichiers preuves",
+        label="Proof Files",
         widget=MultiFileInput(attrs={
             'accept': '.jpg,.jpeg,.png,.pdf,.mp4,.avi,.mov,.doc,.docx,.xls,.xlsx,.txt',
             'class': 'form-control'
         }),
-        help_text="Sélectionnez un ou plusieurs fichiers (max 10 fichiers, 50 MB au total)",
+        help_text="Select one or more files (max 10 files, 50 MB total)",
         required=True
     )
 
     description = forms.CharField(
-        label="Description des preuves",
+        label="Proof Description",
         widget=forms.Textarea(attrs={
             'rows': 3,
-            'placeholder': 'Décrivez brièvement les preuves soumises...',
+            'placeholder': 'Briefly describe the submitted proofs...',
             'class': 'form-control'
         }),
         required=False,
-        help_text="Facultatif : expliquez comment ces preuves démontrent l'achèvement du palier"
+        help_text="Optional: explain how these proofs demonstrate milestone completion"
     )
 
     def clean_fichiers(self):
-        # Cette méthode ne sera plus utilisée de la même manière
-        # On va gérer les fichiers directement dans la vue
         return self.cleaned_data.get('fichiers')
     
 
 
 
 class VerificationPreuveForm(forms.Form):
+    """
+    Form for verifying submitted proof files (admin use only).
+
+    Fields:
+        action (ChoiceField): Action to take on the submitted proofs. Choices include:
+            - 'approuver': Approve the proofs
+            - 'rejeter': Reject the proofs
+            - 'modification': Request modifications
+            - Widget: RadioSelect
+        commentaires (CharField): Optional comments explaining the decision.
+            - Widget: Textarea with 4 rows
+            - Help text: "Comments will be visible to the project owner"
+            - Required if action is 'rejeter' or 'modification'
+
+    Validation:
+        - clean(): Ensures that comments are provided when rejecting or requesting modifications.
+    """
     """Formulaire pour vérifier les preuves (admin)"""
     
     ACTION_CHOICES = [
-        ('approuver', '✅ Approuver les preuves'),
-        ('rejeter', '❌ Rejeter les preuves'),
-        ('modification', '📝 Demander des modifications'),
+        ('approuver', 'Approve proofs'),
+        ('rejeter', 'Reject proofs'),
+        ('modification', 'Request modifications'),
     ]
     
     action = forms.ChoiceField(
@@ -1184,10 +1396,10 @@ class VerificationPreuveForm(forms.Form):
         label="Commentaires",
         widget=forms.Textarea(attrs={
             'rows': 4,
-            'placeholder': 'Expliquez votre décision...'
+            'placeholder': 'Explain your decision...'
         }),
         required=False,
-        help_text="Les commentaires seront visibles par le porteur du projet"
+        help_text="Comments will be visible to the project owner"
     )
     
     def clean(self):
@@ -1197,7 +1409,7 @@ class VerificationPreuveForm(forms.Form):
         
         if action in ['rejeter', 'modification'] and not commentaires.strip():
             raise forms.ValidationError(
-                "Veuillez fournir des commentaires lorsque vous rejetez ou demandez des modifications"
+                "Comments are required when rejecting or requesting modifications."
             )
         
         return cleaned_data

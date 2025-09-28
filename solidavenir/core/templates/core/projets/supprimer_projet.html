@@ -7,31 +7,31 @@
             <div class="card border-danger">
                 <div class="card-header bg-danger text-white">
                     <h4 class="card-title mb-0">
-                        <i class="fas fa-exclamation-triangle"></i> Confirmation de suppression
+                        <i class="fas fa-exclamation-triangle"></i> Delete Confirmation
                     </h4>
                 </div>
                 <div class="card-body">
-                    <p class="lead">Êtes-vous sûr de vouloir supprimer le projet suivant ?</p>
+                    <p class="lead">Are you sure you want to delete the following project?</p>
                     
                     <div class="alert alert-info">
                         <strong>{{ projet.titre }}</strong><br>
-                        <small class="text-muted">Statut: {{ projet.get_statut_display }}</small><br>
-                        <small class="text-muted">Montant demandé: {{ projet.montant_demande }} FCFA</small>
+                        <small class="text-muted">Status: {{ projet.get_statut_display }}</small><br>
+                        <small class="text-muted">Requested Amount: {{ projet.montant_demande }} FCFA</small>
                     </div>
                     
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-circle"></i>
-                        <strong>Attention:</strong> Cette action est irréversible. Toutes les données associées à ce projet seront définitivement supprimées.
+                        <strong>Warning:</strong> This action is irreversible. All data associated with this project will be permanently deleted.
                     </div>
                     
                     <form method="post">
                         {% csrf_token %}
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-danger btn-lg">
-                                <i class="fas fa-trash"></i> Confirmer la suppression
+                                <i class="fas fa-trash"></i> Confirm Deletion
                             </button>
                             <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Annuler
+                                <i class="fas fa-times"></i> Cancel
                             </a>
                         </div>
                     </form>

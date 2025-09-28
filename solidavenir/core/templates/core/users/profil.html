@@ -1,111 +1,108 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Mon Profil - Plateforme de Financement Participatif{% endblock %}
+{% block title %}My Profile - Crowdfunding Platform{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row">
         <div class="col-lg-4">
-            <!-- Sidebar avec informations utilisateur -->
+            <!-- Sidebar with user info -->
             <div class="card mb-4">
                 <div class="card-body text-center">
                     {% if user.photo_profil %}
-    <img src="{{ user.photo_profil.url }}" 
-         alt="{{ user.get_full_name|default:user.username }}" 
-         class="rounded-circle mb-3" 
-         style="width: 100px; height: 100px; object-fit: cover;">
-{% else %}
-    <div class="avatar-placeholder rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" 
-         style="width: 100px; height: 100px; font-size: 2.5rem;">
-        {{ user.username|first|upper }}
-    </div>
-{% endif %}
+                        <img src="{{ user.photo_profil.url }}" 
+                             alt="{{ user.get_full_name|default:user.username }}" 
+                             class="rounded-circle mb-3" 
+                             style="width: 100px; height: 100px; object-fit: cover;">
+                    {% else %}
+                        <div class="avatar-placeholder rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" 
+                             style="width: 100px; height: 100px; font-size: 2.5rem;">
+                            {{ user.username|first|upper }}
+                        </div>
+                    {% endif %}
 
-                    
                     <h4 class="card-title">{{ user.get_full_name|default:user.username }}</h4>
                     <p class="text-muted">
                         <span class="badge bg-{% if user.user_type == 'donateur' %}success{% elif user.user_type == 'porteur' %}info{% else %}warning{% endif %}">
                             {{ user.get_user_type_display }}
                         </span>
                     </p>
-                    
+
                     <p class="card-text">
                         <i class="fas fa-envelope me-2"></i>{{ user.email }}
                     </p>
-                    
+
                     {% if user.telephone %}
-                    <p class="card-text">
-                        <i class="fas fa-phone me-2"></i>{{ user.telephone }}
-                    </p>
+                        <p class="card-text">
+                            <i class="fas fa-phone me-2"></i>{{ user.telephone }}
+                        </p>
                     {% endif %}
-                    
+
                     {% if user.date_naissance %}
-                    <p class="card-text">
-                        <i class="fas fa-birthday-cake me-2"></i>
-                        Né(e) le {{ user.date_naissance|date:"d/m/Y" }}
-                    </p>
+                        <p class="card-text">
+                            <i class="fas fa-birthday-cake me-2"></i>
+                            Born on {{ user.date_naissance|date:"d/m/Y" }}
+                        </p>
                     {% endif %}
-                    
+
                     <div class="d-grid gap-2">
                         <a href="{% url 'modifier_profil' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-edit me-2"></i>Modifier le profil
+                            <i class="fas fa-edit me-2"></i>Edit Profile
                         </a>
                         <a href="{% url 'changer_mot_de_passe' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-lock me-2"></i>Changer le mot de passe
+                            <i class="fas fa-lock me-2"></i>Change Password
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Compte Hedera pour les donateurs -->
-            <!-- Compte Hedera pour les donateurs -->
-{% if user.user_type == 'donateur' %}
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">Compte Hedera</h5>
-    </div>
-    <div class="card-body">
-        {% if user.hedera_account_id %}
-            <p class="mb-2"><strong>Account ID:</strong></p>
-            <code class="d-block mb-3 p-2 bg-light rounded">{{ user.hedera_account_id }}</code>
+            <!-- Hedera account for donors -->
+            {% if user.user_type == 'donateur' %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Hedera Account</h5>
+                </div>
+                <div class="card-body">
+                    {% if user.hedera_account_id %}
+                        <p class="mb-2"><strong>Account ID:</strong></p>
+                        <code class="d-block mb-3 p-2 bg-light rounded">{{ user.hedera_account_id }}</code>
 
-            {% if solde is not None %}
-                <p><strong>Solde:</strong> {{ solde }} HBAR</p>
-            {% else %}
-                <p class="text-muted">Impossible de récupérer le solde pour le moment.</p>
+                        {% if solde is not None %}
+                            <p><strong>Balance:</strong> {{ solde }} HBAR</p>
+                        {% else %}
+                            <p class="text-muted">Unable to retrieve balance at this time.</p>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">Wallet not configured.</p>
+                    {% endif %}
+                </div>
+            </div>
             {% endif %}
-        {% else %}
-            <p class="text-muted">Wallet non configuré.</p>
-        {% endif %}
-    </div>
-</div>
-{% endif %}
 
-
-            <!-- Statistiques rapides -->
+            <!-- Quick stats -->
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Statistiques</h5>
+                    <h5 class="mb-0">Statistics</h5>
                 </div>
                 <div class="card-body">
                     {% if user.user_type == 'donateur' %}
                         <p class="mb-2">
                             <i class="fas fa-hand-holding-heart me-2"></i>
-                            Dons effectués: <strong>{{ dons_count }}</strong>
+                            Donations made: <strong>{{ dons_count }}</strong>
                         </p>
                         <p class="mb-0">
                             <i class="fas fa-project-diagram me-2"></i>
-                            Projets soutenus: <strong>{{ projets_soutenus_count }}</strong>
+                            Projects supported: <strong>{{ projets_soutenus_count }}</strong>
                         </p>
                     {% elif user.user_type == 'porteur' %}
                         <p class="mb-2">
                             <i class="fas fa-project-diagram me-2"></i>
-                            Projets créés: <strong>{{ projets_count }}</strong>
+                            Projects created: <strong>{{ projets_count }}</strong>
                         </p>
                         <p class="mb-0">
                             <i class="fas fa-coins me-2"></i>
-                            Total collecté: <strong>{{ total_collecte|floatformat:0 }} FCFA</strong>
+                            Total collected: <strong>{{ total_collecte|floatformat:0 }} FCFA</strong>
                         </p>
                     {% endif %}
                 </div>
@@ -113,86 +110,86 @@
         </div>
 
         <div class="col-lg-8">
-            <!-- En-tête avec messages -->
+            <!-- Header with join date -->
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h3 mb-0">Mon Profil</h1>
+                <h1 class="h3 mb-0">My Profile</h1>
                 <span class="badge bg-light text-dark">
-                    Membre depuis {{ user.date_joined|date:"F Y" }}
+                    Member since {{ user.date_joined|date:"F Y" }}
                 </span>
             </div>
 
-           
-
-            <!-- Informations personnelles -->
+            <!-- Personal info -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">Informations personnelles</h5>
+                    <h5 class="mb-0">Personal Information</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Nom complet:</strong><br>
-                            {{ user.get_full_name|default:"Non renseigné" }}</p>
-                            
+                            <p><strong>Full Name:</strong><br>
+                            {{ user.get_full_name|default:"Not provided" }}</p>
+
                             <p><strong>Email:</strong><br>
                             {{ user.email }}</p>
-                            
-                            <p><strong>Nom d'utilisateur:</strong><br>
+
+                            <p><strong>Username:</strong><br>
                             {{ user.username }}</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Téléphone:</strong><br>
-                            {{ user.telephone|default:"Non renseigné" }}</p>
-                            
-                            <p><strong>Date de naissance:</strong><br>
-                            {{ user.date_naissance|date:"d/m/Y"|default:"Non renseignée" }}</p>
-                            
-                            <p><strong>Type de compte:</strong><br>
+                            <p><strong>Phone:</strong><br>
+                            {{ user.telephone|default:"Not provided" }}</p>
+
+                            <p><strong>Date of Birth:</strong><br>
+                            {{ user.date_naissance|date:"d/m/Y"|default:"Not provided" }}</p>
+
+                            <p><strong>Account Type:</strong><br>
                             <span class="badge bg-{% if user.user_type == 'donateur' %}success{% elif user.user_type == 'porteur' %}info{% else %}warning{% endif %}">
                                 {{ user.get_user_type_display }}
                             </span></p>
                         </div>
                     </div>
+
                     {% if user.user_type == 'donateur' %}
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">Mes Dons</h5>
-    </div>
-    <div class="card-body">
-        <p class="card-text">
-            <i class="fas fa-hand-holding-heart me-2"></i>
-            Vous avez effectué <strong>{{ dons_count }}</strong> dons pour un total de 
-            <strong>{{ total_dons|floatformat:0 }} FCFA</strong>
-        </p>
-        <div class="d-grid">
-            <a href="{% url 'mes_dons' %}" class="btn btn-primary">
-                <i class="fas fa-list me-2"></i>Voir l'historique complet
-            </a>
-        </div>
-    </div>
-</div>
-{% endif %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">My Donations</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                <i class="fas fa-hand-holding-heart me-2"></i>
+                                You have made <strong>{{ dons_count }}</strong> donations totaling 
+                                <strong>{{ total_dons|floatformat:0 }} FCFA</strong>
+                            </p>
+                            <div class="d-grid">
+                                <a href="{% url 'mes_dons' %}" class="btn btn-primary">
+                                    <i class="fas fa-list me-2"></i>View Full History
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     {% if user.adresse %}
                     <div class="mt-3">
-                        <strong>Adresse:</strong><br>
+                        <strong>Address:</strong><br>
                         {{ user.adresse|linebreaks }}
                     </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Informations spécifiques selon le type d'utilisateur -->
+            <!-- Professional info for project creators -->
             {% if user.user_type == 'porteur' %}
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">Informations professionnelles</h5>
+                    <h5 class="mb-0">Professional Information</h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Organisation:</strong><br>
-                    {{ user.organisation|default:"Non renseignée" }}</p>
-                    
+                    <p><strong>Organization:</strong><br>
+                    {{ user.organisation|default:"Not provided" }}</p>
+
                     {% if user.site_web %}
-                    <p><strong>Site web:</strong><br>
+                    <p><strong>Website:</strong><br>
                     <a href="{{ user.site_web }}" target="_blank">{{ user.site_web }}</a></p>
                     {% endif %}
                 </div>
@@ -200,22 +197,22 @@
             {% elif user.user_type == 'admin' %}
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">Informations administratives</h5>
+                    <h5 class="mb-0">Administrative Information</h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Département:</strong><br>
-                    {{ user.departement|default:"Non renseigné" }}</p>
-                    
-                    <p><strong>Rôle:</strong><br>
-                    {{ user.role_admin|default:"Non renseigné" }}</p>
+                    <p><strong>Department:</strong><br>
+                    {{ user.departement|default:"Not provided" }}</p>
+
+                    <p><strong>Role:</strong><br>
+                    {{ user.role_admin|default:"Not provided" }}</p>
                 </div>
             </div>
             {% endif %}
 
-            <!-- Dernières activités -->
+            <!-- Recent activities -->
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Dernières activités</h5>
+                    <h5 class="mb-0">Recent Activities</h5>
                 </div>
                 <div class="card-body">
                     {% if activites_recentes %}
@@ -235,16 +232,17 @@
                             {% endfor %}
                         </div>
                     {% else %}
-                        <p class="text-muted text-center">Aucune activité récente</p>
+                        <p class="text-muted text-center">No recent activity</p>
                     {% endif %}
-                    
+
                     <div class="text-center mt-3">
                         <a href="#" class="btn btn-outline-primary btn-sm">
-                            Voir toutes les activités
+                            View all activities
                         </a>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
@@ -255,39 +253,39 @@
     .avatar-placeholder {
         background: linear-gradient(45deg, #0d6efd, #6f42c1);
     }
-    
+
     .card {
         border: none;
         border-radius: 15px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    
+
     .card:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 15px rgba(0,0,0,0.15);
     }
-    
+
     .card-header {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         border-bottom: 1px solid #dee2e6;
         font-weight: 600;
     }
-    
+
     .badge {
         font-size: 0.8em;
         padding: 0.5em 0.75em;
     }
-    
+
     .list-group-item {
         border-left: none;
         border-right: none;
     }
-    
+
     .list-group-item:first-child {
         border-top: none;
     }
-    
+
     .list-group-item:last-child {
         border-bottom: none;
     }
