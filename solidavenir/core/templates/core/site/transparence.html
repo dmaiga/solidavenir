@@ -14,7 +14,7 @@
                     <i class="bi bi-funnel me-2"></i>Filters
                 </button>
             </div>
-            <p class="text-muted">Complete transparency of all Hedera Hashgraph network transactions</p>
+            <p class="text-muted">Complete transparency of all transactions on the Hedera Hashgraph network</p>
         </div>
     </div>
 
@@ -24,23 +24,23 @@
             <div class="card-body">
                 <form method="get" class="row g-3">
                     <div class="col-md-4">
-                        <label for="project" class="form-label">Project</label>
-                        <select name="project" id="project" class="form-select">
+                        <label for="projet" class="form-label">Project</label>
+                        <select name="projet" id="projet" class="form-select">
                             <option value="">All Projects</option>
-                            {% for project in active_projects %}
-                                <option value="{{ project.audit_uuid }}" {% if filters.project == project.audit_uuid %}selected{% endif %}>
-                                    {{ project.title }}
+                            {% for projet in projets_actifs %}
+                                <option value="{{ projet.audit_uuid }}" {% if filters.projet == projet.audit_uuid %}selected{% endif %}>
+                                    {{ projet.titre }}
                                 </option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label for="start_date" class="form-label">Start Date</label>
-                        <input type="date" name="start_date" id="start_date" class="form-control" value="{{ filters.start_date }}">
+                        <label for="date_debut" class="form-label">Start Date</label>
+                        <input type="date" name="date_debut" id="date_debut" class="form-control" value="{{ filters.date_debut }}">
                     </div>
                     <div class="col-md-3">
-                        <label for="end_date" class="form-label">End Date</label>
-                        <input type="date" name="end_date" id="end_date" class="form-control" value="{{ filters.end_date }}">
+                        <label for="date_fin" class="form-label">End Date</label>
+                        <input type="date" name="date_fin" id="date_fin" class="form-control" value="{{ filters.date_fin }}">
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
@@ -57,7 +57,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 class="card-title">{{ stats.total_donations|intcomma }} HBAR</h4>
+                            <h4 class="card-title">{{ stats.total_dons|intcomma }} HBAR</h4>
                             <p class="card-text">Total Donations</p>
                         </div>
                         <div class="align-self-center">
@@ -120,12 +120,12 @@
             <ul class="nav nav-tabs" id="transactionTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="donations-tab" data-bs-toggle="tab" data-bs-target="#donations" type="button" role="tab">
-                       <spam style='color:black'> Donations ({{ donations.paginator.count }})</spam>
+                        Donations ({{ transactions.paginator.count }})
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="distributions-tab" data-bs-toggle="tab" data-bs-target="#distributions" type="button" role="tab">
-                        <spam style='color:black'>  Distributions ({{ distributions.count }})</spam>
+                        Distributions ({{ transactions_admin.count }})
                     </button>
                 </li>
             </ul>
@@ -135,7 +135,7 @@
                 <div class="tab-pane fade show active" id="donations" role="tabpanel">
                     <div class="card">
                         <div class="card-body">
-                            {% if donations %}
+                            {% if transactions %}
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
@@ -144,47 +144,54 @@
                                             <th>Contributor</th>
                                             <th>Project</th>
                                             <th>Amount (HBAR)</th>
+                                            <th>Fiat Value</th>
                                             <th>Transaction Hash</th>
                                             <th>HCS Message</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for donation in donations %}
+                                        {% for transaction in transactions %}
                                         <tr>
-                                            <td>{{ donation.transaction_date|date:"M d, Y H:i" }}</td>
+                                            <td>{{ transaction.date_transaction|date:"M d, Y H:i" }}</td>
                                             <td>
-                                                <span class="badge bg-light text-dark" data-bs-toggle="tooltip" title="{{ donation.anonymized_contributor }}">
-                                                    {{ donation.contributor.username|slice:":8" }}...
+                                                <span class="badge bg-light text-dark" data-bs-toggle="tooltip" title="{{ transaction.contributeur_anonymise }}">
+                                                    {{ transaction.contributeur.username|slice:":8" }}...
                                                 </span>
                                             </td>
                                             <td>
-                                                <a href="{% url 'project_detail' donation.project.audit_uuid %}" class="text-decoration-none">
-                                                    {{ donation.project.title|truncatewords:3 }}
+                                                <a href="{% url 'detail_projet' transaction.projet.audit_uuid %}" class="text-decoration-none">
+                                                    {{ transaction.projet.titre|truncatewords:3 }}
                                                 </a>
                                             </td>
-                                            <td><strong>{{ donation.amount|intcomma }}</strong></td>
+                                            <td><strong>{{ transaction.montant|intcomma }}</strong></td>
                                             <td>
-                                                {% if donation.hedera_transaction_hash %}
-                                                <a href="{{ donation.hedera_hashscan_url }}" target="_blank" class="text-decoration-none" data-bs-toggle="tooltip" title="View on HashScan">
-                                                    {{ donation.hedera_transaction_hash|slice:":16" }}...
+                                                <small class="text-muted">
+                                                    ~${{ transaction.montant|floatformat:2 }}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                {% if transaction.hedera_transaction_hash %}
+                                                <a href="https://hashscan.io/testnet/transaction/{{ transaction.hedera_transaction_hash }}" target="_blank" class="text-decoration-none" data-bs-toggle="tooltip" title="View on HashScan">
+                                                    {{ transaction.hedera_transaction_hash|slice:":16" }}...
                                                 </a>
+                                                 
                                                 {% else %}
                                                 <span class="text-muted">Pending</span>
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                {% if donation.hedera_message_hashscan_url %}
-                                                <a href="{{ donation.hedera_message_hashscan_url }}" target="_blank" class="text-decoration-none" data-bs-toggle="tooltip" title="View HCS Message">
-                                                    {{ donation.hedera_message_hashscan_url|slice:":16" }}...
+                                                {% if transaction.hedera_message_hashscan_url %}
+                                                <a href="{{ transaction.hedera_message_hashscan_url }}" target="_blank" class="text-decoration-none" data-bs-toggle="tooltip" title="View HCS Message">
+                                                    {{ transaction.hedera_message_hashscan_url|slice:":16" }}...
                                                 </a>
                                                 {% else %}
                                                 <span class="text-muted">-</span>
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                <span class="badge {% if donation.status == 'confirmed' %}bg-success{% else %}bg-warning{% endif %}">
-                                                    {{ donation.get_status_display }}
+                                                <span class="badge {% if transaction.statut == 'confirme' %}bg-success{% else %}bg-warning{% endif %}">
+                                                    {{ transaction.get_statut_display }}
                                                 </span>
                                             </td>
                                         </tr>
@@ -194,26 +201,26 @@
                             </div>
                             
                             <!-- Pagination -->
-                            {% if donations.has_other_pages %}
-                            <nav aria-label="Donation pagination">
+                            {% if transactions.has_other_pages %}
+                            <nav aria-label="Transaction pagination">
                                 <ul class="pagination justify-content-center">
-                                    {% if donations.has_previous %}
+                                    {% if transactions.has_previous %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ donations.previous_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
+                                        <a class="page-link" href="?page={{ transactions.previous_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
                                     </li>
                                     {% endif %}
                                     
-                                    {% for i in donations.paginator.page_range %}
-                                        {% if donations.number == i %}
+                                    {% for i in transactions.paginator.page_range %}
+                                        {% if transactions.number == i %}
                                         <li class="page-item active"><span class="page-link">{{ i }}</span></li>
                                         {% else %}
                                         <li class="page-item"><a class="page-link" href="?page={{ i }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a></li>
                                         {% endif %}
                                     {% endfor %}
                                     
-                                    {% if donations.has_next %}
+                                    {% if transactions.has_next %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ donations.next_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
+                                        <a class="page-link" href="?page={{ transactions.next_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
                                     </li>
                                     {% endif %}
                                 </ul>
@@ -233,7 +240,7 @@
                 <div class="tab-pane fade" id="distributions" role="tabpanel">
                     <div class="card">
                         <div class="card-body">
-                            {% if distributions %}
+                            {% if transactions_admin %}
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
@@ -244,48 +251,54 @@
                                             <th>Beneficiary</th>
                                             <th>Net Amount (HBAR)</th>
                                             <th>Commission</th>
+                                            <th>Fiat Value</th>
                                             <th>HCS Message</th>
                                             <th>Initiator</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for distribution in distributions %}
+                                        {% for transaction in transactions_admin %}
                                         <tr>
-                                            <td>{{ distribution.creation_date|date:"M d, Y H:i" }}</td>
+                                            <td>{{ transaction.date_creation|date:"M d, Y H:i" }}</td>
                                             <td>
-                                                <span class="badge {% if distribution.transaction_type == 'distribution' %}bg-success{% else %}bg-info{% endif %}">
-                                                    {{ distribution.get_transaction_type_display }}
+                                                <span class="badge {% if transaction.type_transaction == 'distribution' %}bg-success{% else %}bg-info{% endif %}">
+                                                    {{ transaction.get_type_transaction_display }}
                                                 </span>
                                             </td>
                                             <td>
-                                                <a href="{% url 'project_detail' distribution.project.audit_uuid %}" class="text-decoration-none">
-                                                    {{ distribution.project.title|truncatewords:3 }}
+                                                <a href="{% url 'detail_projet' transaction.projet.audit_uuid %}" class="text-decoration-none">
+                                                    {{ transaction.projet.titre|truncatewords:3 }}
                                                 </a>
                                             </td>
                                             <td>
                                                 <span class="badge bg-light text-dark">
-                                                    {{ distribution.beneficiary.username|slice:":8" }}...
+                                                    {{ transaction.beneficiaire.username|slice:":8" }}...
                                                 </span>
                                             </td>
-                                            <td><strong>{{ distribution.net_amount|intcomma }}</strong></td>
+                                            <td><strong>{{ transaction.montant_net|intcomma }}</strong></td>
                                             <td>
                                                 <small class="text-muted">
-                                                    {{ distribution.commission|intcomma }} HBAR
-                                                    ({{ distribution.commission_percentage }}%)
+                                                    {{ transaction_admin.commission|intcomma }} HBAR
+                                                    ({{ transaction.commission_pourcentage }}%)
                                                 </small>
                                             </td>
                                             <td>
-                                                {% if distribution.hedera_message_hashscan_url %}
-                                                <a href="{{ distribution.hedera_message_hashscan_url }}" target="_blank" class="text-decoration-none" data-bs-toggle="tooltip" title="View HCS Message">
-                                                    {{ distribution.hedera_message_hashscan_url|slice:":16" }}...
+                                                <small class="text-muted">
+                                                    ~${{ transaction.montant_net|floatformat:2 }}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                {% if transaction.hedera_message_hashscan_url %}
+                                                <a href="{{ transaction.hedera_message_hashscan_url }}" target="_blank" class="text-decoration-none" data-bs-toggle="tooltip" title="View HCS Message">
+                                                    {{ transaction.hedera_message_hashscan_url|slice:":16" }}...
                                                 </a>
                                                 {% else %}
                                                 <span class="text-muted">-</span>
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                {% if distribution.initiator %}
-                                                <span class="badge bg-secondary">{{ distribution.initiator.username|upper }}</span>
+                                                {% if transaction.initiateur %}
+                                                <span class="badge bg-secondary">{{ transaction.initiateur.username|upper }}</span>
                                                 {% else %}
                                                 <span class="text-muted">System</span>
                                                 {% endif %}
@@ -308,23 +321,23 @@
         </div>
     </div>
 
-    <!-- Additional Information Section (Lazy Loaded) -->
-    <div class="row mt-5" id="additional-info" data-lazy-load="true">
+    <!-- Additional Information Section -->
+    <div class="row mt-5">
         <div class="col-lg-6 mb-4">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Top Projects</h5>
                 </div>
                 <div class="card-body">
-                    {% if top_projects %}
+                    {% if top_projets %}
                     <div class="list-group list-group-flush">
-                        {% for project in top_projects %}
+                        {% for projet in top_projets %}
                         <div class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="mb-1">{{ project.title }}</h6>
-                                <small class="text-muted">{{ project.donation_count }} donations</small>
+                                <h6 class="mb-1">{{ projet.titre }}</h6>
+                                <small class="text-muted">{{ projet.nombre_dons }} donations</small>
                             </div>
-                            <span class="badge bg-primary rounded-pill">{{ project.total_collected|intcomma }} HBAR</span>
+                            <span class="badge bg-primary rounded-pill">{{ projet.total_collecte|intcomma }} HBAR</span>
                         </div>
                         {% endfor %}
                     </div>
@@ -341,15 +354,15 @@
                     <h5 class="card-title mb-0">Top Contributors</h5>
                 </div>
                 <div class="card-body">
-                    {% if top_contributors %}
+                    {% if top_donateurs %}
                     <div class="list-group list-group-flush">
-                        {% for contributor in top_contributors %}
+                        {% for donateur in top_donateurs %}
                         <div class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="mb-1">{{ contributor.get_full_name_or_username }}</h6>
-                                <small class="text-muted">{{ contributor.donation_count }} contributions</small>
+                                <h6 class="mb-1">{{ donateur.get_full_name_or_username }}</h6>
+                                <small class="text-muted">{{ donateur.nombre_dons }} contributions</small>
                             </div>
-                            <span class="badge bg-success rounded-pill">{{ contributor.total_donations|intcomma }} HBAR</span>
+                            <span class="badge bg-success rounded-pill">{{ donateur.total_dons|intcomma }} HBAR</span>
                         </div>
                         {% endfor %}
                     </div>
@@ -368,13 +381,18 @@
     .table th {
         border-top: none;
         font-weight: 600;
-        color: var(--bs-primary);
+        color: var(--primary-color);
     }
     
-    .nav-tabs .nav-link.active {
-        border-bottom: 3px solid var(--bs-primary);
-        font-weight: 600;
-    }
+  .nav-tabs .nav-link {
+    color: #333 !important;  /* texte sombre pour onglets inactifs */
+}
+
+.nav-tabs .nav-link.active {
+    color: #fff !important;          /* texte blanc pour actif */
+    background-color: #0d6efd !important; /* bleu Bootstrap pour l'actif */
+    border-color: #0d6efd #0d6efd #fff !important;
+}
     
     .badge {
         font-size: 0.75em;
@@ -388,25 +406,19 @@
     .card.bg-primary, .card.bg-success, .card.bg-warning, .card.bg-info {
         border: none;
     }
-    
-    /* Loading state for lazy loading */
-    .lazy-loading {
-        opacity: 0.6;
-        pointer-events: none;
-    }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    // Initialize tooltips
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         });
         
-        // Tab state persistence
+        // Preserve tab state on page refresh
         const activeTab = localStorage.getItem('activeTransactionTab');
         if (activeTab) {
             const tabTrigger = document.querySelector(`[data-bs-target="${activeTab}"]`);
@@ -415,58 +427,10 @@
             }
         }
         
+        // Store tab state when changed
         document.getElementById('transactionTabs').addEventListener('shown.bs.tab', function (e) {
             localStorage.setItem('activeTransactionTab', e.target.getAttribute('data-bs-target'));
         });
-        
-        // Lazy loading for additional information
-        const lazyLoadSection = document.getElementById('additional-info');
-        if (lazyLoadSection && lazyLoadSection.dataset.lazyLoad === 'true') {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        // Simulate loading additional data
-                        lazyLoadSection.classList.add('lazy-loading');
-                        setTimeout(() => {
-                            lazyLoadSection.classList.remove('lazy-loading');
-                        }, 500);
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.1 });
-            
-            observer.observe(lazyLoadSection);
-        }
-        
-        // Optimize table performance
-        const tables = document.querySelectorAll('.table-responsive');
-        tables.forEach(table => {
-            table.addEventListener('scroll', function() {
-                // Throttle scroll events for performance
-                clearTimeout(table._scrollTimer);
-                table._scrollTimer = setTimeout(() => {
-                    // Handle scroll if needed
-                }, 50);
-            });
-        });
-        
-        // Filter form optimization
-        const filterForm = document.querySelector('form[method="get"]');
-        if (filterForm) {
-            filterForm.addEventListener('submit', function(e) {
-                // Add loading state
-                const submitBtn = this.querySelector('button[type="submit"]');
-                const originalText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
-                submitBtn.disabled = true;
-                
-                // Re-enable after 3 seconds maximum (safety net)
-                setTimeout(() => {
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                }, 3000);
-            });
-        }
     });
 </script>
 {% endblock %}

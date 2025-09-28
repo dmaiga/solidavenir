@@ -243,28 +243,28 @@
     </div>
 
     <!-- Call to Action for new associations -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="card text-white border-0 shadow-lg" style="background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-light)); border-radius: var(--border-radius-lg);">
-                <div class="card-body p-5 text-center">
-                    <h3 class="h2 mb-3">🚀 Ready to make a difference?</h3>
-                    <p class="lead mb-4 opacity-90">
-                        Join the {{ featured_associations.count|add:autres_associations.count }} associations 
-                        making a change in Mali. Highlight your actions and mobilize the community 
-                        around your cause.
-                    </p>
-                    <div class="d-flex justify-content-center gap-3 flex-wrap">
-                        <a href="{% url 'inscription' %}" class="btn btn-lg" style="background-color: var(--light-color); color: var(--primary-blue); border-radius: var(--border-radius-sm);">
-                            <i class="bi bi-person-plus me-2"></i>Register my association
-                        </a>
-                        <a href="{% url 'contact' %}" class="btn btn-lg" style="border: 2px solid var(--light-color); color: var(--light-color); border-radius: var(--border-radius-sm);">
-                            <i class="bi bi-question-circle me-2"></i>More information
-                        </a>
-                    </div>
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card text-white border-0 shadow-heavy" style="background: var(--gradient-blue); border-radius: var(--border-radius);">
+            <div class="card-body p-5 text-center">
+                <h3 class="h2 mb-3">🚀 Ready to make a difference?</h3>
+                <p class="lead mb-4 opacity-90">
+                    Join the {{ featured_associations.count|add:autres_associations.count }} associations 
+                    making a change in Mali. Highlight your actions and mobilize the community 
+                    around your cause.
+                </p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'inscription' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-person-plus me-2"></i>Register my association
+                    </a>
+                    <a href="{% url 'contact' %}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-question-circle me-2"></i>More information
+                    </a>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Statistics -->
     <div class="row mt-5">

@@ -171,11 +171,11 @@
                                         <i class="fas fa-eye"></i> Voir
                                     </a>
                                     
-                                    {% if projet.statut in 'brouillon en_attente' %}
+                                    
                                     <a href="{% url 'modifier_projet' projet.audit_uuid %}" class="btn btn-sm btn-outline-secondary mb-1">
                                         <i class="fas fa-edit"></i> Modifier
                                     </a>
-                                    {% endif %}
+                                    
                                     
                                     <!-- Actions spécifiques selon le statut -->
                                     {% if projet.statut == 'brouillon' %}

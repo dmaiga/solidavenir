@@ -1,0 +1,16 @@
+<!-- templates/associations/upload_image.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Ajouter une photo à {{ association.nom }}</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="id_image">Sélectionnez une image :</label>
+        {{ form.image }}
+    </div>
+    <button type="submit" class="btn btn-primary">Uploader</button>
+    <a href="{% url 'detail_association' association.slug %}" class="btn btn-secondary">Annuler</a>
+</form>
+{% endblock %}

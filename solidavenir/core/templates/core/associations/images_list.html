@@ -1,0 +1,27 @@
+<!-- templates/associations/images_list.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Galerie photo de {{ association.nom }}</h1>
+
+<div class="row">
+    {% for image in images %}
+    <div class="col-md-3 mb-4">
+        <div class="card">
+            <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.legende|default:'' }}" style="height: 200px; object-fit: cover;">
+            {% if image.legende %}
+            <div class="card-body">
+                <p class="card-text">{{ image.legende }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <p>Aucune photo pour le moment.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<a href="{% url 'detail_association' association.slug %}" class="btn btn-secondary">Retour à l'association</a>
+{% endblock %}

@@ -238,7 +238,7 @@ from .models import Transaction, TransactionAdmin
 class TransactionAdminModel(admin.ModelAdmin):
     list_display = ('montant', 'contributeur_anonymise', 'projet', 'statut', 'date_transaction')
     list_filter = ('statut', 'date_transaction')
-    search_fields = ('hedera_transaction_hash', 'projet__titre')
+    search_fields = ('hedera_transaction_hash', 'projet__titre','hedera_message_id')
     readonly_fields = ('audit_uuid', 'date_transaction', 'hedera_transaction_hash')
     actions = ['verify_transactions', 'mark_as_refunded']
     
@@ -254,6 +254,11 @@ class TransactionAdminModel(admin.ModelAdmin):
         queryset.update(statut='rembourse')
     mark_as_refunded.short_description = "Marquer comme remboursées"
 
+    def has_hedera_message(self, obj):
+        return bool(obj.hedera_message_id)
+    has_hedera_message.boolean = True
+    has_hedera_message.short_description = "Message HCS"
+
 # Admin pour TransactionAdmin (suivi financier admin)
 @admin.register(TransactionAdmin)
 class TransactionAdminFinancial(admin.ModelAdmin):
@@ -265,3 +270,19 @@ class TransactionAdminFinancial(admin.ModelAdmin):
     list_filter = ('type_transaction', 'date_creation', 'projet')
     search_fields = ('transaction_hash', 'beneficiaire__username', 'projet__titre')
     readonly_fields = ('transaction_hash', 'date_creation')
+
+
+from .models import Projet, ImageProjet
+# admin.py
+from django.contrib import admin
+from .models import Projet, ImageProjet
+
+class ImageProjetInline(admin.TabularInline):
+    model = ImageProjet
+    extra = 1
+    fields = ('image', 'legende', 'ordre')
+
+
+@admin.register(ImageProjet)
+class ImageProjetAdmin(admin.ModelAdmin):
+    list_display = ('projet', 'ordre', 'date_creation')

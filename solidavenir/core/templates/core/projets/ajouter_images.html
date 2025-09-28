@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ajouter des images - {{ projet.titre }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h2 class="h4 mb-0">
+                        <i class="fas fa-images me-2"></i>Ajouter des images
+                    </h2>
+                    <p class="mb-0">Projet: {{ projet.titre }}</p>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Images existantes -->
+                    {% if images_existantes %}
+                    <div class="mb-4">
+                        <h5 class="text-primary">
+                            <i class="fas fa-photo-video me-2"></i>Images existantes ({{ images_existantes.count }}/{{ max_images }})
+                        </h5>
+                        <div class="row">
+                            {% for image in images_existantes %}
+                            <div class="col-md-3 mb-3">
+                                <div class="card">
+                                    <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.legende|default:'' }}" style="height: 100px; object-fit: cover;">
+                                    <div class="card-body p-2">
+                                        <small class="text-muted">Ordre: {{ image.ordre }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Formulaire d'ajout -->
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.images.id_for_label }}" class="form-label fw-semibold">
+                                Sélectionnez des images *
+                            </label>
+                            {{ form.images }}
+                            {% if form.images.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.images.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Formats acceptés: JPEG, PNG, WebP • Max 5MB par image • 
+                                Maximum {{ max_images }} images au total
+                                {% if images_existantes %}
+                                <br>Vous pouvez encore ajouter <strong>{{ images_restantes }}</strong> image(s)
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Aperçu des fichiers sélectionnés -->
+                        <div id="file-preview" class="mb-3" style="display: none;">
+                            <h6>Fichiers sélectionnés:</h6>
+                            <ul id="file-list" class="list-group"></ul>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top">
+                            <a href="{% url 'detail_projet' audit_uuid=projet.audit_uuid %}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-1"></i>Retour au projet
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload me-1"></i>Ajouter les images
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.querySelector('input[type="file"]');
+    const filePreview = document.getElementById('file-preview');
+    const fileList = document.getElementById('file-list');
+
+    fileInput.addEventListener('change', function(e) {
+        const files = e.target.files;
+        fileList.innerHTML = '';
+
+        if (files.length > 0) {
+            filePreview.style.display = 'block';
+            
+            for (let i = 0; i < files.length; i++) {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                listItem.innerHTML = `
+                    <span>${files[i].name}</span>
+                    <small class="text-muted">${(files[i].size / 1024 / 1024).toFixed(2)} MB</small>
+                `;
+                fileList.appendChild(listItem);
+            }
+
+            // Validation du nombre de fichiers
+            const existingCount = {{ images_existantes.count }};
+            if (files.length + existingCount > 10) {
+                alert(`Vous ne pouvez pas dépasser 10 images au total. Vous avez déjà ${existingCount} image(s).`);
+                e.target.value = '';
+                filePreview.style.display = 'none';
+            }
+        } else {
+            filePreview.style.display = 'none';
+        }
+    });
+});
+</script>
+
+<style>
+.card-img-top {
+    transition: transform 0.2s;
+}
+.card-img-top:hover {
+    transform: scale(1.05);
+}
+</style>
+{% endblock %}

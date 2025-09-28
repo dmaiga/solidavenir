@@ -251,18 +251,25 @@ class User(AbstractUser):
         return f"{self.username} ({self.get_user_type_display()})"
     
     def get_full_name_or_username(self):
+        """Return the user's full name if available, otherwise their username."""
         """Retourne le nom complet ou le username si le nom n'est pas disponible"""
         if self.first_name and self.last_name:
             return f"{self.first_name} {self.last_name}"
         return self.username
     
     def get_profile_picture_url(self):
+        """Return the URL of the profile picture, or a default image if none is set."""
         """Retourne l'URL de la photo de profil ou une image par défaut"""
         if self.photo_profil:
             return self.photo_profil.url
         return '/static/images/default-profile.png'
     
     def get_profile_display_picture(self):
+        """
+        Return the HTML for the user's display picture.
+        If a profile photo exists, return an <img> tag.
+        Otherwise, return a div containing the user's initials.
+        """
         """Retourne la photo de profil ou les initiales pour l'avatar"""
         if self.photo_profil:
             return f'<img src="{self.photo_profil.url}" class="profile-picture" alt="{self.get_full_name_or_username()}">'
@@ -293,6 +300,13 @@ class User(AbstractUser):
         return self.user_type == 'donateur'
     
     def get_profile_completion(self):
+        """
+        Calculate and return the profile completion percentage.
+        
+        - Counts filled fields: email, first/last name, phone, address, city, country, bio.
+        - Adds bonus points if a profile picture is set.
+        - Returns a percentage value (0–100).
+        """
         """Calcule le pourcentage de complétion du profil"""
         fields_to_check = [
             'email', 'first_name', 'last_name', 'telephone', 
@@ -336,6 +350,7 @@ class User(AbstractUser):
         return round((reussis / projets_termines.count()) * 100, 1)
     
     def get_user_type_icon(self):
+        """Return a Bootstrap icon class corresponding to the user's type."""
         """Retourne une icône selon le type d'utilisateur"""
         icons = {
             'admin': 'bi-shield',
@@ -367,6 +382,16 @@ class User(AbstractUser):
         return self.user_type != 'admin' and self.is_authenticated
     
     def ensure_wallet(self):
+        """
+        Ensure the user has an active Hedera wallet.
+        
+        - If no wallet exists, request wallet creation from the Node.js service.
+        - On success, store account ID, public key, and private key 
+        - Activate the wallet and save changes.
+        
+        Returns:
+            True if the wallet exists or was created successfully, otherwise False.
+        """
         """Crée un wallet automatiquement s'il n'existe pas"""
         if not self.hedera_account_id or not self.wallet_activated:
             try:
@@ -402,6 +427,9 @@ class User(AbstractUser):
 User = get_user_model()
 
 class Projet(models.Model):
+    """
+    Represents a crowdfunding project created by a user.
+    """
     """
     Représente un projet de financement participatif porté par un utilisateur.
     """
@@ -617,35 +645,61 @@ class Projet(models.Model):
 
     @property
     def categorie_display(self):
+        """
+        Represents a crowdfunding project created by a user.
+        """
         """Retourne la catégorie affichable avec gestion de 'autre'"""
         if self.categorie == 'autre' and self.autre_categorie:
             return f"📦 {self.autre_categorie}"
         return self.get_categorie_display()
     # --- PERMISSIONS ---
     def peut_etre_modifie_par(self, user):
+        """
+        Checks if the given user is allowed to modify this project.
+
+        Rules:
+        - Administrators can always modify.
+        - The project owner can modify if the project is in draft, pending, or active status.
+        """
         if user.is_administrator():
             return True
         return self.porteur == user and self.statut in ['brouillon', 'en_attente', 'actif']
     @property
     def est_associe_a_une_association(self):
+        """
+        Returns True if the project is linked to an association.
+        """
         """Vérifie si le projet est associé à une association"""
         return self.association is not None
     # --- STATUTS UTILES ---
     @property
     def est_actif(self):
+        """
+        Returns True if the project is currently active.
+        """
         return self.statut == 'actif'
 
     @property
     def est_termine(self):
+        """
+        Returns True if the project is completed, failed, or canceled.
+        """
         return self.statut in ['termine', 'echec', 'annule']
 
     # --- FINANCES ---
     @property
     def montant_restant(self):
+        """
+        Returns the remaining amount needed to reach the funding goal.
+        """
         return max(0, self.montant_demande - (self.montant_collecte or 0))
 
     @property
     def pourcentage_financement(self):
+        """
+        Returns the funding progress percentage based on committed funds.
+        Uses 'montant_engage' instead of 'montant_collecte'.
+        """
         """Pourcentage basé sur le montant engagé (déposé chez l'opérateur)"""
         if self.montant_demande == 0:
             return 0
@@ -656,15 +710,24 @@ class Projet(models.Model):
 
     @property
     def objectif_atteint(self):
+        """
+        Returns True if the committed funds reached the requested amount.
+        """
         """Vérifie si le montant engagé atteint l'objectif"""
         return self.montant_engage >= self.montant_demande
     
     @property
     def objectif_minimal_atteint(self):
+        """
+        Returns True if the committed funds reached the minimum threshold.
+        """
         """Vérifie si le montant engagé atteint l'objectif minimal"""
         return self.montant_engage >= self.montant_minimal
 
     def montant_actuel(self):
+        """
+        Returns the current confirmed amount collected for the project.
+        """
         from django.db.models import Sum
         return self.transaction_set.filter(statut='confirme').aggregate(
             total=Sum('montant')
@@ -673,6 +736,9 @@ class Projet(models.Model):
     # --- TEMPS ---
     @property
     def jours_restants(self):
+        """
+        Returns the number of days remaining until the campaign ends.
+        """
         if self.date_fin:
             delta = self.date_fin - timezone.now()
             return max(0, delta.days)
@@ -680,6 +746,9 @@ class Projet(models.Model):
 
     @property
     def jours_ecoules(self):
+        """
+        Returns the number of days elapsed since the campaign started.
+        """
         if self.date_debut:
             delta = timezone.now() - self.date_debut
             return min(delta.days, self.duree_campagne)
@@ -688,21 +757,38 @@ class Projet(models.Model):
     # --- METRIQUES ---
     @property
     def taux_conversion(self):
+        """
+        Returns the conversion rate as the percentage of contributors 
+        compared to the number of views.
+        """
         if self.vues == 0:
             return 0
         return round((self.contributeurs_count / self.vues) * 100, 2)
     @property
     def has_hedera_topic(self):
+        """
+        Returns True if the project has an associated Hedera Consensus Service topic.
+        """
         return bool(self.topic_id and self.hedera_topic_created)
     
     @property
     def topic_hashscan_link(self):
+        """
+        Returns a HashScan URL to view the Hedera topic on testnet.
+        """
         if self.topic_id:
             return f"https://hashscan.io/testnet/topic/{self.topic_id}"
         return None
  
     @property
     def stats_contributeurs(self):
+        """
+        Returns aggregated contributor statistics:
+        - Total number of unique contributors
+        - Average donation
+        - Maximum donation
+        - Minimum donation
+        """
         """Statistiques avancées des contributeurs"""
         from django.db.models import Count, Avg
         stats = Transaction.objects.filter(
@@ -719,18 +805,33 @@ class Projet(models.Model):
 
 
     def incrementer_vues(self):
+        """
+        Increments the view counter for the project.
+        """
         self.vues += 1
         self.save(update_fields=['vues'])
 
     def incrementer_partages(self):
+        """
+        Increments the share counter for the project.
+        """
         self.partages += 1
         self.save(update_fields=['partages'])
         
     def generer_identifiant_unique(self):
+        """
+        Generates a unique identifier for the project if not already set.
+        Format: SOLID + project ID + timestamp.
+        """
         if not self.identifiant_unique and self.id:
             self.identifiant_unique = f"SOLID{self.id:06d}{timezone.now().strftime('%Y%m%d')}"
     # --- ACTIONS ---
     def demarrer_campagne(self, admin_user=None):
+        """
+        Starts the project campaign by setting its status to 'active'.
+        Automatically sets start and end dates.
+        If an admin is provided, stores the validator and validation date.
+        """
         """Passe le projet en statut 'actif' si en attente et fixe dates."""
         if self.statut == 'en_attente':
             self.statut = 'actif'
@@ -744,6 +845,10 @@ class Projet(models.Model):
         return False
 
     def annuler(self, motif=""):
+        """
+        Cancels the project.
+        Optionally records a rejection/cancellation reason.
+        """
         """Annule un projet en cours"""
         self.statut = 'annule'
         if motif:
@@ -751,12 +856,21 @@ class Projet(models.Model):
         self.save(update_fields=['statut', 'motif_rejet'])
 
     def rejeter(self, motif=""):
+        """
+        Rejects the project if it is pending approval.
+        Records the rejection reason if provided.
+        """
         """Rejette un projet en attente"""
         self.statut = 'rejete'
         self.motif_rejet = motif
         self.save(update_fields=['statut', 'motif_rejet'])
 
     def verifier_statut(self):
+        """
+        Updates the project status automatically when the campaign ends.
+        - If minimum goal reached → 'termine'
+        - Otherwise → 'echec'
+        """
         """Met à jour automatiquement le statut si la campagne est terminée"""
         if self.statut == 'actif' and self.date_fin and timezone.now() > self.date_fin:
             if self.objectif_minimal_atteint:
@@ -766,10 +880,20 @@ class Projet(models.Model):
             self.save(update_fields=['statut'])
 
     def get_absolute_url(self):
+        """
+        Returns the canonical URL for the project detail page.
+        """
         from django.urls import reverse
         return reverse('detail_projet', kwargs={'audit_uuid': str(self.audit_uuid)})
     
     def peut_etre_modifie_par(self, user):
+        """
+        Checks if the given user is allowed to modify this project.
+
+        Rules:
+        - Administrators can always modify.
+        - The project owner can modify if the project is in draft, pending, or active status.
+        """
         """Vérifie si l'utilisateur peut modifier ce projet"""
         if not user.is_authenticated:
             return False
@@ -783,6 +907,9 @@ class Projet(models.Model):
 
     @property
     def montant_demande_fcfa(self):
+        """
+        Returns the requested amount converted into FCFA.
+        """
         """Montant demandé en FCFA"""
         try:
             return convert_hbar_to_fcfa(self.montant_demande)
@@ -792,6 +919,9 @@ class Projet(models.Model):
 
     @property
     def montant_engage_fcfa(self):
+        """
+        Returns the committed amount converted into FCFA.
+        """
         """Montant engagé en FCFA"""
         try:
             return convert_hbar_to_fcfa(self.montant_engage or 0)
@@ -801,6 +931,9 @@ class Projet(models.Model):
     
     @property
     def montant_restant_fcfa(self):
+        """
+        Returns the remaining amount converted into FCFA.
+        """
         """Montant restant en FCFA"""
         try:
             return convert_hbar_to_fcfa(self.montant_restant)
@@ -810,6 +943,9 @@ class Projet(models.Model):
     
     @property
     def montant_distribue_fcfa(self):
+        """
+        Returns the distributed amount converted into FCFA.
+        """
         """Montant distribué en FCFA"""
         try:
             return convert_hbar_to_fcfa(self.montant_distribue or 0)
@@ -819,6 +955,9 @@ class Projet(models.Model):
     
     @property
     def pourcentage_distribue(self):
+        """
+        Returns the percentage of committed funds already distributed.
+        """
         """Pourcentage déjà distribué au porteur"""
         if not self.montant_engage or self.montant_engage == 0:
             return 0
@@ -830,11 +969,17 @@ class Projet(models.Model):
     
     @property
     def taux_commission(self):
+        """
+        Returns the platform commission rate as a formatted string.
+        """
         """Taux de commission formaté"""
         return f"{self.commission}%"
     
     @property
     def montant_commission_total(self):
+        """
+        Returns the total commission deducted from distributed funds.
+        """
         """Commission totale prélevée"""
         try:
             if not self.montant_distribue:
@@ -844,9 +989,84 @@ class Projet(models.Model):
         except Exception as e:
             logger.error(f"Erreur calcul commission: {e}")
             return Decimal('0')
+        
+    @property
+    def images_secondaires(self):
+        """Retourne toutes les images secondaires du projet"""
+        return self.images.all().order_by('ordre')
+    
+    @property
+    def image_principale(self):
+        """Retourne l'image de couverture ou la première image secondaire"""
+        if self.cover_image:
+            return self.cover_image
+        first_image = self.images.first()
+        return first_image.image if first_image else None
+    
+    @property
+    def gallerie_images(self):
+        """Retourne toutes les images du projet pour la galerie"""
+        images = []
+        if self.cover_image:
+            images.append({
+                'image': self.cover_image,
+                'legende': 'Image principale',
+                'is_cover': True
+            })
+        
+        for img in self.images.all().order_by('ordre'):
+            images.append({
+                'image': img.image,
+                'legende': img.legende,
+                'is_cover': False
+            })
+        
+        return images
+
+class ImageProjet(models.Model):
+    """
+    Modèle pour stocker les images supplémentaires d'un projet
+    """
+    projet = models.ForeignKey(
+        Projet, 
+        on_delete=models.CASCADE, 
+        related_name='images'
+    )
+    image = models.ImageField(
+        upload_to='projets/images/',
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp']),
+            validate_file_size
+        ],
+        help_text="Image supplémentaire pour le projet"
+    )
+    legende = models.CharField(
+        max_length=200, 
+        blank=True, 
+        null=True,
+        help_text="Légende optionnelle pour l'image"
+    )
+    ordre = models.PositiveIntegerField(
+        default=0,
+        help_text="Ordre d'affichage (plus petit = premier)"
+    )
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['ordre', 'date_creation']
+        verbose_name = "Image de projet"
+        verbose_name_plural = "Images de projet"
+
+    def __str__(self):
+        return f"Image pour {self.projet.titre}"
 
 
 class Association(models.Model):
+    """
+    Represents a non-profit organization, NGO, or foundation registered on the platform.
+    Stores general information, legal status, areas of action, contacts, social media,
+    transparency commitments, and metadata for validation and publication.
+    """
     DOMAINES_ACTION = (
         ('education', 'Éducation'),
         ('sante', 'Santé'),
@@ -868,7 +1088,7 @@ class Association(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='association_profile')
     
     # Informations de base
-    nom = models.CharField(max_length=200)
+    nom = models.CharField(max_length=200,blank=True, null=True)
     slogan = models.CharField(max_length=250, blank=True, null=True)
     description_courte = models.TextField(max_length=200, blank=True, null=True)
     description_longue = models.TextField(blank=True, null=True)
@@ -928,28 +1148,48 @@ class Association(models.Model):
         verbose_name_plural = "Associations"
     
     def __str__(self):
+        """Return the official name of the association."""
         return self.nom
     
     def get_absolute_url(self):
+        """Return the canonical URL for the association detail page."""
         return reverse('association_detail', kwargs={'pk': self.pk})
     
     @property
     def est_verifiee(self):
-        return self.verifiee
+        """Check whether the association has been validated by the administration."""
+        return self.valide
+    
+    def est_membre(self, user):
+        """Vérifie si l'utilisateur est membre de l'association"""
+        return self.user == user  
+    
+    def est_membre_utilisateur_courant(self, request):
+        """Méthode pour utiliser dans les vues (pas dans les templates)"""
+        if request.user.is_authenticated:
+            return self.est_membre(request.user)
+        return False
     
     def get_domaine_display(self):
+        """Return the display label of the main action domain."""
         return self.get_domaine_principal_display()
     
 
     def get_projets_actifs(self):
+        """Return the list of active projects linked to this association."""
         """Retourne les projets actifs liés à cette association"""
         return self.projets.filter(statut="actif")
 
     def get_total_collecte(self):
+        """Return the total amount collected across all projects of this association."""
         """Somme de tous les montants collectés des projets de cette association"""
         return self.projets.aggregate(total=Sum("montant_collecte"))["total"] or 0
 
     def get_nombre_contributeurs(self):
+        """
+        Return the number of unique confirmed contributors 
+        (based on confirmed transactions related to this association).
+        """
         """Nombre de contributeurs uniques (via transactions confirmées)"""
         from django.db.models import Count
         try:
@@ -962,18 +1202,21 @@ class Association(models.Model):
             return 0
     
     def get_logo_url(self):
+        """Return the logo URL or a default placeholder if not provided."""
         """Retourne l'URL du logo ou une image par défaut si aucun logo n'est défini"""
         if self.logo and hasattr(self.logo, 'url'):
             return self.logo.url
         return '/static/images/default-association-logo.png'
     
     def get_cover_url(self):
+        """Return the cover image URL or a default placeholder if not provided."""
         """Retourne l'URL de l'image de couverture ou une image par défaut"""
         if self.cover_image and hasattr(self.cover_image, 'url'):
             return self.cover_image.url
         return '/static/images/default-association-cover.jpg'
     
     def get_completion_percentage(self):
+        """Calculate and return the profile completion percentage."""
         """Calcule le pourcentage de complétion du profil"""
         fields_to_check = [
             'nom', 'description_courte', 'domaine_principal', 
@@ -994,30 +1237,65 @@ class Association(models.Model):
         total_score = len(fields_to_check) + 2  # Total possible avec bonus logo
         percentage = (completed / total_score) * 100
         return min(round(percentage), 100)
+
+    @property
+    def quatre_dernieres_images(self):
+            """Retourne les 4 dernières images uploadées"""
+            return self.images.all().order_by('-date_ajout')[:4]
+
     def save(self, *args, **kwargs):
-        # Générer automatiquement le slug à partir du nom si pas défini
         if not self.slug and self.nom:
-            self.slug = slugify(self.nom)
+            base_slug = slugify(self.nom)
+            slug = base_slug
+            counter = 1
+            while Association.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
         super().save(*args, **kwargs)
 
 
+
+
 class AssociationImage(models.Model):
-    """Modèle pour les images de galerie des associations"""
+    """
+    Model representing gallery images linked to an Association.
+    Used to showcase visual content (e.g., events, projects, activities).
+    """
+
     association = models.ForeignKey(
         Association, 
         on_delete=models.CASCADE, 
-        related_name='images'
+        related_name='images',
+        help_text="The association this image belongs to."
     )
-    image = models.ImageField(upload_to='associations/galerie/')
-    legende = models.CharField(max_length=200, blank=True, null=True)
-    date_ajout = models.DateTimeField(auto_now_add=True)
-    ordre = models.PositiveIntegerField(default=0)
+    image = models.ImageField(
+        upload_to='associations/galerie/',
+        help_text="Gallery image file uploaded by the association."
+    )
+    legende = models.CharField(
+        max_length=200, 
+        blank=True, 
+        null=True,
+        help_text="Optional caption or description for the image."
+    )
+    date_ajout = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Date and time when the image was uploaded."
+    )
+    ordre = models.PositiveIntegerField(
+        default=0,
+        help_text="Display order of the image in the gallery."
+    )
     
     class Meta:
         ordering = ['ordre', 'date_ajout']
+        verbose_name = "Association Image"
+        verbose_name_plural = "Association Images"
     
     def __str__(self):
-        return f"Image pour {self.association.nom}"
+        """Return a human-readable representation of the image."""
+        return f"Image for {self.association.nom}"
 
 
 class AuditLog(models.Model):
@@ -1060,9 +1338,6 @@ class AuditLog(models.Model):
     def __str__(self):
         return f"{self.utilisateur.username} - {self.action} - {self.modele} - {self.date_action}"
     
-
-
-
 class EmailLog(models.Model):
     STATUTS = [
         ('sent', 'Envoyé'),
@@ -1106,16 +1381,25 @@ class EmailLog(models.Model):
         return f"{self.destinataire} - {self.sujet} ({self.statut})"
     
     def marquer_comme_envoye(self):
+        """Mark the email as successfully sent and update the sent timestamp."""
         self.statut = 'sent'
         self.date_envoi = timezone.now()
         self.save()
     
     def marquer_comme_erreur(self, message_erreur):
+        """Mark the email as failed and store the associated error message."""
         self.statut = 'failed'
         self.erreur = message_erreur
         self.save()
 
+
 class Palier(models.Model):
+    """
+    Model representing a funding milestone (palier) for a project.
+    Each milestone corresponds to a percentage of the total requested amount.
+    When the cumulative collected funds reach the required minimum,
+    this milestone can be unlocked and transferred.
+    """
     projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name='paliers')
     pourcentage = models.DecimalField(max_digits=5, decimal_places=2)
     montant = models.DecimalField(max_digits=15, decimal_places=0)
@@ -1127,15 +1411,18 @@ class Palier(models.Model):
     class Meta:
         ordering = ['montant_minimum']
 
-        # Dans models.py - Modifiez la méthode save() de Palier
+        
     def save(self, *args, **kwargs):
+        """
+        Override save to calculate the milestone amount and
+        its minimum threshold based on previous milestones.
+        """
         if not self.montant and self.projet.montant_demande:
             self.montant = (self.projet.montant_demande * self.pourcentage) / 100
 
-        # Calcul du montant minimum pour déclencher ce palier
+        # Calculate the minimum cumulative amount needed for this milestone
         montant_anterieur = Decimal('0')
 
-        # Récupérer tous les paliers existants avec pourcentage inférieur
         paliers_existants = Palier.objects.filter(
             projet=self.projet, 
             pourcentage__lt=self.pourcentage
@@ -1149,12 +1436,17 @@ class Palier(models.Model):
         super().save(*args, **kwargs)
 
 class PreuvePalier(models.Model):
+    """
+    Model representing proof of milestone achievement.
+    Uploaded by project owners to demonstrate that a milestone has been met,
+    and verified by an admin or reviewer.
+    """
     STATUT_CHOICES = [
-        ('non_soumis', 'Non soumis'),
-        ('en_attente', 'En attente de vérification'),
-        ('approuve', 'Approuvé'),
-        ('rejete', 'Rejeté'),
-        ('modification', 'Modification requise'),
+        ('non_soumis', 'Not submitted'),
+        ('en_attente', 'Pending verification'),
+        ('approuve', 'Approved'),
+        ('rejete', 'Rejected'),
+        ('modification', 'Modification required'),
     ]
     
     palier = models.ForeignKey('Palier', on_delete=models.CASCADE, related_name='preuves')
@@ -1184,6 +1476,10 @@ class PreuvePalier(models.Model):
         super().save(*args, **kwargs)
         
 class FichierPreuve(models.Model):
+    """
+    Model representing a file uploaded as proof for a milestone (PreuvePalier).
+    Files can be of type photo, video, document, or other, and are linked to a specific milestone proof.
+    """
     TYPE_CHOICES = [
         ('photo', 'Photo'),
         ('video', 'Vidéo'),
@@ -1202,8 +1498,11 @@ class FichierPreuve(models.Model):
         verbose_name_plural = "Fichiers preuves"
 
 
-
 class Transaction(models.Model):
+    """
+    Model representing a financial transaction made by a user towards a project, operator, or beneficiary.
+    Tracks Hedera network transaction details, anonymized contributor info, and administrative verification.
+    """
     STATUTS = (
         ('en_attente', 'En attente'),
         ('confirme', 'Confirmé'),
@@ -1233,6 +1532,13 @@ class Transaction(models.Model):
         null=True,
         help_text="Statut Hedera de la transaction (SUCCESS, FAILED, etc.)"
     )
+    hedera_message_id = models.CharField(
+        max_length=150, 
+        blank=True, 
+        null=True,
+        help_text="ID du message HCS Hedera"
+    )
+
     
     hedera_message_hashscan_url = models.URLField(
         blank=True, 
@@ -1273,6 +1579,7 @@ class Transaction(models.Model):
             models.Index(fields=['contributeur']),
             models.Index(fields=['projet']),
             models.Index(fields=['topic']),
+            models.Index(fields=['hedera_message_id']),
         ]
         permissions = [
             ("verify_transaction", "Peut vérifier une transaction"),
@@ -1280,7 +1587,7 @@ class Transaction(models.Model):
         ]
     
     def save(self, *args, **kwargs):
-        # ✅ Auto-remplissage du topic à partir du projet
+       
         if self.projet and self.projet.topic_id and not self.topic:
             self.topic = self.projet
         
@@ -1292,33 +1599,52 @@ class Transaction(models.Model):
     
     @property
     def is_hedera_confirmed(self):
+        """Returns True if the Hedera transaction is confirmed."""
         return self.hedera_status == 'SUCCESS'
     
     @property
     def has_hedera_message(self):
+        """Returns True if a Hedera message ID exists."""
         return bool(self.hedera_message_id)
     
     @property
     def topic_hashscan_link(self):
+        """Returns the HashScan link for the associated topic."""
         """Retourne le lien HashScan du topic"""
         if self.topic and self.topic.topic_id:
             return f"https://hashscan.io/testnet/topic/{self.topic.topic_id}"
         return None
     
     def anonymiser_contributeur(self, salt):
+        """Anonymize the contributor using a salt and audit UUID."""
         """Anonymisation du contributeur"""
         unique_id = f"{self.contributeur.audit_uuid}{salt}"
         return f"Contributeur_{hashlib.sha256(unique_id.encode()).hexdigest()[:20]}"
     
     def clean(self):
+        """Validation: Prevent admins from making contributions."""
         """Validation: Empêcher les admins de contribuer"""
         if self.contributeur and self.contributeur.user_type == 'admin':
             raise ValidationError("Les administrateurs ne peuvent pas effectuer de contributions.")
-
-
+    @property
+    def hedera_link(self):
+        """
+        Returns the HashScan link for this transaction.
+        Uses `hedera_hashscan_url` if set, otherwise generates from the transaction hash.
+        """
+        if self.hedera_hashscan_url:
+            return self.hedera_hashscan_url
+        elif self.hedera_transaction_hash:
+            return f"https://hashscan.io/testnet/transaction/{self.hedera_transaction_hash}"
+        return Non
+    
 
 
 class TransactionAdmin(models.Model):
+    """
+    Model representing an administrative record of a transaction.
+    Tracks gross/net amounts, commissions, linked milestone (Palier), and Hedera message info.
+    """
     projet = models.ForeignKey(Projet, on_delete=models.CASCADE)
     palier = models.ForeignKey('Palier', on_delete=models.SET_NULL, null=True, blank=True)  # lien vers le palier si applicable
     montant_brut = models.DecimalField(max_digits=15, decimal_places=2)
@@ -1343,7 +1669,10 @@ class TransactionAdmin(models.Model):
 
 
 class ContactSubmission(models.Model): 
-
+    """
+    Model representing a contact form submission from a user or visitor.
+    Tracks the subject, email, message content, submission date, and whether it has been processed.
+    """
     sujet = models.CharField(max_length=100)
     email = models.EmailField()
     message = models.TextField()
@@ -1359,6 +1688,10 @@ class ContactSubmission(models.Model):
         return f"{self.sujet} - {self.email}"
     
 class TopicMessage(models.Model):
+    """
+    Model representing a message sent via the Hedera Consensus Service (HCS) related to a project.
+    Can store donation notifications, administrative distributions, or other project-related messages.
+    """
     projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name="messages")
     type_message = models.CharField(max_length=100)  # ex: don, distribution_admin_porteur
     utilisateur_email = models.EmailField(blank=True, null=True)

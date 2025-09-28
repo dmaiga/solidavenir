@@ -11,72 +11,12 @@
         padding: 3rem 0;
     }
     
-    .stats-card {
-        background: white;
-        border-radius: var(--border-radius);
-        padding: var(--spacing-md);
-        text-align: center;
-        box-shadow: var(--shadow-sm);
-        border-left: 4px solid var(--primary-blue);
+    .gallery-image {
+        transition: transform 0.3s ease;
     }
     
-    .project-card {
-        border: none;
-        border-radius: var(--border-radius);
-        overflow: hidden;
-        height: 100%;
-        box-shadow: var(--shadow-sm);
-    }
-    
-    .social-btn {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        border: 1px solid var(--gray-medium);
-    }
-    
-    .badge-domain {
-        background: var(--primary-blue);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-size: var(--font-size-sm);
-    }
-    
-    .contact-info {
-        background: var(--gray-light);
-        border-radius: var(--border-radius);
-        padding: var(--spacing-md);
-    }
-    
-    /* Ajustements spécifiques pour l'intégration avec base.html */
-    main .container {
-        padding-top: var(--spacing-lg);
-        padding-bottom: var(--spacing-lg);
-    }
-    
-    .card {
-        margin-bottom: var(--spacing-md);
-    }
-    
-    /* Correction des conflits de margin */
-    .association-header + .container {
-        margin-top: 0;
-    }
-    
-    /* Ajustement responsive */
-    @media (max-width: 768px) {
-        .association-header {
-            padding: 2rem 0;
-        }
-        
-        .association-header h1 {
-            font-size: var(--font-size-xxl);
-        }
+    .gallery-image:hover {
+        transform: scale(1.05);
     }
 </style>
 {% endblock %}
@@ -238,7 +178,7 @@
                     </div>
                     
                     <div class="row">
-                        {% for projet in association.get_projets_actifs %}
+                        {% for projet in projets_actifs %}
                         <div class="col-md-6 mb-3">
                             <div class="card project-card h-100">
                                 {% if projet.cover_image %}
@@ -329,6 +269,53 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- GALLERY SECTION - AJOUTÉE ICI -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title text-primary mb-3">
+                        <i class="bi bi-images text-info me-2"></i>Galerie Photo
+                    </h3>
+                    
+                    {% if association.images.exists %}
+                    <div class="row">
+                        {% for image in quatre_images %}
+                        <div class="col-md-3 mb-3">
+                            <img src="{{ image.image.url }}" 
+                                 class="img-thumbnail gallery-image" 
+                                 alt="{{ image.legende|default:'' }}" 
+                                 style="height: 150px; object-fit: cover;"
+                                 title="{{ image.legende|default:'' }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="{% url 'association_images_list' association.slug %}" class="btn btn-outline-primary">
+                            Voir toutes les photos ({{ association.images.count }})
+                        </a>
+                        
+                        {% if user.is_authenticated and est_membre %}
+                        <a href="{% url 'upload_association_image' association.slug %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i>Ajouter une photo
+                        </a>
+                        {% endif %}
+                    </div>
+                    
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-images text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">Aucune photo pour le moment.</p>
+                        
+                        {% if user.is_authenticated and est_membre %}
+                        <a href="{% url 'upload_association_image' association.slug %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i>Ajouter la première photo
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
 
             <!-- Transparency -->
             {% if association.transparent_finances or association.transparent_actions %}

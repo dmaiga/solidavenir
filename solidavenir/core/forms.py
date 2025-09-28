@@ -20,14 +20,43 @@ from decimal import Decimal
 from django import forms
 from django.core.exceptions import ValidationError
 
-from .models import Projet
+from .models import Projet,ImageProjet
 from django import forms
 from django.core.exceptions import ValidationError
 from django_summernote.widgets import SummernoteWidget
 from decimal import Decimal
 from .models import Projet
 
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
 
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        # Si data est None, retourner une liste vide
+        if not data:
+            return []
+        
+        # Si c'est déjà une liste (cas de MultipleFileInput), traiter chaque fichier
+        if isinstance(data, (list, tuple)):
+            return [super().clean(d, initial) for d in data]
+        # Sinon, retourner une liste avec un seul élément
+        return [super().clean(data, initial)]
+
+class MultiFileInput(forms.ClearableFileInput):
+    def render(self, name, value, attrs=None, renderer=None):
+        attrs = attrs or {}
+        attrs['multiple'] = 'multiple'
+        return super().render(name, value, attrs, renderer)
+    
+    def value_from_datadict(self, data, files, name):
+        if hasattr(files, 'getlist'):
+            return files.getlist(name)
+        return None
+    
 class InscriptionFormSimplifiee(UserCreationForm):
     # Types d'utilisateurs sans admin
     USER_TYPES_WITHOUT_ADMIN = [
@@ -216,7 +245,7 @@ class InscriptionFormSimplifiee(UserCreationForm):
 #
 #   ASSOCIATION
 #
-from .models import Association
+from .models import Association,AssociationImage
 class AssociationForm(forms.ModelForm):
     """Formulaire pour la modification du profil association"""
     
@@ -334,6 +363,13 @@ class AssociationForm(forms.ModelForm):
             'transparent_finances', 'transparent_actions'
         ])
 
+class AssociationImageForm(forms.ModelForm):
+    """
+    Formulaire ultra-simplifié pour l'upload d'images
+    """
+    class Meta:
+        model = AssociationImage
+        fields = ['image']
 
 class ProfilUtilisateurForm(forms.ModelForm):
     """Formulaire de modification du profil utilisateur avec photo"""
@@ -878,13 +914,12 @@ class CreationProjetForm(forms.ModelForm):
         label="Description des contreparties",
         help_text="Décrivez brièvement ce que vous proposez en échange des contributions"
     )
-    
     class Meta:
         model = Projet
         fields = [
             'titre', 'description_courte', 'description', 'categorie', 'autre_categorie',
             'type_financement', 'montant_demande', 'offre_recompenses', 'description_recompenses',
-            'cover_image', 'video_presentation', 'duree_campagne', 'tags', 'association'
+            'cover_image','video_presentation', 'duree_campagne', 'tags', 'association'
         ]
         widgets = {
             'titre': forms.TextInput(attrs={
@@ -978,7 +1013,7 @@ class CreationProjetForm(forms.ModelForm):
         description_courte = description_courte.strip()
         
         if len(description_courte) < 10:
-            raise ValidationError("Le résumé doit contenir au moins 20 caractères.")
+            raise ValidationError("Le résumé doit contenir au moins 10 caractères.")
         
         if len(description_courte) > 300:
             raise ValidationError("Le résumé ne peut pas dépasser 300 caractères.")
@@ -992,28 +1027,103 @@ class CreationProjetForm(forms.ModelForm):
             raise ValidationError("Le montant demandé doit être d'au moins 10 FCFA.")
         return montant
     
+    
     def save(self, commit=True):
         projet = super().save(commit=False)
-        
+
         if self.porteur:
             projet.porteur = self.porteur
-        
+
         # Gestion des récompenses
         offre_recompenses = self.cleaned_data.get('offre_recompenses', False)
         description_recompenses = self.cleaned_data.get('description_recompenses', '')
-        
+
         projet.has_recompenses = offre_recompenses
         projet.recompenses_description = description_recompenses if offre_recompenses else None
-        
+
         # Montant minimal par défaut à 50%
         if not projet.montant_minimal and projet.montant_demande:
             projet.montant_minimal = Decimal(projet.montant_demande) * Decimal('0.5')
-        
+
         if commit:
             projet.save()
-            self.save_m2m() 
+            self.save_m2m()     
+        return projet
+
+class AjoutImagesProjetForm(forms.Form):
+    """Formulaire dédié à l'ajout d'images secondaires"""
+    
+    images = MultipleFileField(
+        required=True,
+        widget=MultipleFileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/jpeg,image/png,image/webp',
+            'multiple': 'multiple'
+        }),
+        label="Images supplémentaires",
+        help_text="Sélectionnez une ou plusieurs images (max 10, 5MB par image)"
+    )
+    
+    def __init__(self, *args, **kwargs):
+        self.projet = kwargs.pop('projet', None)
+        super().__init__(*args, **kwargs)
+    
+    def clean_images(self):
+        """Validation pour les images"""
+        images = self.cleaned_data.get('images', [])
         
-        return projet    
+        # Si images est None, retourner une liste vide
+        if images is None:
+            return []
+        
+        # Vérifier que c'est une liste
+        if not isinstance(images, list):
+            images = [images] if images else []
+
+        # Limite à 10 images
+        if len(images) > 10:
+            raise ValidationError("Vous ne pouvez pas uploader plus de 10 images.")
+        
+        # Vérifier le nombre total d'images (existant + nouvelles)
+        if self.projet:
+            images_existantes = self.projet.images.count()
+            if images_existantes + len(images) > 10:
+                raise ValidationError(
+                    f"Vous avez déjà {images_existantes} images. "
+                    f"Vous ne pouvez ajouter que {10 - images_existantes} image(s) supplémentaire(s)."
+                )
+
+        for image in images:
+            if image:  # Vérifier que l'image n'est pas None
+                # Vérifier le type MIME
+                if image.content_type not in ['image/jpeg', 'image/png', 'image/webp']:
+                    raise ValidationError(f"Format non supporté: {image.name}. Utilisez JPEG, PNG ou WebP.")
+
+                # Vérifier la taille (5MB max par image)
+                if image.size > 5 * 1024 * 1024:
+                    raise ValidationError(f"L'image {image.name} est trop lourde (max 5MB).")
+
+        return images
+    
+    def save(self):
+        """Sauvegarde les images dans le projet"""
+        if not self.projet:
+            raise ValueError("Un projet doit être spécifié")
+        
+        images = self.cleaned_data.get('images', [])
+        ordre_depart = self.projet.images.count() + 1
+        
+        images_crees = []
+        for i, image_file in enumerate(images):
+            if image_file:
+                image_projet = ImageProjet.objects.create(
+                    projet=self.projet,
+                    image=image_file,
+                    ordre=ordre_depart + i
+                )
+                images_crees.append(image_projet)
+        
+        return images_crees
 
 from django import forms
 from django.utils.html import format_html
@@ -1022,16 +1132,6 @@ from django.utils.safestring import mark_safe
 from django import forms
 from django.utils.html import format_html
 
-class MultiFileInput(forms.ClearableFileInput):
-    def render(self, name, value, attrs=None, renderer=None):
-        attrs = attrs or {}
-        attrs['multiple'] = 'multiple'
-        return super().render(name, value, attrs, renderer)
-    
-    def value_from_datadict(self, data, files, name):
-        if hasattr(files, 'getlist'):
-            return files.getlist(name)
-        return None
 
 class PreuveForm(forms.Form):
     """Formulaire pour soumettre des preuves pour un palier"""

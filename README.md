@@ -17,6 +17,18 @@ docker-compose.yml    # To run services via Docker
 ```
 
 ---
+⚠️ Important:
+The platform is composed of two separate services:
+1. **Django backend** (Python, runs on port 8000).
+2. **Hedera service** (Node.js, runs on port 3001).
+
+If you are not using Docker, you must open **two separate terminals**:
+- Terminal 1 → run the Hedera service.
+- Terminal 2 → run the Django backend.
+
+Both must be running simultaneously for the platform to function correctly.
+
+---
 
 ## 1. Windows Setup
 
@@ -27,12 +39,19 @@ git clone https://github.com/dmaiga/solidavenir.git
 cd solidavenir
 ```
 
-2. Run the scripts:
 
-```powershell
-.\scripts\windows\run_hedera_service.bat
-.\scripts\windows\run_backend.bat
+2. Run the scripts in separate terminals:
+
 ```
+powershell
+
+```
+# Terminal 1
+.\scripts\windows\run_hedera_service.bat
+
+# Terminal 2
+.\scripts\windows\run_backend.bat
+
 
 > The backend script will create a Python virtual environment, install dependencies, apply migrations, and create a **superuser admin** with:
 >
@@ -65,12 +84,19 @@ chmod +x scripts/linux/run_backend.sh
 > dos2unix scripts/linux/*.sh
 > ```
 
-3. Launch the services:
 
+3. Launch the services in separate terminals:
 ```bash
-./scripts/linux/run_hedera_service.sh
-./scripts/linux/run_backend.sh
+
 ```
+
+# Terminal 1
+./scripts/linux/run_hedera_service.sh
+
+# Terminal 2
+./scripts/linux/run_backend.sh
+
+
 
 > The backend script automatically:
 >

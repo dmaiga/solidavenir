@@ -203,7 +203,16 @@
                                     A picture is worth a thousand words! Choose a high-quality photo that represents your project (1200×600px recommended)
                                 </div>
                             </div>
-                            
+                            <div class="mb-3">
+    <label for="{{ form.images_secondaires.id_for_label }}" class="form-label fw-semibold">
+        Additional Images
+    </label>
+    {{ form.images_secondaires }}
+    <div class="form-text">
+        <i class="fas fa-lightbulb text-warning me-1"></i>
+        Add up to 10 images to enhance the project (JPEG, PNG, WebP - max 5MB each)
+    </div>
+</div>
                             <div class="mb-3">
                                 <label for="{{ form.video_presentation.id_for_label }}" class="form-label fw-semibold">
                                     Presentation Video
@@ -424,6 +433,116 @@ document.addEventListener('DOMContentLoaded', function() {
             
             form.classList.add('was-validated');
         });
+    }
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion de l'affichage des récompenses
+    const recompensesCheckbox = document.getElementById('{{ form.offre_recompenses.id_for_label }}');
+    const recompensesSection = document.getElementById('recompenses-section');
+    
+    function toggleRecompensesSection() {
+        if (recompensesCheckbox.checked) {
+            recompensesSection.style.display = 'block';
+        } else {
+            recompensesSection.style.display = 'none';
+        }
+    }
+    
+    if (recompensesCheckbox) {
+        recompensesCheckbox.addEventListener('change', toggleRecompensesSection);
+        toggleRecompensesSection(); // Initial state
+    }
+    
+    // Compteur de caractères pour la description courte
+    const descriptionCourte = document.getElementById('{{ form.description_courte.id_for_label }}');
+    const charCount = document.getElementById('char-count');
+    
+    if (descriptionCourte && charCount) {
+        function updateCharCount() {
+            const length = descriptionCourte.value.length;
+            charCount.textContent = `${length}/300 characters`;
+            
+            if (length > 300) {
+                charCount.style.color = 'red';
+            } else if (length > 250) {
+                charCount.style.color = 'orange';
+            } else {
+                charCount.style.color = 'green';
+            }
+        }
+        
+        descriptionCourte.addEventListener('input', updateCharCount);
+        updateCharCount(); // Initial count
+    }
+    
+    // Gestion de la catégorie "autre"
+    const categorieSelect = document.getElementById('{{ form.categorie.id_for_label }}');
+    const autreCategorieContainer = document.getElementById('autre-categorie-container');
+    
+    function toggleAutreCategorie() {
+        if (categorieSelect.value === 'autre') {
+            autreCategorieContainer.style.display = 'block';
+        } else {
+            autreCategorieContainer.style.display = 'none';
+        }
+    }
+    
+    if (categorieSelect) {
+        categorieSelect.addEventListener('change', toggleAutreCategorie);
+        toggleAutreCategorie(); // Initial state
+    }
+    
+    // Amélioration de l'affichage des fichiers sélectionnés pour les images multiples
+    const imagesSecondairesInput = document.querySelector('input[name="images_secondaires"]');
+    
+    if (imagesSecondairesInput) {
+        imagesSecondairesInput.addEventListener('change', function(e) {
+            const files = e.target.files;
+            const fileListContainer = document.getElementById('file-list');
+            
+            // Créer ou mettre à jour le conteneur de liste de fichiers
+            if (!fileListContainer) {
+                const newFileListContainer = document.createElement('div');
+                newFileListContainer.id = 'file-list';
+                newFileListContainer.className = 'mt-2 small';
+                imagesSecondairesInput.parentNode.appendChild(newFileListContainer);
+            }
+            
+            const container = document.getElementById('file-list');
+            
+            if (files.length > 0) {
+                let fileListHTML = '<strong>Selected files:</strong><ul class="mb-0">';
+                for (let i = 0; i < files.length; i++) {
+                    fileListHTML += `<li>${files[i].name} (${(files[i].size / 1024 / 1024).toFixed(2)} MB)</li>`;
+                }
+                fileListHTML += '</ul>';
+                container.innerHTML = fileListHTML;
+            } else {
+                container.innerHTML = '';
+            }
+            
+            // Validation du nombre de fichiers
+            if (files.length > 10) {
+                alert('You can select maximum 10 files.');
+                e.target.value = '';
+                container.innerHTML = '';
+            }
+        });
+    }
+    
+    // Validation du formulaire
+    const form = document.querySelector('form.needs-validation');
+    
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
     }
 });
 </script>

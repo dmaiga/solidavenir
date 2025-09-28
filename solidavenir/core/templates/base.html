@@ -7,9 +7,12 @@
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
     <!-- Styles personnalisés -->
     <style>
+        .container {
+  max-width: 1300px; /* ou 1140px comme Bootstrap xl */
+}
         /* Variables CSS étendues */
         :root {
             --primary-blue: #1a73e8;
@@ -261,77 +264,105 @@
     </main>
 
     <!-- Pied de page -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="text-uppercase fw-bold mb-3">Solid'Avenir</h5>
-                    <p class="mb-3">Transparent crowdfunding platform for a united future, with guaranteed blockchain traceability.</p>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <span class="badge bg-light text-dark">Transparency</span>
-                        <span class="badge bg-light text-dark">Trust</span>
-                        <span class="badge bg-light text-dark">Solidarity</span>
-                        <span class="badge bg-light text-dark">Future</span>
-                    </div>
+   <footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="text-uppercase fw-bold mb-3">Solid'Avenir</h5>
+                <p class="mb-3">Transparent crowdfunding platform for a united future, with guaranteed blockchain traceability.</p>
+                <!-- Slogan ajouté ici -->
+                <div class="slogan-container mb-3">
+                    <h6 style='color:#28a745' >See it • Trust it • Fund it</h6>
                 </div>
-                
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="text-uppercase fw-bold mb-3">Navigation</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'savoir_plus' %}"><i class="bi bi-info-circle me-2"></i>Learn More</a></li>
-                        <li class="mb-2"><a href="{% url 'accueil' %}"><i class="bi bi-house me-2"></i>Home</a></li>
-                        <li class="mb-2"><a href="{% url 'liste_projets' %}"><i class="bi bi-lightbulb me-2"></i>Projects</a></li>
-                        <li class="mb-2"><a href="{% url 'liste_associations' %}"><i class="bi bi-people me-2"></i>Associations</a></li>
-                        <li class="mb-2"><a href="{% url 'transparence' %}"><i class="bi bi-shield-check me-2"></i>Transaction History</a></li>
-                        <li class="mb-2"><a href="{% url 'about' %}"><i class="bi bi-info-circle me-2"></i>About</a></li>
-                    </ul>
-                </div>
-                
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="text-uppercase fw-bold mb-3">Member Area</h5>
-                    <ul class="list-unstyled">
-                        {% if user.is_authenticated %}
-                            <li class="mb-2"><a href="{% url 'mes_projets' %}"><i class="bi bi-folder me-2"></i>My Projects</a></li>
-                            {% if user.is_association %}
-                            <li class="mb-2"><a href="{% url 'espace_association' %}"><i class="bi bi-people me-2"></i>Association Space</a></li>
-                            {% endif %}
-                            <li class="mb-2"><a href="{% url 'mes_dons' %}"><i class="bi bi-heart me-2"></i>My Contributions</a></li>
-                            <li class="mb-2"><a href="{% url 'modifier_profil' %}"><i class="bi bi-person me-2"></i>My Profile</a></li>
-                        {% else %}
-                            <li class="mb-2"><a href="{% url 'inscription' %}"><i class="bi bi-person-plus me-2"></i>Create Account</a></li>
-                            <li class="mb-2"><a href="{% url 'connexion' %}"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
-                
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="text-uppercase fw-bold mb-3">Commitment</h5>
-                    <p class="mb-3">Every transaction is traced on the Hedera Hashgraph blockchain for total transparency and absolute trust.</p>
-                    <div class="d-flex gap-2">
-                        <a href="#" class="btn btn-sm btn-outline-light"><i class="bi bi-file-text"></i> Terms</a>
-                        <a href="#" class="btn btn-sm btn-outline-light"><i class="bi bi-shield"></i> Privacy</a>
-                    </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <span class="badge bg-light text-dark">Transparency</span>
+                    <span class="badge bg-light text-dark">Trust</span>
+                    <span class="badge bg-light text-dark">Solidarity</span>
+                    <span class="badge bg-light text-dark">Future</span>
                 </div>
             </div>
             
-            <hr class="my-4 bg-light opacity-50">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="text-uppercase fw-bold mb-3">Navigation</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="{% url 'savoir_plus' %}"><i class="bi bi-info-circle me-2"></i>Learn More</a></li>
+                    <li class="mb-2"><a href="{% url 'accueil' %}"><i class="bi bi-house me-2"></i>Home</a></li>
+                    <li class="mb-2"><a href="{% url 'liste_projets' %}"><i class="bi bi-lightbulb me-2"></i>Projects</a></li>
+                    <li class="mb-2"><a href="{% url 'liste_associations' %}"><i class="bi bi-people me-2"></i>Associations</a></li>
+                    <li class="mb-2"><a href="{% url 'transparence' %}"><i class="bi bi-shield-check me-2"></i>Transaction History</a></li>
+                    <li class="mb-2"><a href="{% url 'about' %}"><i class="bi bi-info-circle me-2"></i>About</a></li>
+                </ul>
+            </div>
             
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <p class="mb-0">
-                        <i class="bi bi-heart-fill text-danger me-1"></i>
-                        &copy; {% now "Y" %} Solid'Avenir. All rights reserved.
-                    </p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <small class="text-white">
-                        Made with passion for a better future
-                    </small>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="text-uppercase fw-bold mb-3">Member Area</h5>
+                <ul class="list-unstyled">
+                    {% if user.is_authenticated %}
+                        <li class="mb-2"><a href="{% url 'mes_projets' %}"><i class="bi bi-folder me-2"></i>My Projects</a></li>
+                        {% if user.is_association %}
+                        <li class="mb-2"><a href="{% url 'espace_association' %}"><i class="bi bi-people me-2"></i>Association Space</a></li>
+                        {% endif %}
+                        <li class="mb-2"><a href="{% url 'mes_dons' %}"><i class="bi bi-heart me-2"></i>My Contributions</a></li>
+                        <li class="mb-2"><a href="{% url 'modifier_profil' %}"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                    {% else %}
+                        <li class="mb-2"><a href="{% url 'inscription' %}"><i class="bi bi-person-plus me-2"></i>Create Account</a></li>
+                        <li class="mb-2"><a href="{% url 'connexion' %}"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="text-uppercase fw-bold mb-3">Commitment</h5>
+                <p class="mb-3">Every transaction is traced on the Hedera Hashgraph blockchain for total transparency and absolute trust.</p>
+                <!-- Slogan également ajouté ici pour plus de visibilité -->
+                
+                <div class="d-flex gap-2">
+                    <a href="#" class="btn btn-sm btn-outline-light"><i class="bi bi-file-text"></i> Terms</a>
+                    <a href="#" class="btn btn-sm btn-outline-light"><i class="bi bi-shield"></i> Privacy</a>
                 </div>
             </div>
         </div>
-    </footer>
+        
+        <hr class="my-4 bg-light opacity-50">
+        
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="mb-0">
+                    <i class="bi bi-heart-fill text-danger me-1"></i>
+                    &copy; {% now "Y" %} Solid'Avenir. All rights reserved.
+                </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <!-- Slogan dans la partie inférieure -->
+                
+                <br>
+                <small style='color:#ff6d00' >
+                    Made with passion for a better future
+                </small>
+            </div>
+        </div>
+    </div>
+</footer>
 
+<style>
+.slogan-container {
+    background: rgba(236, 228, 228, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    border-left: 4px solid #ff6d00;
+}
+
+.slogan-container h6, .slogan-container small {
+    margin: 0;
+    font-style: italic;
+}
+
+/* Animation subtile au survol */
+.slogan-container:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transition: background 0.3s ease;
+}
+</style>
     <!-- Bootstrap JS et dépendances -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     

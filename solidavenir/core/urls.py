@@ -19,7 +19,7 @@ urlpatterns = [
    path('projet/<uuid:uuid>/modifier/', views.modifier_projet, name='modifier_projet'),
    path('projet/<uuid:uuid>/supprimer/', views.supprimer_projet, name='supprimer_projet'),
    path('utilisateur/<int:user_id>/projets/', views.projets_utilisateur, name='projets_utilisateur'),
-
+   path('projet/<uuid:uuid>/ajouter-images/', views.ajouter_images_projet, name='ajouter_images_projet'),
     path('connexion/', views.connexion, name='connexion'),
     path('deconnexion/', views.deconnexion, name='deconnexion'),
    
@@ -60,6 +60,6 @@ urlpatterns = [
     
     path('palier/<int:palier_id>/verifier-preuves/', 
          views.verifier_preuves_palier, name='verifier_preuves_palier'),
-    path("topics/", views.liste_topics, name="liste_topics"),
-    path("topics/<int:projet_id>/", views.topic_detail, name="topic_detail"),
+   path('<slug:slug>/galerie/upload/', views.upload_association_image, name='upload_association_image'),
+    path('<slug:slug>/galerie/', views.association_images_list, name='association_images_list'),
 ]

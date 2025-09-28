@@ -5,6 +5,7 @@
 
 {% block content %}
 <link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
 <style>
 .dashboard-container {
     min-height: 80vh;
@@ -295,19 +296,19 @@
         <!-- QUICK LINKS -->
         <div class="quick-links">
             <a href="{% url 'liste_membres' %}" class="quick-link">
-                <i class="bi bi-people"></i><br>
+              
                 Manage Users
             </a>
             <a href="{% url 'liste_associations_admin' %}" class="quick-link">
-                <i class="bi bi-building"></i><br>
+            
                 Associations
             </a>
             <a href="{% url 'logs_audit' %}" class="quick-link">
-                <i class="bi bi-shield-check"></i><br>
+            
                 Audit Logs
             </a>
             <a href="{% url 'gerer_distributions' %}" class="quick-link">
-                <i class="bi bi-cash-coin"></i><br>
+              
                 Distributions
             </a>
         </div>
@@ -320,6 +321,11 @@
                 <div class="priority-number">{{ stats.associations_attente }}</div>
                 <div class="priority-label">Associations Pending</div>
                 <div class="priority-description">Associations requiring validation</div>
+            </a>
+             <a href="{% url 'projets_attente' %}?valide=false" class="priority-card projects">
+                <div class="priority-number">{{ stats.projets_attente }}</div>
+                <div class="priority-label">Project Pending</div>
+                <div class="priority-description">Project requiring validation</div>
             </a>
             
             <!-- Milestones Reached -->

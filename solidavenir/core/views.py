@@ -15,6 +15,7 @@ from django.db import transaction
 from django.contrib.auth import (
     login, authenticate, logout, update_session_auth_hash
 )
+
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -26,7 +27,7 @@ from django.db import transaction as db_transaction
 from django.db.models import (
     Sum, Count, Q, Avg, Max, Min, F, DecimalField, Prefetch
 )
-from django.db.models.functions import Coalesce, TruncMonth
+from django.db.models.functions import Coalesce, TruncMonth,TruncDate
 from django.http import (
     JsonResponse, HttpResponseForbidden, HttpResponseRedirect
 )
@@ -44,7 +45,7 @@ from .models import (
     Palier, PreuvePalier, FichierPreuve, EmailLog, TransactionAdmin
 )
 from .forms import (
-    InscriptionFormSimplifiee, CreationProjetForm, ValidationProjetForm,
+    InscriptionFormSimplifiee, CreationProjetForm,AjoutImagesProjetForm, ValidationProjetForm,
     ProfilUtilisateurForm, ContactForm, Transfer_fond, AssociationForm,
     FiltreMembresForm, FiltreTransactionsForm, FiltreAuditForm,
     EmailFormSimple, PreuveForm, VerificationPreuveForm
@@ -56,8 +57,9 @@ logger = logging.getLogger(__name__)
 #   SITE
 #
 def accueil(request):
-    """Page d'accueil avec projets populaires et statistiques"""
+    
     """Homepage with popular projects and statistics"""
+    """Page d'accueil avec projets populaires et statistiques"""
     # Récupérer les projets actifs les plus populaires
     # Get the most popular active projects
     projets_populaires = Projet.objects.filter(
@@ -84,56 +86,99 @@ def accueil(request):
     return render(request, 'core/site/accueil.html', context)
 
 def about(request):
-    """Page À propos"""
     """About page"""
+    """Page À propos"""
+    
     return render(request, 'core/site/about.html')
 
 def savoir_plus(request):
-    """Page En savoir plus"""
     """Learn more page"""
+    """Page En savoir plus"""
     return render(request, 'core/site/savoir_plus.html')
 
 def contact(request):
-    """Page de contact"""
     """Contact page"""
+    """Page de contact"""
+    
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
-            # Créer l'instance du modèle mais ne pas sauvegarder tout de suite
-            # Create the model instance but don't save immediately
             submission = form.save(commit=False)
-            # Vous pouvez ajouter des informations supplémentaires ici si nécessaire
-            # You can add additional information here if needed
-            submission.save()  # Sauvegarder dans la base de données
-                     # Save to the database
-            
-            # Ici vous pourriez également envoyer un email
-            # Here you could also send an email
+            submission.save()  
             messages.success(request, "Votre message a été envoyé avec succès!")
             return redirect('contact')
     else:
         form = ContactForm()
     
     return render(request, 'core/site/contact.html', {'form': form})
-from django.db.models import Sum, Count, Avg
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models.functions import TruncMonth
-from datetime import timedelta
-from django.utils import timezone
+
+
 
 def transparence(request):
+    """
+    Render the transparency dashboard for donations and administrative transactions.
+
+    This view collects, filters, and aggregates transaction data for display in the
+    transparency page. It handles both user donations (Transaction) and administrative
+    records (TransactionAdmin), including distributions and platform commissions.
+
+    Filtering:
+        - By project: using 'projet' GET parameter.
+        - By date range: using 'date_debut' and 'date_fin' GET parameters.
+
+    Statistics calculated:
+        - Total donations
+        - Total distributions
+        - Total platform commissions
+        - Average donation amount
+        - Number of financed projects
+        - Number of unique donors
+
+    Additional data provided to the template:
+        - Top 5 projects by total collected amount
+        - Top 5 donors by total donated amount
+        - Monthly donations for the past 12 months
+        - List of active projects for filtering
+        - Paginated list of donations
+        - Full list of administrative transactions (most recent first)
+
+    Template used:
+        'core/site/transparence.html'
+
+    Context:
+        - transactions: Paginated donations
+        - transactions_admin: List of admin transactions
+        - stats: Dictionary of aggregated statistics
+        - top_projets: Top 5 projects by donations
+        - top_donateurs: Top 5 donors by donations
+        - donations_mensuelles: Monthly donation aggregates
+        - projets_actifs: Active projects for filters
+        - filters: Dictionary containing applied filters
+
+    Args:
+        request (HttpRequest): The HTTP request object containing GET parameters.
+
+    Returns:
+        HttpResponse: Rendered transparency dashboard page.
+    """
+
     projet_filter = request.GET.get('projet')
     date_debut = request.GET.get('date_debut')
     date_fin = request.GET.get('date_fin')
 
-    # --- Transactions classiques (dons) ---
-    transactions = Transaction.objects.filter(statut='confirme').select_related(
-        'projet', 'contributeur', 'verifie_par'
+    # Transactions (dons) ordered by date only, newest date first
+
+    transactions = (
+        Transaction.objects.filter(statut='confirme')
+        .select_related('projet', 'contributeur', 'verifie_par')
+        .order_by('-date_transaction')  # full datetime, newest first
     )
 
-    # --- Transactions administratives (distributions + commissions) ---
-    transactions_admin = TransactionAdmin.objects.select_related(
-        'projet', 'beneficiaire', 'initiateur'
+    # Transactions admin – most recent first
+    transactions_admin = (
+        TransactionAdmin.objects
+        .select_related('projet', 'beneficiaire', 'initiateur')
+        .order_by('-date_creation')  # full datetime, newest first
     )
 
     # --- Filtres ---
@@ -158,16 +203,21 @@ def transparence(request):
             pass
 
     # --- Statistiques ---
+    # --- Statistiques ---
+    total_dons = transactions.aggregate(total=Sum('montant'))['total'] or 0
+    total_distributions = transactions_admin.aggregate(total=Sum('montant_net'))['total'] or 0
+    total_commissions = transactions_admin.filter(type_transaction__in=['distribution', 'commission']).aggregate(total=Sum('commission'))['total'] or 0
+    moyenne_don = transactions.aggregate(moyenne=Avg('montant'))['moyenne'] or 0
+
     stats = {
-        'total_dons': transactions.aggregate(total=Sum('montant'))['total'] or 0,
+        'total_dons': f"{total_dons:.2f}",
         'total_transactions': transactions.count(),
-        'total_distributions': transactions_admin.aggregate(total=Sum('montant_net'))['total'] or 0,
-        'total_commissions': transactions_admin.filter(type_transaction='commission').aggregate(total=Sum('commission'))['total'] or 0,
+        'total_distributions': f"{total_distributions:.2f}",
+        'total_commissions': f"{total_commissions:.2f}",
         'projets_finances': transactions.values('projet').distinct().count(),
         'donateurs_uniques': transactions.values('contributeur').distinct().count(),
-        'moyenne_don': transactions.aggregate(moyenne=Avg('montant'))['moyenne'] or 0,
+        'moyenne_don': f"{moyenne_don:.2f}",
     }
-
     # --- Top projets et donateurs ---
     top_projets = Projet.objects.filter(transaction__statut='confirme').annotate(
         total_collecte=Sum('transaction__montant'),
@@ -197,14 +247,14 @@ def transparence(request):
     transactions = (
         Transaction.objects.filter(statut='confirme')
         .select_related('projet', 'contributeur', 'verifie_par')
-        .order_by('-date_transaction')   # ✅ trié avant la pagination
+        .order_by('-date_transaction')  
     )
 
     # --- Transactions administratives ---
     transactions_admin = (
         TransactionAdmin.objects
         .select_related('projet', 'beneficiaire', 'initiateur')
-        .order_by('-date_creation')  # ✅ dernier en haut
+        .order_by('-date_creation')  
     )
 
 
@@ -221,7 +271,7 @@ def transparence(request):
     
     context = {
         'transactions': page_obj,
-        'transactions_admin': transactions_admin,  # ✅ Toutes les infos admin y compris HCS
+        'transactions_admin': transactions_admin,  
         'stats': stats,
         'top_projets': top_projets,
         'top_donateurs': top_donateurs,
@@ -239,6 +289,35 @@ def transparence(request):
 
 @login_required
 def mes_dons(request):
+    """
+    Display the donation history for the currently logged-in user.
+
+    This view collects all contributions made by the user, calculates total contributions,
+    and provides project-specific and monthly donation statistics.
+
+    Data collected:
+        - List of all user contributions, ordered by newest first.
+        - Total amount contributed by the user.
+        - Aggregated donations per project (confirmed transactions only), ordered by total descending.
+        - Monthly donation totals for the last 6 months (confirmed transactions only).
+
+    Template used:
+        'core/site/mes_dons.html'
+
+    Context provided to the template:
+        - contributions: QuerySet of user's contributions
+        - total_contributions: Sum of all contribution amounts
+        - projets_count: Number of distinct projects contributed to
+        - projets_stats: Aggregated donation totals per project
+        - contributions_mensuelles: Monthly donation totals for last 6 months
+
+    Args:
+        request (HttpRequest): The HTTP request object containing the logged-in user.
+
+    Returns:
+        HttpResponse: Rendered page showing user's donation history and statistics.
+    """
+
     """Historique des contributions de l'utilisateur connecté"""
     
     # Contributions de l'utilisateur
@@ -283,7 +362,35 @@ def mes_dons(request):
 #-----------------------------------
 #users
 #===================================
+
 def inscription(request):
+    """
+    Handle simplified user registration for the MVP with a lightweight form.
+
+    Functionality:
+        - Redirects already authenticated users to the homepage with an info message.
+        - Processes POST requests with the simplified registration form.
+        - Creates a new user and logs them in automatically if the form is valid.
+        - Displays personalized welcome messages based on the user's type.
+        - Redirects users according to their type (e.g., associations to their dashboard).
+        - Handles form validation errors and unexpected exceptions gracefully, logging errors for debugging.
+
+    Template used:
+        'core/users/inscription.html'
+
+    Context provided to the template:
+        - form: Instance of InscriptionFormSimplifiee
+        - user_types: List of user types excluding 'admin'
+        - title: Page title
+        - description: Page description
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Rendered registration page or redirect to appropriate dashboard/homepage.
+    """
+
     """Inscription simplifiée pour le MVP avec formulaire allégé"""
     # Rediriger les utilisateurs déjà connectés
     if request.user.is_authenticated:
@@ -345,6 +452,27 @@ from django.contrib.auth import get_user_model
 
 @csrf_protect
 def connexion(request):
+    """
+    Handle user login page and authentication.
+
+    Functionality:
+        - Redirects already authenticated users to the dashboard (admin) or homepage (regular users).
+        - Accepts login via username or email.
+        - Authenticates the user and logs them in if credentials are valid.
+        - Creates an audit log for successful logins, including IP address and login method.
+        - Supports "remember me" functionality: sets session expiry accordingly.
+        - Redirects users based on type (admin → dashboard, others → homepage) or `next` URL parameter.
+        - Displays error message if authentication fails.
+
+    Template used:
+        'core/users/connexion.html'
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Rendered login page or redirect to appropriate URL.
+    """
     """Page de connexion"""
     if request.user.is_authenticated:
         if request.user.user_type == 'admin':
@@ -406,6 +534,21 @@ def connexion(request):
 
 @login_required
 def deconnexion(request):
+    """
+    Log out the currently authenticated user.
+
+    Functionality:
+        - Records a logout event in the AuditLog, including the user's audit UUID and IP address.
+        - Logs the user out of the session.
+        - Displays a success message confirming the logout.
+        - Redirects the user to the homepage.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Redirects to the homepage after logout.
+    """
     """Déconnexion de l'utilisateur"""
     # Journalisation avant déconnexion
     AuditLog.objects.create(
@@ -423,6 +566,24 @@ def deconnexion(request):
 
 @login_required
 def changer_mot_de_passe(request):
+    """
+    Allow the currently authenticated user to change their password.
+
+    Functionality:
+        - Displays a password change form.
+        - Validates and saves the new password if the form is valid.
+        - Updates the session to keep the user logged in after password change.
+        - Logs the password change action in the AuditLog, including the user's audit UUID and IP address.
+        - Displays a success message upon successful password change.
+        - Redirects the user to the homepage after the password is changed.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Renders the password change page or redirects after a successful update.
+    """
+
     """Changer le mot de passe de l'utilisateur"""
     if request.method == 'POST':
         form = PasswordChangeForm(request.user, request.POST)
@@ -450,6 +611,24 @@ def changer_mot_de_passe(request):
 
 @login_required
 def modifier_profil(request):
+    """
+    Allow the currently authenticated user to update their profile information, including profile photo.
+
+    Functionality:
+        - Displays a profile edit form pre-filled with the user's current data.
+        - Supports updating profile fields and uploading a new profile picture.
+        - Validates and saves the form data if valid.
+        - Logs all modified fields in the AuditLog along with the user's audit UUID, user type, and IP address.
+        - Displays a success message upon successful update.
+        - Redirects back to the profile edit page after saving.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Renders the profile edit page with the form and profile completion status.
+    """
+
     """Modification du profil utilisateur avec support de la photo de profil"""
     if request.method == 'POST':
         form = ProfilUtilisateurForm(request.POST, request.FILES, instance=request.user)
@@ -484,6 +663,25 @@ def modifier_profil(request):
 
 @login_required
 def profil(request):
+    """
+    Display the profile page of the currently authenticated user with personalized information.
+
+    Functionality:
+        - Retrieves the user's Hedera wallet balance if the account ID is configured.
+        - Displays user-specific statistics:
+            - For contributors: number of confirmed donations and number of supported projects.
+            - For project owners: number of projects and total amount collected.
+        - Shows the user's recent activity (last 30 days) from the AuditLog.
+        - Handles any errors in retrieving Hedera balance gracefully.
+        - Renders the profile template with all relevant context data.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Renders 'core/users/profil.html' with user info, wallet balance, statistics, and recent activities.
+    """
+
     """Page de profil utilisateur"""
     
     # Récupérer le solde Hedera si le wallet est configuré
@@ -541,6 +739,29 @@ def profil(request):
 
 
 def liste_associations(request):
+    """
+    Display a list of all validated associations with optional filtering and statistics.
+
+    Functionality:
+        - Retrieves associations that are validated (valide=True).
+        - Applies optional filters based on:
+            - Main domain of activity (`domaine`)
+            - City (`ville`)
+            - Search query matching name, short description, or supported causes (`recherche`)
+        - Computes general statistics:
+            - Total number of members across filtered associations.
+            - Total number of active projects across filtered associations.
+            - Number of distinct cities represented.
+        - Separates associations into featured and non-featured for display.
+        - Passes all relevant data to the template context.
+
+    Args:
+        request (HttpRequest): The HTTP request object, which may contain GET parameters for filtering.
+
+    Returns:
+        HttpResponse: Renders 'core/associations/liste_associations.html' with filtered associations, statistics, and featured highlights.
+    """
+
     """Liste toutes les associations avec filtres"""
     associations = Association.objects.filter(valide=True)
     
@@ -581,18 +802,55 @@ def liste_associations(request):
     return render(request, 'core/associations/liste_associations.html', context)
 
 def detail_association(request, slug):
+    """
+    Display the details of a single validated association.
+
+    Functionality:
+        - Retrieves the association identified by the given slug, ensuring it is validated.
+        - Fetches the association's active projects for display.
+        - Passes the association and its active projects to the template context.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        slug (str): The unique slug identifying the association.
+
+    Returns:
+        HttpResponse: Renders 'core/associations/detail_association.html' with the association's details and active projects.
+    """
+
     """Détail d'une association"""
     association = get_object_or_404(Association, slug=slug, valide=True)
-    
+    est_membre = False
+    if request.user.is_authenticated:
+        est_membre = association.est_membre(request.user)
     context = {
         'association': association,
+        'est_membre': est_membre,
         'projets_actifs': association.get_projets_actifs(),
+        'quatre_images': association.quatre_dernieres_images,
     }
     return render(request, 'core/associations/detail_association.html', context)
 
 
 @login_required
 def modifier_profil_association(request):
+    """
+    Allows an authenticated association user to update their association profile.
+
+    Functionality:
+        - Checks that the logged-in user is an association; redirects non-association users.
+        - Retrieves the association linked to the current user.
+        - Handles profile update form submission with support for file uploads (e.g., logo, images).
+        - Saves changes if the form is valid and displays a success message.
+        - Renders the profile modification template with the form and current association data.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Renders 'core/associations/modifier_profil.html' with the form and association details.
+    """
+
     """Modifier le profil de l'association"""
     if not request.user.is_association():
         messages.error(request, "Accès réservé aux associations.")
@@ -614,8 +872,28 @@ def modifier_profil_association(request):
         'association': association,
     }
     return render(request, 'core/associations/modifier_profil.html', context)
+
 @login_required
 def espace_association(request):
+    """
+    Personal dashboard for association users.
+
+    Functionality:
+        - Ensures the logged-in user is an association; redirects non-association users.
+        - Retrieves or creates the association profile linked to the user.
+        - Fetches all projects belonging to the association.
+        - Computes association statistics including active projects, total projects,
+          total amount collected, and total number of contributors.
+        - Retrieves the 5 most recent projects.
+        - Renders the association dashboard template with profile, statistics, and recent projects.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Renders 'core/associations/espace_association.html' with context data.
+    """
+
     """Espace personnel pour les associations"""
     if not request.user.is_association():
         messages.error(request, "Accès réservé aux associations.")
@@ -660,6 +938,56 @@ def espace_association(request):
     }
     return render(request, 'core/associations/espace_association.html', context)
 
+# associations/views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import Association, AssociationImage
+from .forms import AssociationImageForm
+
+@login_required
+def upload_association_image(request, slug):
+    """
+    Vue simple pour uploader une image pour une association
+    """
+    association = get_object_or_404(Association, slug=slug)
+    
+    # Vérification que l'utilisateur est membre de l'association
+    if not association.est_membre(request.user):
+        messages.error(request, "Vous n'êtes pas autorisé à ajouter des photos à cette association.")
+        return redirect('detail_association', slug=slug)
+    
+    if request.method == 'POST':
+        form = AssociationImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Crée l'image sans la sauvegarder
+            image = form.save(commit=False)
+            # Assign l'association automatiquement
+            image.association = association
+            # Sauvegarde finale
+            image.save()
+            
+            messages.success(request, "Photo ajoutée avec succès !")
+            return redirect('detail_association', slug=slug)
+    else:
+        form = AssociationImageForm()
+    
+    return render(request, 'core/associations/upload_image.html', {
+        'form': form,
+        'association': association
+    })
+
+def association_images_list(request, slug):
+    """
+    Vue pour afficher toutes les images d'une association
+    """
+    association = get_object_or_404(Association, slug=slug)
+    images = association.images.all().order_by('-date_ajout')
+    
+    return render(request, 'core/associations/images_list.html', {
+        'association': association,
+        'images': images
+    })
 
 
 #===================
@@ -672,6 +1000,28 @@ def espace_association(request):
 
 @login_required
 def creer_projet(request):
+    """
+    Create a new project with reward description.
+
+    Functionality:
+        - Ensures the logged-in user can create a project (individual or association).
+        - If the user has an associated association profile, links the project to it.
+        - Handles project creation form submission, including file uploads.
+        - Generates a unique project identifier.
+        - Creates Hedera wallet for the project via external API call.
+            - Stores account ID and private key in the project.
+            - If wallet creation fails, logs the error and continues project creation.
+        - Automatically creates default reward tiers (Palier) for the project.
+        - Logs the creation in the AuditLog with project and user details.
+        - Displays success or error messages and redirects accordingly.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Renders 'core/projets/creer_projet.html' with form and association context.
+    """
+
     """Création d'un nouveau projet avec description des récompenses"""
 
     est_association = hasattr(request.user, 'association_profile')
@@ -689,7 +1039,7 @@ def creer_projet(request):
                     if est_association and association:
                         projet.association = association
 
-                    # 🔑 Création du wallet Hedera pour ce projet
+                    #  Création du wallet Hedera pour ce projet
                     try:
                         
                         response = requests.post("http://localhost:3001/create-wallet", timeout=10)
@@ -749,6 +1099,28 @@ def creer_projet(request):
 
 @login_required
 def modifier_projet(request, uuid):
+    """
+    Edit an existing project including its reward descriptions.
+
+    Functionality:
+        - Retrieves the project by its audit UUID and ensures the logged-in user is the owner.
+        - Checks if the project is editable by the user using 'peut_etre_modifie_par'.
+            - If not editable, displays an error message and redirects to project detail.
+        - Handles form submission for project updates, including file uploads.
+        - Saves changes within an atomic transaction.
+        - Logs all modifications in the AuditLog, including reward status and description.
+        - Displays success or error messages and redirects appropriately.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        uuid (UUID): The unique audit UUID of the project to modify.
+
+    Returns:
+        HttpResponse: Renders 'core/projets/creer_projet.html' with form and project context
+                      for GET requests or invalid forms.
+                      Redirects to project detail or project list on success or errors.
+    """
+
     """Modification d'un projet existant avec description des récompenses"""
     try:
         projet = Projet.objects.get(audit_uuid=uuid, porteur=request.user)
@@ -800,10 +1172,85 @@ def modifier_projet(request, uuid):
     except Projet.DoesNotExist:
         messages.error(request, "Projet non trouvé.")
         return redirect('mes_projets')
-
-
+@login_required
+def ajouter_images_projet(request, uuid):
+    try:
+        projet = Projet.objects.get(audit_uuid=uuid, porteur=request.user)
+        
+        if not projet.peut_etre_modifie_par(request.user):
+            messages.error(request, "Vous n'avez pas la permission de modifier ce projet.")
+            return redirect('detail_projet', uuid=uuid)
+        
+        images_existantes = projet.images.all()
+        images_restantes = 10 - images_existantes.count()
+        
+        if request.method == 'POST':
+            form = AjoutImagesProjetForm(request.POST, request.FILES, projet=projet)
+            
+            if form.is_valid():
+                try:
+                    images_crees = form.save()
+                    
+                    # Journalisation
+                    AuditLog.objects.create(
+                        utilisateur=request.user,
+                        action='add_images',
+                        modele='Projet',
+                        objet_id=str(projet.audit_uuid),
+                        details={
+                            'images_ajoutees': len(images_crees),
+                            'total_images': projet.images.count()
+                        },
+                        adresse_ip=request.META.get('REMOTE_ADDR')
+                    )
+                    
+                    messages.success(request, f"{len(images_crees)} image(s) ajoutée(s) avec succès !")
+                    return redirect('detail_projet', uuid=uuid)
+                    
+                except Exception as e:
+                    logger.error(f"Erreur ajout images: {str(e)}", exc_info=True)
+                    messages.error(request, "Une erreur est survenue lors de l'ajout des images.")
+        else:
+            form = AjoutImagesProjetForm(projet=projet)
+        
+        context = {
+            'form': form,
+            'projet': projet,
+            'images_existantes': images_existantes,
+            'max_images': 10,
+            'images_restantes': images_restantes  
+        }
+        
+        return render(request, 'core/projets/ajouter_images.html', context)
+        
+    except Projet.DoesNotExist:
+        messages.error(request, "Projet non trouvé.")
+        return redirect('mes_projets')
+    
 @login_required
 def supprimer_projet(request, uuid):
+    """
+    Delete a project owned by the logged-in user.
+
+    Functionality:
+        - Retrieves the project by its audit UUID and ensures the logged-in user is the owner.
+        - Only allows deletion if the project status is 'draft' or 'rejected'.
+            - If the status is not allowed, displays an error and redirects to the project detail page.
+        - Handles POST requests to delete the project.
+            - Logs the deletion in AuditLog including project title, status, and requested amount.
+            - Deletes the project and displays a success message, then redirects to the user's project list.
+        - For GET requests, renders a confirmation page before deletion.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        uuid (UUID): The unique audit UUID of the project to delete.
+
+    Returns:
+        HttpResponse: 
+            - Renders 'core/projets/supprimer_projet.html' for GET requests.
+            - Redirects to project detail or project list on success, error, or project not found.
+    """
+
     """Suppression d'un projet"""
     try:
         projet = Projet.objects.get(audit_uuid=uuid, porteur=request.user)
@@ -850,13 +1297,53 @@ def supprimer_projet(request, uuid):
 
 
 def detail_projet(request, audit_uuid):
+    """
+    Display detailed information for a specific project with contribution capability.
+
+    Functionality:
+        - Retrieves the project by its audit UUID. Returns 404 if not found.
+        - Increments the project's view counter.
+        - Aggregates advanced statistics on confirmed transactions:
+            - Total number of unique contributors
+            - Total amount collected
+            - Average and maximum donation amounts
+            - Date of the most recent donation
+        - Prepares reward tiers (paliers) with their submission status, distribution status, and FCFA amounts.
+        - Handles currency conversion for project amounts.
+        - Checks if the logged-in user has permission to preview the project if it's not active or completed.
+        - Shows similar active projects in the same category.
+        - Retrieves recent confirmed transactions related to the project.
+        - Determines if the logged-in user has a Hedera wallet configured.
+        - Handles POST requests for contributions via `handle_contribution`.
+        - Prepares a contribution form for authenticated users.
+    
+    Args:
+        request (HttpRequest): The HTTP request object.
+        audit_uuid (UUID): The unique audit UUID of the project.
+
+    Returns:
+        HttpResponse: 
+            - Renders 'core/projets/detail_projet.html' with context including:
+                - project details
+                - recent transactions
+                - contributors count
+                - total collected amount
+                - contribution form
+                - similar projects
+                - reward tiers and their status
+                - currency conversions
+                - user permissions and wallet status
+                - various statistics
+            - Redirects to project list with error if access is denied.
+    """
+
     """Détail d'un projet spécifique avec possibilité de contribution"""
     projet = get_object_or_404(Projet, audit_uuid=audit_uuid)
     
-    # 🔍 Incrémenter le compteur de vues
+    #  Incrémenter le compteur de vues
     projet.incrementer_vues()
     
-    # 📊 Statistiques avancées
+    #  Statistiques avancées
     stats_transactions = Transaction.objects.filter(
         projet=projet, 
         statut='confirme',
@@ -872,7 +1359,7 @@ def detail_projet(request, audit_uuid):
     contributeurs_count = stats_transactions['total_contributeurs'] or 0
     montant_total_collecte = stats_transactions['montant_total'] or 0
     
-    # 📈 Paliers avec statut
+    #  Paliers avec statut
     paliers_avec_statut = []
     for palier in projet.paliers.all().order_by('pourcentage'):
         try:
@@ -891,7 +1378,7 @@ def detail_projet(request, audit_uuid):
             'montant_fcfa': palier.montant_fcfa if hasattr(palier, 'montant_fcfa') else Decimal('0')
         })
     
-    # 💰 Conversions de devise
+    #  Conversions de devise
     try:
         from .models import convert_hbar_to_fcfa
         conversions = {
@@ -911,7 +1398,7 @@ def detail_projet(request, audit_uuid):
             'montant_distribue_fcfa': Decimal('0'),
         }
     
-    # 👥 Vérification des permissions de visualisation
+    #  Vérification des permissions de visualisation
     user_can_preview = (
         request.user == projet.porteur or
         request.user.is_staff or
@@ -923,20 +1410,20 @@ def detail_projet(request, audit_uuid):
         messages.error(request, "Ce projet n'est pas accessible.")
         return redirect('liste_projets')
     
-    # 🔍 Projets similaires
+    #  Projets similaires
     projets_similaires = Projet.objects.filter(
         statut='actif',
         categorie=projet.categorie
     ).exclude(audit_uuid=audit_uuid).order_by('?')[:3]  # Random order for variety
     
-    # 💳 Transactions récentes
+    #  Transactions récentes
     transactions_recentes = Transaction.objects.filter(
         projet=projet, 
         statut='confirme',
         destination='operator'
     ).select_related('contributeur').order_by('-date_transaction')[:10]
     
-    # 👛 Vérification wallet utilisateur
+    # Vérification wallet utilisateur
     user_has_wallet = False
     if request.user.is_authenticated:
         user_has_wallet = (
@@ -946,14 +1433,14 @@ def detail_projet(request, audit_uuid):
             request.user.hedera_private_key
         )
     
-    # 📝 Gestion des contributions (POST)
+    #  Gestion des contributions (POST)
     if request.method == 'POST':
         return handle_contribution(request, projet, user_has_wallet)
     
-    # 📋 Formulaire de contribution
+    # Formulaire de contribution
     form = Transfer_fond(projet=projet, contributeur=request.user if request.user.is_authenticated else None)
     
-    # 🎯 Context pour le template
+    # Context pour le template
     context = {
         'projet': projet,
         'transactions': transactions_recentes,
@@ -982,8 +1469,33 @@ def detail_projet(request, audit_uuid):
     return render(request, 'core/projets/detail_projet.html', context)
 
 
-
 def liste_projets(request):
+    """
+    Display a paginated list of all active projects with filtering options.
+
+    Functionality:
+        - Retrieves all projects with status 'active'.
+        - Annotates each project with:
+            - Total confirmed contributions (montant_collectes)
+            - Number of unique contributors (nombre_donateurs)
+        - Supports filters based on:
+            - Search query across title, short description, full description, and tags
+            - Project category
+            - Financing type
+        - Provides filter options for categories and financing types.
+        - Paginates the results (9 projects per page).
+
+    Args:
+        request (HttpRequest): The HTTP request object containing GET parameters for filtering and pagination.
+
+    Returns:
+        HttpResponse:
+            - Renders 'core/projets/liste_projets.html' with context including:
+                - Filtered and paginated project list
+                - Available categories and financing types
+                - Current filter values for search, category, and financing type
+    """
+
     """Liste de tous les projets actifs avec pagination et filtres"""
     # Récupérer tous les projets actifs
     projets_list = Projet.objects.filter(statut='actif').annotate(
@@ -1036,6 +1548,37 @@ def liste_projets(request):
 
 @login_required
 def mes_projets(request):
+    """
+    Display a list of projects owned by the currently logged-in user, 
+    including detailed statistics and milestone (palier) information.
+
+    Functionality:
+        - Retrieves all projects where the logged-in user is the project owner (porteur).
+        - Annotates each project with:
+            - Number of unique confirmed contributors.
+            - Date of the latest confirmed transaction.
+        - Prefetches related milestones (paliers) and their proofs, ordered appropriately.
+        - Calculates global statistics for the user's projects:
+            - Total projects
+            - Projects by status (active, pending, completed)
+            - Total collected vs. total requested amounts
+            - Overall funding percentage
+        - Handles POST requests to change project status:
+            - 'soumettre' (submit) from 'draft' to 'pending'
+            - 'annuler' (cancel) from 'pending' to 'draft'
+            - Logs each action in the AuditLog.
+
+    Args:
+        request (HttpRequest): The HTTP request object; may include POST data for status changes.
+
+    Returns:
+        HttpResponse:
+            - Renders 'core/projets/mes_projets.html' with context containing:
+                - 'projets': list of user's projects with annotations and prefetched relations
+                - 'stats': dictionary with global statistics
+                - 'STATUTS': mapping of project status codes to human-readable labels
+    """
+
     """Liste des projets de l'utilisateur connecté avec statistiques et paliers"""
     
     # Récupérer tous les projets du porteur avec annotations et préchargement
@@ -1124,6 +1667,37 @@ def mes_projets(request):
     return render(request, 'core/projets/mes_projets.html', context)
 
 def projets_utilisateur(request, user_id):
+    """
+    Display all non-draft and non-rejected projects for a specific user.
+
+    Functionality:
+        - Retrieves the user by ID.
+        - Fetches all projects owned by the user, excluding drafts ('brouillon') and rejected ('rejete').
+        - Orders projects by creation date in descending order.
+        - Calculates statistics for the user's projects, including:
+            - Total projects
+            - Active projects
+            - Completed projects
+            - Total amount collected
+            - Success rate (via `calculer_taux_reussite`)
+        - Provides a utility function to get the color associated with a project's status.
+        - Supplies Django's `intcomma` for numeric formatting.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        user_id (int): ID of the user whose projects are to be displayed.
+
+    Returns:
+        HttpResponse:
+            - Renders 'core/projets/projets_utilisateur.html' with context containing:
+                - 'utilisateur': the target User object
+                - 'projets': queryset of the user's projects
+                - 'stats': dictionary of project statistics
+                - 'get_statut_color': function to map project status to color
+                - 'intcomma': template filter for formatting numbers
+                - 'active_tab': UI indicator for the active tab in the template
+    """
+
     """Affiche tous les projets d'un utilisateur spécifique"""
     utilisateur = get_object_or_404(User, id=user_id)
     
@@ -1166,6 +1740,38 @@ def projets_utilisateur(request, user_id):
 
 @login_required
 def soumettre_preuves_palier(request, palier_id):
+    """
+    Interface for project owners to submit proof documents for a milestone (palier).
+
+    Functionality:
+        - Fetches the milestone (Palier) by ID and ensures the current user is the project owner.
+        - Prevents submission if the milestone has already been transferred.
+        - Handles existing proof objects (PreuvePalier) and allows replacing files.
+        - Validates uploaded files:
+            - At least one file required.
+            - Maximum 10 files.
+            - Individual file size ≤ 10 MB.
+            - Total size ≤ 50 MB.
+            - Allowed MIME types: images, videos, PDFs, Word/Excel documents, plain text.
+        - Saves validated files as FichierPreuve linked to PreuvePalier.
+        - Records an AuditLog entry for submission.
+        - Triggers HCS (Hedera Consensus Service) notification.
+        - Displays success or error messages to the user.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        palier_id (int): ID of the milestone for which proofs are submitted.
+
+    Returns:
+        HttpResponse:
+            - Renders 'core/projets/soumettre_preuves.html' with context:
+                - 'palier': the milestone object
+                - 'projet': the associated project
+                - 'form': PreuveForm instance
+                - 'preuve_existante': existing PreuvePalier object (if any)
+            - On successful POST, redirects to 'mes_projets' with a success message.
+    """
+
     """Interface pour le porteur pour soumettre les preuves d'un palier"""
     palier = get_object_or_404(Palier, id=palier_id, projet__porteur=request.user)
     projet = palier.projet
@@ -1301,6 +1907,12 @@ def soumettre_preuves_palier(request, palier_id):
 #===================
 
 def admin_required(view_func):
+    """
+    Decorator to ensure that the current user is an active administrator.
+
+    If the user is not an admin, they are redirected to the homepage
+    with an error message.
+    """
     """Décorateur pour vérifier si l'utilisateur est admin"""
     def wrapper(request, *args, **kwargs):
         if not hasattr(request.user, 'admin') or not request.user.admin.est_actif:
@@ -1314,6 +1926,7 @@ def admin_required(view_func):
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
 def detail_membre(request, user_id):
+    """Display member details with associated statistics."""
     """Détail d'un membre avec statistiques"""
     membre = get_object_or_404(User, id=user_id)
     
@@ -1347,6 +1960,31 @@ def detail_membre(request, user_id):
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
 def gerer_distributions(request):
+    """
+    Admin interface to manage milestone-based fund distributions for projects.
+
+    This view provides a comprehensive dashboard for administrators to:
+    - Review all eligible projects with committed and distributed amounts.
+    - Monitor each milestone (palier) including submission status, proof approval, 
+      and whether funds can be released.
+    - Calculate and display metrics such as total committed, distributed, and available funds.
+    - Trigger fund transfers for approved milestones, including HBAR transfers 
+      via Hedera and notifications to project owners.
+    - Log all actions in the AuditLog for traceability and compliance.
+
+    POST requests allow administrators to:
+    - Distribute funds for a specific milestone after verifying proofs and availability.
+    - Redirect to proof verification pages if necessary.
+
+    Context variables for template rendering:
+    - distributions: List of projects with detailed milestone info.
+    - total_engage: Sum of all committed amounts across projects.
+    - total_distribue: Sum of all distributed amounts across projects.
+    - total_disponible: Sum of available funds for distribution.
+    - total_paliers_attente: Total number of milestones pending distribution.
+    - total_paliers_distribuables: Total number of milestones ready for distribution.
+    """
+
     """Interface admin pour libérer les fonds selon les paliers avec vérification des preuves"""
     
     # Récupérer les projets éligibles
@@ -1480,7 +2118,7 @@ def gerer_distributions(request):
                 if resultat['success']:
                     transaction_hash = resultat['transactionId']
                     
-                    # ✅ Mettre à jour le palier avec le hash de transaction
+                    #  Mettre à jour le palier avec le hash de transaction
                     palier.transfere = True
                     palier.date_transfert = timezone.now()
                     palier.transaction_hash = resultat['transactionId']
@@ -1493,7 +2131,7 @@ def gerer_distributions(request):
                     # 📧 ENVOYER LA NOTIFICATION AU PORTEUR
                     envoyer_notification_porteur(projet.porteur, palier, 'distribution')
                     
-                    # 🌐 Notification HCS
+                    # Notification HCS
                     envoyer_don_hcs(
                         topic_id=projet.topic_id,
                         utilisateur_email=projet.porteur.email,
@@ -1621,6 +2259,22 @@ def liste_associations_admin(request):
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
 def liste_membres(request):
+    """
+    Admin view to list and filter platform members.
+
+    Features:
+    - Supports filtering by user type, date joined range, active status, and text search 
+      (username, first name, last name, email, organization).
+    - Provides statistics by user type and active status.
+    - Results are paginated (25 members per page).
+
+    Context variables for template rendering:
+    - membres: Paginated queryset of members according to applied filters.
+    - form: Filter form instance for rendering in the template.
+    - stats: Dictionary with counts by user type and active status.
+    - title: Page title for the admin interface.
+    """
+
     """Liste des membres avec filtres"""
     membres = User.objects.all().order_by('-date_joined')
     
@@ -1675,6 +2329,20 @@ def liste_membres(request):
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
 def logs_distributions(request):
+    """
+    Admin view to display audit logs related to fund distributions.
+
+    Filters logs to include only actions associated with:
+    - 'Distribution'
+    - 'DistributionAuto'
+    - 'Palier'
+
+    Logs are ordered by action date in descending order.
+
+    Context variables for template rendering:
+    - logs: Queryset of relevant AuditLog entries.
+    """
+
     """Affiche les logs spécifiques aux distributions"""
     logs = AuditLog.objects.filter(
         modele__in=['Distribution', 'DistributionAuto', 'Palier']
@@ -1688,6 +2356,20 @@ def logs_distributions(request):
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
 def liste_projets_attente(request):
+    """
+    Admin view to list all projects pending approval.
+
+    Retrieves projects with status 'en_attente' and includes related
+    porteur information for efficient display.
+
+    Access restricted to administrators; non-admin users are redirected
+    with an error message.
+
+    Context variables for template rendering:
+    - liste_projet_admin: Queryset of projects awaiting validation
+    - title: Page title for display purposes
+    """
+
     """Liste complète des associations pour administration"""
     if not request.user.is_administrator():
         messages.error(request, "Accès réservé aux administrateurs.")
@@ -1706,6 +2388,25 @@ def liste_projets_attente(request):
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
 def rejeter_association(request, association_id):
+    """
+    Admin view to reject an association with a provided reason.
+
+    Steps performed:
+    1. Checks that the user has administrator privileges.
+       Non-admin users are redirected with an error message.
+    2. Retrieves the targeted association by ID.
+    3. On POST request:
+       - Retrieves the rejection reason from the form.
+       - Logs the rejection in the AuditLog model including
+         the user, action type, object ID, details, and client IP.
+       - Optionally sends a notification email to the association's owner.
+       - Deletes the association (or can alternatively mark it as rejected).
+       - Displays a warning message to the admin and redirects to dashboard.
+
+    Template context:
+    - association: the Association object being rejected
+    """
+
     """Rejeter une association avec motif"""
     if not request.user.is_administrator():
         messages.error(request, "Accès réservé aux administrateurs.")
@@ -1758,6 +2459,61 @@ L'équipe Solidavenir""",
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
 def tableau_de_bord(request):
+    """
+    Admin dashboard view providing a comprehensive overview of platform activities 
+    and highlighting high-priority items requiring immediate attention.
+
+    Features:
+
+    1. Priority Items:
+       - Projects pending approval (top 5 oldest)
+       - Associations pending approval (top 5 oldest)
+       - Funding milestones (Palier) reached but not yet distributed
+       - Proofs requiring review
+       - Transactions awaiting moderation
+
+    2. Key Statistics:
+       - Counts of projects (total, active, completed)
+       - Counts of users by type (porteurs, donateurs, associations, etc.)
+       - Transactions confirmed and daily totals
+       - Donations received today and total amounts
+
+    3. Historical Data for Visualizations:
+       - Projects grouped by status
+       - Donations over the last 15 days (amount and count per day)
+
+    4. Recent Activities:
+       - Latest confirmed transactions
+       - Recent audit logs
+       - Top donors
+       - Most funded active projects
+
+    5. Association Metrics:
+       - Total associations
+       - Validated associations
+       - Associations pending approval
+
+    Access Control:
+    - Only users with administrator privileges can access this view.
+    - Non-admin users are redirected to the home page with an error message.
+
+    Template Context:
+    - projets_attention: queryset of projects pending validation
+    - associations_attente: queryset of associations pending validation
+    - paliers_action: list of milestones ready for distribution
+    - preuves_a_verifier: queryset of proofs requiring review
+    - transactions_verification: queryset of transactions awaiting moderation
+    - stats: dictionary of main platform statistics
+    - stats_associations: dictionary of association-specific statistics
+    - projets_par_statut: list of projects grouped by status
+    - donnees_graphique: donations data structured for charting
+    - recent_transactions: latest confirmed transactions
+    - recent_audits: latest audit logs
+    - top_donateurs: top donors by total contribution
+    - projets_populaires: most funded active projects
+    - aujourdhui: current date for filtering and display
+    """
+
     """Tableau de bord administrateur complet avec éléments prioritaires"""
     if not request.user.is_administrator():
         messages.error(request, "Accès réservé aux administrateurs.")
@@ -1935,6 +2691,30 @@ def tableau_de_bord(request):
 @login_required
 @permission_required('core.view_dashboard', raise_exception=True)
 def liste_transactions_validation(request):
+    """
+    Admin view to list and filter transactions that require verification.
+
+    Features:
+    - Display all transactions in descending order by transaction date.
+    - Apply filters based on:
+        * Start and end dates
+        * Minimum and maximum amounts
+        * Associated project title
+    - Pagination with 20 transactions per page.
+    - Calculate total number of transactions and total amount for the filtered set.
+
+    Access Control:
+    - Requires the 'core.view_dashboard' permission.
+    - User must be logged in.
+
+    Template Context:
+    - transactions: paginated queryset of filtered transactions
+    - form: FiltreTransactionsForm instance with current filters
+    - title: page title for rendering
+    - total_transactions: total count of transactions after filtering
+    - montant_total: sum of transaction amounts after filtering
+    """
+
     """Liste des transactions à vérifier avec filtres"""
     transactions = Transaction.objects.all().order_by('-date_transaction')
     form = FiltreTransactionsForm(request.GET or None)
@@ -1970,6 +2750,30 @@ def liste_transactions_validation(request):
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
 def valider_association(request, association_id):
+    """
+    Admin view to validate a user-submitted association.
+
+    This view allows an administrator to approve an association, mark it as valid,
+    log the action for audit purposes, and optionally notify the association owner
+    via email.
+
+    Features:
+    - Retrieve an association by its ID.
+    - Ensure only administrators can access this action.
+    - Update the association's 'valide' status to True upon validation.
+    - Record the validation action in the AuditLog with user, IP, and details.
+    - Send a confirmation email to the association owner notifying them of the approval.
+    - Provide success messages and redirect back to the admin dashboard.
+
+    Access Control:
+    - Requires the user to be logged in.
+    - Requires the 'core.manage_users' permission.
+    - Additional check: user must be an administrator.
+
+    Template Context:
+    - association: Association instance to be validated.
+    """
+
     """Valider une association"""
     if not request.user.is_administrator():
         messages.error(request, "Accès réservé aux administrateurs.")
@@ -1984,11 +2788,11 @@ def valider_association(request, association_id):
         # Créer un log d'audit
         AuditLog.objects.create(
             utilisateur=request.user,
-            action='validate',  # Utilisez 'action' au lieu de 'action_type'
-            modele='Association',  # Utilisez 'modele' au lieu de 'modele_concerne'
-            objet_id=str(association.id),  # Utilisez 'objet_id' au lieu de 'id_modele'
+            action='validate',  
+            modele='Association',  
+            objet_id=str(association.id),
             details=f"Validation de l'association {association.nom}",
-            adresse_ip=get_client_ip(request)  # Utilisez 'adresse_ip' au lieu de 'ip_address'
+            adresse_ip=get_client_ip(request)  
         )
         
         # Envoyer un email de confirmation (optionnel)
@@ -2018,6 +2822,44 @@ L'équipe Solidavenir""",
 @login_required
 @permission_required('core.validate_project', raise_exception=True)
 def valider_projet(request, audit_uuid):
+    """
+    Admin view to validate or reject a project submitted by a user.
+
+    This view allows administrators to review a project that is pending validation
+    or in draft status, and either approve (activate) or reject it. The process
+    includes document review, status updates, email notifications, blockchain topic
+    creation (Hedera HCS), and detailed audit logging.
+
+    Features:
+    - Retrieve a project by its audit UUID, ensuring it is pending validation or draft.
+    - Display key statistics for the project and the project owner:
+        * Requested amount
+        * Duration since creation
+        * Number of projects submitted by the user
+    - Form-based validation or rejection with optional comments.
+    - When approving a project:
+        * Generate a unique project identifier if not already present.
+        * Create a Hedera HCS topic for blockchain tracking.
+        * Log all actions in the AuditLog.
+        * Send a notification email to the project owner.
+    - When rejecting a project:
+        * Record the rejection and optional comment.
+        * Send a notification email to the project owner.
+        * Update the audit log.
+
+    Access Control:
+    - Requires the user to be logged in.
+    - Requires the 'core.validate_project' permission.
+
+    Template Context:
+    - form: ValidationProjetForm instance for approval/rejection.
+    - projet: Project instance being reviewed.
+    - documents: List of project-related documents for review.
+    - stats: Dictionary of project and user statistics.
+    - porteur: User instance of the project owner.
+    - STATUTS: Dictionary of available project statuses.
+    """
+
     """Validation d'un projet par un administrateur avec gestion complète"""
     projet = get_object_or_404(Projet, audit_uuid=audit_uuid)
     
@@ -2217,6 +3059,40 @@ L'équipe Solid'Avenir"""
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
 def verifier_preuves_palier(request, palier_id):
+    """
+    Admin interface to review and manage proof submissions for a project milestone (palier).
+
+    This view allows an administrator to:
+    - Approve, reject, or request modifications for a proof submitted by the project owner.
+    - Log every action in the AuditLog with relevant details (user, IP, project, milestone, status, files count).
+    - Notify the project owner of the action taken via notifications.
+
+    Workflow:
+    1. Retrieve the milestone (Palier) and associated project.
+    2. Attempt to fetch the submitted proof (PreuvePalier) and associated files.
+    3. If the request method is POST:
+       - Process the VerificationPreuveForm.
+       - Apply the chosen action ('approuver', 'rejeter', 'modification').
+       - Update the proof status, save comments, and log the action.
+       - Notify the project owner.
+       - Provide feedback messages for the admin.
+    4. If GET, display the proof details and verification form.
+
+    Access Control:
+    - User must be logged in.
+    - User must have the 'core.manage_users' permission.
+
+    Template Context:
+    - palier: The milestone object being verified.
+    - projet: The project associated with the milestone.
+    - preuve: The proof object, if exists.
+    - fichiers: List of files attached to the proof.
+    - form: VerificationPreuveForm instance for admin actions.
+
+    Messages:
+    - Success, warning, or info messages based on admin actions.
+    """
+
     """Interface pour vérifier les preuves soumises par le porteur"""
     palier = get_object_or_404(Palier, id=palier_id)
     projet = palier.projet
@@ -2329,6 +3205,37 @@ def verifier_preuves_palier(request, palier_id):
 @login_required
 @permission_required('core.can_audit', raise_exception=True)
 def logs_audit(request):
+    """
+    Admin view to display and filter audit logs.
+
+    Features:
+    - Display all audit logs in descending order of action date.
+    - Apply filters based on:
+        * User
+        * Action type
+        * Model name
+        * Date range (start and end)
+        * Free text search in model, object ID, or details
+    - Pagination with 50 logs per page.
+    - Calculate statistics:
+        * Total logs
+        * Logs created today
+        * Logs created in the last 7 days
+
+    Access Control:
+    - Requires the 'core.can_audit' permission.
+    - User must be logged in.
+
+    Template Context:
+    - logs: Paginated queryset of filtered audit logs
+    - form: FiltreAuditForm instance with current filters
+    - stats: Dictionary with log statistics
+    - title: Page title for rendering
+
+    Messages:
+    - Feedback messages can be added for filtering or errors (currently not used).
+    """
+
     """Logs d'audit avec filtres"""
     logs = AuditLog.objects.all().select_related('utilisateur').order_by('-date_action')
     
@@ -2375,7 +3282,28 @@ def logs_audit(request):
 
 
 @login_required
+@permission_required('core.can_audit', raise_exception=True)
 def preview_association_admin(request, association_id):
+    """
+    Admin view to preview an association, including those not yet validated.
+
+    Features:
+    - Fetch an association by its ID.
+    - Display all relevant details to administrators.
+    - Include active projects linked to the association.
+    - Flag `is_preview` in context to indicate this is an admin preview.
+
+    Access Control:
+    - User must be logged in.
+    - Requires 'core.can_audit' permission.
+    - Only administrators can access; others are redirected with an error message.
+
+    Template Context:
+    - association: The Association object being previewed
+    - projets_actifs: Queryset of the association's active projects
+    - is_preview: Boolean flag indicating this is an admin preview
+    """
+
     """Prévisualisation d'une association pour les administrateurs (même non validée)"""
     if not request.user.is_administrator():
         messages.error(request, "Accès réservé aux administrateurs.")
@@ -2395,193 +3323,20 @@ def preview_association_admin(request, association_id):
 #===================
 
 
-
-
-logger = logging.getLogger(__name__)
-def handle_contribution(request, projet, user_has_wallet):
-    """Gère la soumission d'une contribution"""
-    # 🔒 Vérifications de sécurité
-    if not request.user.is_authenticated:
-        messages.info(request, "Connectez-vous pour contribuer.")
-        return redirect(f"{reverse('connexion')}?{urlencode({'next': request.path})}")
-
-    if request.user.user_type == 'admin':
-        messages.error(request, "Les administrateurs ne peuvent pas effectuer de contributions.")
-        return redirect('detail_projet', audit_uuid=projet.audit_uuid)
-
-    if projet.statut != 'actif':
-        messages.error(request, "Les contributions ne sont pas autorisées pour ce projet actuellement.")
-        return redirect('detail_projet', audit_uuid=projet.audit_uuid)
-
-    if not user_has_wallet:
-        messages.error(request, "Veuillez configurer votre wallet pour effectuer une contribution.")
-        return redirect('configurer_wallet')
-
-    # 📝 Validation du formulaire
-    form = Transfer_fond(request.POST, projet=projet, contributeur=request.user)
-    
-    if not form.is_valid():
-        for field, errors in form.errors.items():
-            for error in errors:
-                messages.error(request, f"Erreur {field}: {error}")
-        return redirect('detail_projet', audit_uuid=projet.audit_uuid)
-
-    try:
-        with transaction.atomic():
-            # 💾 Sauvegarde de la transaction
-            transaction_obj = form.save(commit=False)
-            transaction_obj.projet = projet
-            transaction_obj.contributeur = request.user
-            transaction_obj.statut = "en_attente"
-            transaction_obj.destination = "operator"
-            transaction_obj.save()
-
-            # 📊 Mise à jour des statistiques du projet
-            projet.refresh_from_db()
-
-            # 📖 AUDIT LOG - Journalisation détaillée
-            AuditLog.objects.create(
-                utilisateur=request.user,
-                action="contribution_initiee",
-                modele="Transaction",
-                objet_id=str(transaction_obj.id),
-                details={
-                    'montant': float(transaction_obj.montant),
-                    'projet_id': projet.id,
-                    'projet_titre': projet.titre,
-                    'projet_audit_uuid': str(projet.audit_uuid),
-                    'contributeur_email': request.user.email,
-                    'transaction_type': 'don',
-                    'destination': 'operator',
-                    'statut': 'en_attente',
-                    'commission_projet': float(projet.commission),
-                    'montant_engage_avant': float(projet.montant_engage),
-                    'montant_collecte_avant': float(projet.montant_collecte or 0)
-                },
-                adresse_ip=request.META.get('REMOTE_ADDR'),
-                user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                statut='SUCCESS'
-            )
-
-            # 🔔 Notification (optionnelle)
-            try:
-                # Envoyer une notification HCS
-                from .utils import envoyer_notification_contribution
-                envoyer_notification_contribution(projet, request.user, transaction_obj.montant)
-            except Exception as e:
-                logger.error(f"Erreur notification contribution: {e}")
-
-            messages.success(request, 
-                f"✅ Votre contribution de {transaction_obj.montant} HBAR a été enregistrée ! "
-                f"Elle est en attente de confirmation sur la blockchain."
-            )
-
-    except Exception as e:
-        logger.error(f"Erreur lors de la contribution: {e}")
-        
-        # 📖 AUDIT LOG - Journalisation de l'erreur
-        AuditLog.objects.create(
-            utilisateur=request.user,
-            action="contribution_erreur",
-            modele="Transaction",
-            objet_id="N/A",
-            details={
-                'erreur': str(e),
-                'projet_id': projet.id,
-                'projet_titre': projet.titre,
-                'contributeur_email': request.user.email,
-                'montant_tente': request.POST.get('montant', 'N/A')
-            },
-            adresse_ip=request.META.get('REMOTE_ADDR'),
-            statut='FAILURE'
-        )
-        
-        messages.error(request, "Une erreur est survenue lors de l'enregistrement de votre contribution.")
-
-    return redirect('detail_projet', audit_uuid=projet.audit_uuid)
-
-def configurer_wallet(request):
-    """Vue temporaire pour la configuration du wallet"""
-    messages.info(request, "La fonctionnalité de configuration du wallet sera bientôt disponible.")
-    return redirect('profil')
-
-def calculer_taux_reussite(projets_queryset):
-    """Calcule le taux de réussite des projets terminés"""
-    projets_termines = projets_queryset.filter(statut__in=['termine', 'echec'])
-    if not projets_termines.exists():
-        return 0
-    
-    reussis = projets_termines.filter(statut='termine').count()
-    return round((reussis / projets_termines.count()) * 100, 1)
-
-# Fonction utilitaire pour récupérer l'IP
-def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-   
-
-@login_required
-def envoyer_email_view(request):
-    """Vue simpliste pour envoyer un email"""
-    if request.method == 'POST':
-        form = EmailFormSimple(request.POST)
-        if form.is_valid():
-            # Récupérer les données du formulaire
-            destinataire = form.cleaned_data['destinataire']
-            sujet = form.cleaned_data['sujet']
-            message = form.cleaned_data['message']
-            type_email = form.cleaned_data['type_email']
-            
-            try:
-                # Créer le log d'email
-                email_log = EmailLog.objects.create(
-                    destinataire=destinataire,
-                    sujet=sujet,
-                    corps=message,
-                    type_email=type_email,
-                    statut='pending',
-                    utilisateur=request.user
-                )
-                
-                # Envoyer l'email réel
-                send_mail(
-                    sujet,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [destinataire],
-                    fail_silently=False,
-                )
-                
-                # Marquer comme envoyé
-                email_log.marquer_comme_envoye()
-                
-                messages.success(request, f"Email envoyé avec succès à {destinataire}")
-                return redirect('envoyer_email')
-                
-            except Exception as e:
-                # En cas d'erreur
-                if 'email_log' in locals():
-                    email_log.marquer_comme_erreur(str(e))
-                
-                messages.error(request, f"Erreur lors de l'envoi: {str(e)}")
-    else:
-        form = EmailFormSimple()
-    
-    return render(request, 'core/emails/envoyer_email.html', {'form': form})
-
-
-@login_required
-def liste_emails_view(request):
-    """Vue pour afficher la liste des emails envoyés"""
-    emails = EmailLog.objects.all().order_by('-date_creation')
-    return render(request, 'core/emails/liste_email.html', {'emails': emails})
-
-
 def voir_wallet(request):
+    """
+    Display the authenticated user's Hedera wallet balance.
+
+    Ensures the user has a wallet, fetches the current balance from
+    the local Hedera microservice, and renders the wallet details page.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Renders the 'wallet_detail' template with the user's wallet balance.
+                      Redirects to login if the user is not authenticated.
+    """
     if not request.user.is_authenticated:
         return redirect('login')
     
@@ -2607,6 +3362,20 @@ def voir_wallet(request):
 
 
 def creer_topic_pour_projet(projet, utilisateur):
+    """
+    Create a Hedera Consensus Service (HCS) topic for a project via the Node.js microservice.
+    Logs the action with the initiating user.
+
+    Args:
+        projet (Projet): The project instance for which to create the topic.
+        utilisateur (User): The user performing the action.
+
+    Returns:
+        dict: Response data from the microservice on success.
+
+    Raises:
+        Exception: If the microservice is unavailable, times out, or returns an error.
+    """
     """
     Crée un topic HCS pour un projet via le microservice Node.js
     et journalise l'action avec l'utilisateur à l'origine.
@@ -2666,6 +3435,29 @@ def creer_topic_pour_projet(projet, utilisateur):
 
 
 def envoyer_don_hcs(topic_id, utilisateur_email, montant, transaction_hash, type_message="distribution_palier"):
+    """
+    Sends a message to a Hedera Consensus Service (HCS) topic to record a donation.
+
+    The message includes the user's email, donation amount, transaction hash, 
+    timestamp, and the type of message. It also logs the message in the local database 
+    for traceability.
+
+    Args:
+        topic_id (str): The HCS topic ID where the message will be sent.
+        utilisateur_email (str): Email of the contributor.
+        montant (Decimal or float): Amount of the donation.
+        transaction_hash (str): Hash identifying the blockchain transaction.
+        type_message (str, optional): Type of message being sent. Defaults to "distribution_palier".
+
+    Returns:
+        dict: Response from the HCS microservice, including success status and error details if any.
+
+    Raises:
+        ConnectionError: If the HCS microservice is not reachable.
+        TimeoutError: If the request to the HCS microservice times out.
+        HTTPError: If the HCS microservice returns an HTTP error.
+        Exception: For any other unexpected error during message sending.
+    """
     """Envoie un message HCS pour enregistrer un don"""
     url = "http://localhost:3001/send-message"
     
@@ -2721,6 +3513,29 @@ def envoyer_don_hcs(topic_id, utilisateur_email, montant, transaction_hash, type
 
 @csrf_exempt
 def process_donation(request, project_id):
+    """
+    Handles a HBAR donation from an authenticated user to a specified project.
+
+    This view performs several operations:
+    1. Validates that the user is authenticated and has a configured Hedera wallet.
+    2. Validates the donation amount.
+    3. Executes a HBAR transfer from the user's account to the operator account via a microservice.
+    4. Creates a local Transaction record with the transaction status.
+    5. Updates the project's engaged amount if the transaction is confirmed.
+    6. Sends a message to the Hedera Consensus Service (HCS) topic associated with the project.
+    7. Logs success or error messages for user feedback.
+
+    Args:
+        request (HttpRequest): The incoming HTTP request object.
+        project_id (int): ID of the project receiving the donation.
+
+    Returns:
+        HttpResponseRedirect: Redirects back to the project detail page with success or error messages.
+
+    Raises:
+        Exception: Captures any unexpected error during the donation process.
+    """
+
     if request.method == 'POST':
         try:
             project = Projet.objects.get(id=project_id)
@@ -2771,7 +3586,19 @@ def process_donation(request, project_id):
                     project.transaction_set.filter(statut='confirme', destination='operator')
                     .aggregate(total=Sum('montant'))['total'] or 0
                 )
-                project.save(update_fields=['montant_engage'])
+
+                # 🔹 Vérifier si c’est la première contribution de cet utilisateur
+                deja_contributeur = project.transaction_set.filter(
+                    contributeur=user,
+                    statut='confirme',
+                    destination='operator'
+                ).exclude(id=transaction.id).exists()
+
+                if not deja_contributeur:
+                    project.contributeurs_count = F('contributeurs_count') + 1
+
+                project.save(update_fields=['montant_engage', 'contributeurs_count'])
+
 
                 # --- Envoyer message HCS ---
                 if project.topic_id:
@@ -2810,6 +3637,29 @@ def process_donation(request, project_id):
     return redirect('detail_projet', audit_uuid=project.audit_uuid)
 
 def transfer_from_admin_to_doer(projet, porteur, montant_brut, palier=None, initiateur=None):
+    """
+    Executes a transfer from the platform operator to the project doer, applying commission,
+    recording the transaction in the database, and optionally sending a message to the Hedera Consensus Service (HCS).
+
+    The function performs the following steps:
+    1. Calculates commission and net amount.
+    2. Transfers HBAR from the operator account to the doer's account via a microservice.
+    3. Creates a TransactionAdmin record to log the transfer details.
+    4. Sends a structured HCS message to the project's topic with the transfer information.
+    5. Updates the TransactionAdmin record with HCS message identifiers if successful.
+    6. Handles errors including API timeout, connection issues, and unexpected exceptions.
+
+    Args:
+        projet (Projet): The project object associated with the transfer.
+        porteur (User): The recipient user of the transfer.
+        montant_brut (Decimal | float | str): The gross HBAR amount before commission.
+        palier (Palier, optional): Associated milestone if applicable.
+        initiateur (User, optional): User initiating the transfer, for auditing.
+
+    Returns:
+        dict: A dictionary with 'success' (bool), 'transactionId' (str, if successful), and 'error' (str, if any).
+    """
+
     """
     Transfert avec commission, journalisation et notification HCS complète
     """
@@ -2891,8 +3741,23 @@ def transfer_from_admin_to_doer(projet, porteur, montant_brut, palier=None, init
         return {"success": False, "error": error_msg}
 
 
-
 def envoyer_distribution_hcs(topic_id, distribution_data):
+    """
+    Sends a Hedera Consensus Service (HCS) message for a distribution event.
+
+    This function constructs a structured message containing all distribution details
+    and posts it to the specified HCS topic via the microservice. It handles connection
+    errors, timeouts, and unexpected exceptions, logging each appropriately.
+
+    Args:
+        topic_id (str): The HCS topic identifier where the message should be sent.
+        distribution_data (dict): Detailed information about the distribution event.
+
+    Returns:
+        dict: Contains 'success' (bool), 'data' (response JSON if successful), 
+              'message_id' (str from HCS if available), and 'error' (str if failed).
+    """
+
     """Envoie un message HCS spécifique pour les distributions"""
     url = "http://localhost:3001/send-message"
     
@@ -2931,6 +3796,22 @@ def envoyer_distribution_hcs(topic_id, distribution_data):
 
 
 def creer_paliers(projet):
+    """
+    Generates funding milestones (paliers) for a given project.
+
+    This function deletes any existing milestones associated with the project
+    and creates new ones based on predefined percentage allocations of the
+    project's requested amount. Each milestone tracks its percentage and
+    corresponding monetary value.
+
+    Args:
+        projet (Projet): The project instance for which milestones are created.
+
+    Side Effects:
+        - Deletes existing Palier objects linked to the project.
+        - Creates new Palier objects with calculated amounts.
+    """
+
     # Supprimer les paliers existants
     projet.paliers.all().delete()
     
@@ -2944,6 +3825,21 @@ def creer_paliers(projet):
         )
 
 def verifier_paliers(projet):
+    """
+    Checks if any funding milestones (paliers) of a project are eligible for distribution.
+
+    A milestone is considered ready for distribution if:
+    - It has not been transferred yet.
+    - The available funds (engaged amount minus already distributed) are sufficient
+      to cover the milestone amount.
+
+    Args:
+        projet (Projet): The project instance to check.
+
+    Returns:
+        bool: True if at least one milestone can be distributed, False otherwise.
+    """
+
     """Vérifier si les paliers peuvent être distribués"""
     montant_disponible = projet.montant_engage - projet.montant_distribue
     
@@ -2958,6 +3854,20 @@ def verifier_paliers(projet):
 
 
 def envoyer_notification_hcs(topic_id, type_notification, details):
+    """
+    Sends a structured notification message to a Hedera Consensus Service (HCS) topic.
+
+    The message includes the type of notification, a timestamp, and detailed payload.
+
+    Args:
+        topic_id (str): The HCS topic ID to send the notification to.
+        type_notification (str): The type/category of the notification.
+        details (dict): Additional details to include in the message payload.
+
+    Returns:
+        dict: Response from the HCS microservice. Returns {"success": False} on failure.
+    """
+
     """Système de notification HCS complet"""
     message_data = {
         "type": type_notification,
@@ -2978,127 +3888,19 @@ def envoyer_notification_hcs(topic_id, type_notification, details):
         return {"success": False}
 
 
-def notifier_soumission_preuve_hcs(projet, palier, nb_fichiers):
-    """Notifier dans HCS la soumission de preuves d'un palier"""
-    details = {
-        "projet": projet.titre,
-        "palier": f"{palier.pourcentage}%",
-        "fichiers": nb_fichiers,
-        "statut": "en_attente"
-    }
-    
-    return envoyer_notification_hcs(
-        topic_id=projet.topic_id, 
-        type_notification="soumission_preuve",
-        details=details
-    )
-
-
-def envoyer_notification_porteur(porteur, palier, action, commentaires=""):
-    """Envoie une notification au porteur concernant son palier"""
-    
-    projet = palier.projet
-    sujet = ""
-    message = ""
-    
-    if action == 'approuve':
-        sujet = f"✅ Palier {palier.pourcentage}% approuvé - {projet.titre}"
-        message = f"""
-        Bonjour {porteur.get_full_name()},
-        
-        Félicitations ! Les preuves que vous avez soumises pour le palier {palier.pourcentage}% 
-        de votre projet "{projet.titre}" ont été approuvées.
-        
-        Montant du palier : {palier.montant} HBAR
-        Prochaines étapes : Le transfert des fonds sera effectué sous peu.
-        
-        Cordialement,
-        L'équipe SolidChain
-        """
-    
-    elif action == 'rejete':
-        sujet = f"❌ Palier {palier.pourcentage}% nécessite des modifications - {projet.titre}"
-        message = f"""
-        Bonjour {porteur.get_full_name()},
-        
-        Les preuves soumises pour le palier {palier.pourcentage}% de votre projet 
-        "{projet.titre}" nécessitent des modifications.
-        
-        Commentaires de l'administrateur :
-        {commentaires}
-        
-        Veuillez soumettre de nouvelles preuves en vous connectant à votre espace.
-        
-        Cordialement,
-        L'équipe SolidChain
-        """
-    
-    elif action == 'modification':
-        sujet = f"📝 Modifications requises - Palier {palier.pourcentage}% - {projet.titre}"
-        message = f"""
-        Bonjour {porteur.get_full_name()},
-        
-        Des modifications sont requises pour les preuves du palier {palier.pourcentage}% 
-        de votre projet "{projet.titre}".
-        
-        Retour de l'administrateur :
-        {commentaires}
-        
-        Veuillez apporter les modifications demandées et resoumettre vos preuves.
-        
-        Cordialement,
-        L'équipe SolidChain
-        """
-    
-    elif action == 'distribution':
-        # Récupérer l'URL d'exploration de la transaction
-        transaction_url = f"https://hashscan.io/testnet/transaction/{palier.transaction_hash}"
-        
-        sujet = f"💰 Transfert effectué - Palier {palier.pourcentage}% - {projet.titre}"
-        message = f"""
-        Bonjour {porteur.get_full_name()},
-        
-        Le transfert du palier {palier.pourcentage}% de votre projet "{projet.titre}" 
-        a été effectué avec succès.
-        
-        📊 DÉTAILS DU TRANSFERT :
-        • Montant transféré : {palier.montant} HBAR
-        • Date du transfert : {timezone.now().strftime('%d/%m/%Y à %H:%M')}
-        • Hash de transaction : {palier.transaction_hash}
-        • Lien de vérification : {transaction_url}
-        
-        🔍 Vous pouvez vérifier la transaction sur HashScan :
-        {transaction_url}
-        
-        Le montant a été crédité sur votre compte Hedera associé au projet.
-        
-        
-        
-        Cordialement,
-        L'équipe SolidChain
-        """
-    
-    # Envoi par email
-    try:
-        porteur.email_user(sujet, message)
-        logger.info(f"Notification envoyée à {porteur.email} pour le palier {palier.id}")
-    except Exception as e:
-        logger.error(f"Erreur envoi email à {porteur.email}: {str(e)}")
-    
-    # Notification HCS
-    try:
-        envoyer_don_hcs(
-            topic_id=projet.topic_id,
-            utilisateur_email=porteur.email,
-            montant=palier.montant if action == 'distribution' else 0,
-            transaction_hash=palier.transaction_hash if action == 'distribution' else "",
-            type_message=f"notification_{action}"
-        )
-    except Exception as e:
-        logger.error(f"Erreur notification HCS: {str(e)}")
-
 
 def determiner_type_fichier(nom_fichier):
+
+    """
+    Determines the general file type based on the file extension.
+
+    Args:
+        nom_fichier (str): The name of the file including its extension.
+
+    Returns:
+        str: The type category of the file: 'photo', 'video', 'document', or 'autre' for others.
+    """
+
     """Détermine le type de fichier basé sur l'extension"""
     extension = os.path.splitext(nom_fichier)[1].lower()
     
@@ -3122,8 +3924,18 @@ def determiner_type_fichier(nom_fichier):
     
     return 'autre'
 
-# Version alternative avec vérification MIME type
+
 def determiner_type_fichier_avance(fichier):
+    """
+    Determines the file type using both extension and MIME type verification.
+
+    Args:
+        fichier (File): A Django UploadedFile object.
+
+    Returns:
+        str: The general file type: 'photo', 'video', 'document', or fallback to simple detection 'autre'.
+    """
+
     """Détermine le type de fichier avec vérification MIME"""
     nom_fichier = fichier.name
     
@@ -3144,27 +3956,398 @@ def determiner_type_fichier_avance(fichier):
     
     return type_simple
 
-@login_required
-def liste_topics(request):
-    projets = Projet.objects.exclude(topic_id__isnull=True).exclude(topic_id__exact="")
 
-    context = {
-        "projets": projets,
+#
+# NOTIFICATION  
+#
+
+
+def notifier_soumission_preuve_hcs(projet, palier, nb_fichiers):
+    """
+    Sends a notification to the HCS (Hedera Consensus Service) about the submission 
+    of proof files for a project milestone (palier).
+
+    Args:
+        projet (Projet): The project object associated with the milestone.
+        palier (Palier): The milestone for which proofs are submitted.
+        nb_fichiers (int): Number of files submitted.
+
+    Returns:
+        dict: Response from the HCS notification service, indicating success or failure.
+    """
+
+    """Notifier dans HCS la soumission de preuves d'un palier"""
+    details = {
+        "projet": projet.titre,
+        "palier": f"{palier.pourcentage}%",
+        "fichiers": nb_fichiers,
+        "statut": "en_attente"
     }
-    return render(request, "core/site/liste_topics.html", context)
+    
+    return envoyer_notification_hcs(
+        topic_id=projet.topic_id, 
+        type_notification="soumission_preuve",
+        details=details
+    )
+
+
+def envoyer_notification_porteur(porteur, palier, action, commentaires=""):
+    """
+    Sends a notification to the project owner regarding the status of a milestone (palier).
+
+    Args:
+        porteur (User): The project owner to notify.
+        palier (Palier): The milestone associated with the notification.
+        action (str): The type of notification. Options:
+                      - 'approuve': milestone approved
+                      - 'rejete': milestone rejected
+                      - 'modification': changes required
+                      - 'distribution': funds distributed
+        commentaires (str, optional): Optional comments from the administrator.
+
+    Behavior:
+        - Sends an email to the project owner with a formatted message.
+        - Optionally sends a message to the HCS (Hedera Consensus Service) topic.
+    """
+
+    """Envoie une notification au porteur concernant son palier"""
+
+    projet = palier.projet
+    sujet = ""
+    message = ""
+
+    if action == 'approuve':
+        sujet = f"✅ Palier {palier.pourcentage}% approuvé - {projet.titre}"
+        message = f"""
+        Bonjour {porteur.get_full_name()},
+
+        Félicitations ! Les preuves que vous avez soumises pour le palier {palier.pourcentage}% 
+        de votre projet "{projet.titre}" ont été approuvées.
+
+        Montant du palier : {palier.montant} HBAR
+        Prochaines étapes : Le transfert des fonds sera effectué sous peu.
+
+        Cordialement,
+        L'équipe SolidChain
+        """
+        type_email = "project_approved"
+
+    elif action == 'rejete':
+        sujet = f"❌ Palier {palier.pourcentage}% nécessite des modifications - {projet.titre}"
+        message = f"""
+        Bonjour {porteur.get_full_name()},
+
+        Les preuves soumises pour le palier {palier.pourcentage}% de votre projet 
+        "{projet.titre}" nécessitent des modifications.
+
+        Commentaires de l'administrateur :
+        {commentaires}
+
+        Veuillez soumettre de nouvelles preuves en vous connectant à votre espace.
+
+        Cordialement,
+        L'équipe SolidChain
+        """
+        type_email = "project_rejected"
+
+    elif action == 'modification':
+        sujet = f"📝 Modifications requises - Palier {palier.pourcentage}% - {projet.titre}"
+        message = f"""
+        Bonjour {porteur.get_full_name()},
+
+        Des modifications sont requises pour les preuves du palier {palier.pourcentage}% 
+        de votre projet "{projet.titre}".
+
+        Retour de l'administrateur :
+        {commentaires}
+
+        Veuillez apporter les modifications demandées et resoumettre vos preuves.
+
+        Cordialement,
+        L'équipe SolidChain
+        """
+        type_email = "notification"
+
+    elif action == 'distribution':
+        transaction_url = f"https://hashscan.io/testnet/transaction/{palier.transaction_hash}"
+        sujet = f"💰 Transfert effectué - Palier {palier.pourcentage}% - {projet.titre}"
+        message = f"""
+        Bonjour {porteur.get_full_name()},
+
+        Le transfert du palier {palier.pourcentage}% de votre projet "{projet.titre}" 
+        a été effectué avec succès.
+
+        📊 DÉTAILS DU TRANSFERT :
+        • Montant transféré : {palier.montant} HBAR
+        • Date du transfert : {timezone.now().strftime('%d/%m/%Y à %H:%M')}
+        • Hash de transaction : {palier.transaction_hash}
+        • Lien de vérification : {transaction_url}
+
+        🔍 Vous pouvez vérifier la transaction sur HashScan :
+        {transaction_url}
+
+        Le montant a été crédité sur votre compte Hedera associé au projet.
+
+        Cordialement,
+        L'équipe SolidChain
+        """
+        type_email = "don_received"
+
+    # Création du log d'email avant envoi
+    email_log = EmailLog.objects.create(
+        destinataire=porteur.email,
+        sujet=sujet,
+        corps=message,
+        type_email=type_email,
+        utilisateur=porteur
+    )
+
+    # Envoi par email
+    try:
+        porteur.email_user(sujet, message)
+        email_log.marquer_comme_envoye()
+        logger.info(f"Notification envoyée à {porteur.email} pour le palier {palier.id}")
+    except Exception as e:
+        email_log.marquer_comme_erreur(str(e))
+        logger.error(f"Erreur envoi email à {porteur.email}: {str(e)}")
+
+    # Notification HCS
+    try:
+        envoyer_don_hcs(
+            topic_id=projet.topic_id,
+            utilisateur_email=porteur.email,
+            montant=palier.montant if action == 'distribution' else 0,
+            transaction_hash=palier.transaction_hash if action == 'distribution' else "",
+            type_message=f"notification_{action}"
+        )
+    except Exception as e:
+        logger.error(f"Erreur notification HCS: {str(e)}")
+
+
+logger = logging.getLogger(__name__)
+def handle_contribution(request, projet, user_has_wallet):
+    """
+    Handles the submission of a contribution (donation) to a project.
+
+    Security & Validation:
+        - Ensures the user is authenticated.
+        - Prevents admins from contributing.
+        - Only allows contributions to projects with status 'actif'.
+        - Requires the user to have a configured wallet.
+        - Validates the Transfer_fond form.
+
+    Processing:
+        - Creates a Transaction object with status 'en_attente' and destination 'operator'.
+        - Updates the project's statistics after saving.
+        - Logs a detailed AuditLog entry for the contribution initiation.
+        - Optionally sends a notification via HCS (Hedera Consensus Service).
+
+    Error Handling:
+        - Catches any exceptions during transaction creation.
+        - Logs a failure AuditLog entry.
+        - Displays an error message to the user.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        projet (Projet): The project instance to which the contribution is made.
+        user_has_wallet (bool): Indicates whether the user has a configured Hedera wallet.
+
+    Returns:
+        HttpResponseRedirect: Redirects to 'detail_projet' view with success or error messages.
+    """
+
+    """Gère la soumission d'une contribution"""
+    #  Vérifications de sécurité
+    if not request.user.is_authenticated:
+        messages.info(request, "Connectez-vous pour contribuer.")
+        return redirect(f"{reverse('connexion')}?{urlencode({'next': request.path})}")
+
+    if request.user.user_type == 'admin':
+        messages.error(request, "Les administrateurs ne peuvent pas effectuer de contributions.")
+        return redirect('detail_projet', audit_uuid=projet.audit_uuid)
+
+    if projet.statut != 'actif':
+        messages.error(request, "Les contributions ne sont pas autorisées pour ce projet actuellement.")
+        return redirect('detail_projet', audit_uuid=projet.audit_uuid)
+
+    if not user_has_wallet:
+        messages.error(request, "Veuillez configurer votre wallet pour effectuer une contribution.")
+        return redirect('configurer_wallet')
+
+    #  Validation du formulaire
+    form = Transfer_fond(request.POST, projet=projet, contributeur=request.user)
+    
+    if not form.is_valid():
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f"Erreur {field}: {error}")
+        return redirect('detail_projet', audit_uuid=projet.audit_uuid)
+
+    try:
+        with transaction.atomic():
+            #  Sauvegarde de la transaction
+            transaction_obj = form.save(commit=False)
+            transaction_obj.projet = projet
+            transaction_obj.contributeur = request.user
+            transaction_obj.statut = "en_attente"
+            transaction_obj.destination = "operator"
+            transaction_obj.save()
+
+            #  Mise à jour des statistiques du projet
+            projet.refresh_from_db()
+
+            #  AUDIT LOG - Journalisation détaillée
+            AuditLog.objects.create(
+                utilisateur=request.user,
+                action="contribution_initiee",
+                modele="Transaction",
+                objet_id=str(transaction_obj.id),
+                details={
+                    'montant': float(transaction_obj.montant),
+                    'projet_id': projet.id,
+                    'projet_titre': projet.titre,
+                    'projet_audit_uuid': str(projet.audit_uuid),
+                    'contributeur_email': request.user.email,
+                    'transaction_type': 'don',
+                    'destination': 'operator',
+                    'statut': 'en_attente',
+                    'commission_projet': float(projet.commission),
+                    'montant_engage_avant': float(projet.montant_engage),
+                    'montant_collecte_avant': float(projet.montant_collecte or 0)
+                },
+                adresse_ip=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                statut='SUCCESS'
+            )
+
+            # Notification (optionnelle)
+            try:
+                # Envoyer une notification HCS
+                from .utils import envoyer_notification_contribution
+                envoyer_notification_contribution(projet, request.user, transaction_obj.montant)
+            except Exception as e:
+                logger.error(f"Erreur notification contribution: {e}")
+
+            messages.success(request, 
+                f"✅ Votre contribution de {transaction_obj.montant} HBAR a été enregistrée ! "
+                f"Elle est en attente de confirmation sur la blockchain."
+            )
+
+    except Exception as e:
+        logger.error(f"Erreur lors de la contribution: {e}")
+        
+        #  AUDIT LOG - Journalisation de l'erreur
+        AuditLog.objects.create(
+            utilisateur=request.user,
+            action="contribution_erreur",
+            modele="Transaction",
+            objet_id="N/A",
+            details={
+                'erreur': str(e),
+                'projet_id': projet.id,
+                'projet_titre': projet.titre,
+                'contributeur_email': request.user.email,
+                'montant_tente': request.POST.get('montant', 'N/A')
+            },
+            adresse_ip=request.META.get('REMOTE_ADDR'),
+            statut='FAILURE'
+        )
+        
+        messages.error(request, "Une erreur est survenue lors de l'enregistrement de votre contribution.")
+
+    return redirect('detail_projet', audit_uuid=projet.audit_uuid)
+
+
+def configurer_wallet(request):
+    """
+    Temporary view for wallet configuration.
+
+    Currently, this feature is not implemented and simply informs the user
+    that wallet setup will be available soon.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponseRedirect: Redirects the user to their profile page with an informational message.
+    """
+
+    messages.info(request, "La fonctionnalité de configuration du wallet sera bientôt disponible.")
+    return redirect('profil')
+
+def calculer_taux_reussite(projets_queryset):
+    """Calcule le taux de réussite des projets terminés"""
+    projets_termines = projets_queryset.filter(statut__in=['termine', 'echec'])
+    if not projets_termines.exists():
+        return 0
+    
+    reussis = projets_termines.filter(statut='termine').count()
+    return round((reussis / projets_termines.count()) * 100, 1)
+
+# Fonction utilitaire pour récupérer l'IP
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+   
+
+@login_required
+def envoyer_email_view(request):
+    """simple views to send an email"""
+    """Vue simpliste pour envoyer un email"""
+    if request.method == 'POST':
+        form = EmailFormSimple(request.POST)
+        if form.is_valid():
+            # Récupérer les données du formulaire
+            destinataire = form.cleaned_data['destinataire']
+            sujet = form.cleaned_data['sujet']
+            message = form.cleaned_data['message']
+            type_email = form.cleaned_data['type_email']
+            
+            try:
+                # Créer le log d'email
+                email_log = EmailLog.objects.create(
+                    destinataire=destinataire,
+                    sujet=sujet,
+                    corps=message,
+                    type_email=type_email,
+                    statut='pending',
+                    utilisateur=request.user
+                )
+                
+                # Envoyer l'email réel
+                send_mail(
+                    sujet,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [destinataire],
+                    fail_silently=False,
+                )
+                
+                # Marquer comme envoyé
+                email_log.marquer_comme_envoye()
+                
+                messages.success(request, f"Email envoyé avec succès à {destinataire}")
+                return redirect('envoyer_email')
+                
+            except Exception as e:
+                # En cas d'erreur
+                if 'email_log' in locals():
+                    email_log.marquer_comme_erreur(str(e))
+                
+                messages.error(request, f"Erreur lors de l'envoi: {str(e)}")
+    else:
+        form = EmailFormSimple()
+    
+    return render(request, 'core/emails/envoyer_email.html', {'form': form})
 
 
 @login_required
-def topic_detail(request, projet_id):
-    projet = get_object_or_404(Projet, id=projet_id)
-
-    if not projet.topic_id:
-        messages.warning(request, "Ce projet n’a pas encore de topic Hedera.")
-        return redirect("liste_topics")
-
-    messages_topic = projet.messages.all()
-    context = {
-        "projet": projet,
-        "messages_topic": messages_topic,
-    }
-    return render(request, "core/site/topic_detail.html", context)
+def liste_emails_view(request):
+    """views to display all email sent"""
+    """Vue pour afficher la liste des emails envoyés"""
+    emails = EmailLog.objects.all().order_by('-date_creation')
+    return render(request, 'core/emails/liste_email.html', {'emails': emails})

@@ -59,73 +59,345 @@
     </div>
     {% endif %}
 
+    <!-- Hero Section with Cover Image -->
+    <div class="card mb-4 shadow-lg overflow-hidden">
+        {% if projet.cover_image %}
+        <div class="hero-image-container" style="height: 400px; overflow: hidden;">
+            <img src="{{ projet.cover_image.url }}" class="w-100 h-100" alt="{{ projet.titre }}" style="object-fit: cover;">
+        </div>
+        {% else %}
+        <div class="default-cover-image d-flex align-items-center justify-content-center bg-light" style="height: 300px;">
+            <i class="bi bi-image display-1 text-muted"></i>
+        </div>
+        {% endif %}
+        
+        <div class="card-body position-relative" style="margin-top: -80px; z-index: 2;">
+            <div class="bg-white rounded-3 p-4 shadow-sm">
+                <h1 class="card-title mb-2 display-5 fw-bold">{{ projet.titre }}</h1>
+                <p class="text-muted mb-3 lead">
+                    {% if projet.est_associe_a_une_association %}
+                        Managed by association <strong>{{ projet.association.nom }}</strong>
+                    {% else %}
+                        Managed by {{ projet.porteur.get_full_name|default:projet.porteur.username }}
+                    {% endif %}
+                </p>
+
+                <!-- Dual Progress Bars -->
+                <div class="mb-4">
+                    <!-- Overall Funding -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>Funding Goal</strong></span>
+                            <strong class="text-success">{{ projet.pourcentage_financement }}%</strong>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" 
+                                 style="width: {{ projet.pourcentage_financement }}%">
+                                {{ projet.montant_engage|intcomma }}/{{ projet.montant_demande|intcomma }} HBAR
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            {{ conversions.montant_engage_fcfa|intcomma }} FCFA / {{ conversions.montant_demande_fcfa|intcomma }} FCFA
+                        </small>
+                    </div>
+                    
+                    <!-- Distribution Progress -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>Funds Distributed</strong></span>
+                            <strong class="text-info">{{ projet.pourcentage_distribue }}%</strong>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-info" 
+                                 style="width: {{ projet.pourcentage_distribue }}%">
+                                {{ projet.montant_distribue|intcomma }}/{{ projet.montant_engage|intcomma }} HBAR
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            Commission: {{ projet.taux_commission }} ({{ projet.montant_commission_total|intcomma }} HBAR retained)
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge bg-{% if projet.statut == 'actif' %}success{% else %}secondary{% endif %} fs-6">
+                        {{ projet.get_statut_display }}
+                    </span>
+                    {% if projet.statut == 'actif' %}
+                    <span class="fs-5"><i class="fas fa-clock me-1"></i>{{ projet.jours_restants }} days remaining</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <!-- Main Content -->
         <div class="col-lg-8">
-            <!-- Project Header -->
+            <!-- Project Gallery -->
+            {% if projet.gallerie_images %}
             <div class="card mb-4 shadow-sm">
-                {% if projet.cover_image %}
-                <img src="{{ projet.cover_image.url }}" class="card-img-top" alt="{{ projet.titre }}" style="max-height: 400px; object-fit: cover;">
-                {% else %}
-                <div class="default-cover-image d-flex align-items-center justify-content-center bg-light" style="height: 300px;">
-                    <i class="bi bi-image display-1 text-muted"></i>
+                <div class="card-header bg-light">
+                    <h3 class="mb-0"><i class="bi bi-images me-2"></i>Project Gallery</h3>
                 </div>
-                {% endif %}
-                
                 <div class="card-body">
-                    <h1 class="card-title mb-2">{{ projet.titre }}</h1>
-                    <p class="text-muted mb-3">
-                        {% if projet.est_associe_a_une_association %}
-                            Managed by association <strong>{{ projet.association.nom }}</strong>
-                        {% else %}
-                            Managed by {{ projet.porteur.get_full_name|default:projet.porteur.username }}
-                        {% endif %}
-                    </p>
-
-                   <!-- Dual Progress Bars -->
-                    <div class="mb-4">
-                        <!-- Overall Funding -->
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span><strong>Funding Goal</strong></span>
-                                <strong class="text-success">{{ projet.pourcentage_financement }}%</strong>
-                            </div>
-                            <div class="progress" style="height: 20px;">
-                                <div class="progress-bar bg-success" 
-                                     style="width: {{ projet.pourcentage_financement }}%">
-                                    {{ projet.montant_engage|intcomma }}/{{ projet.montant_demande|intcomma }} HBAR
+                    <div class="row g-3">
+                        {% for image_info in projet.gallerie_images %}
+                        <div class="col-md-4">
+                            <div class="gallery-item position-relative">
+                                <img src="{{ image_info.image.url }}" 
+                                     class="img-fluid rounded shadow-sm" 
+                                     alt="{{ image_info.legende|default:'Project image' }}"
+                                     style="height: 200px; width: 100%; object-fit: cover; cursor: pointer;"
+                                     data-bs-toggle="modal" 
+                                     data-bs-target="#galleryModal"
+                                     data-bs-image="{{ image_info.image.url }}"
+                                     data-bs-caption="{{ image_info.legende|default:'' }}">
+                                {% if image_info.legende %}
+                                <div class="image-caption bg-dark bg-opacity-75 text-white p-2 rounded-bottom">
+                                    <small>{{ image_info.legende|truncatewords:5 }}</small>
                                 </div>
+                                {% endif %}
                             </div>
-                            <small class="text-muted d-block mt-1">
-                                {{ conversions.montant_engage_fcfa|intcomma }} FCFA / {{ conversions.montant_demande_fcfa|intcomma }} FCFA
-                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Detailed Project Manager/Association Section -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">
+                        <i class="bi bi-person-badge me-2"></i>
+                        {% if projet.est_associe_a_une_association %}
+                            About the Association
+                        {% else %}
+                            About the Project Manager
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Profile Picture and Basic Info -->
+                        <div class="col-md-3 text-center">
+                            {% if projet.est_associe_a_une_association %}
+                                {% if projet.association.logo %}
+                                    <img src="{{ projet.association.logo.url }}" 
+                                         alt="Logo of {{ projet.association.nom }}"
+                                         class="rounded-circle mb-3 shadow" 
+                                         style="width: 120px; height: 120px; object-fit: cover; border: 4px solid var(--bs-primary);">
+                                {% else %}
+                                    <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow" 
+                                         style="width: 120px; height: 120px; font-size: 3rem; border: 4px solid var(--bs-primary);">
+                                        {{ projet.association.nom|first|upper }}
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                {% if projet.porteur.photo_profil %}
+                                    <img src="{{ projet.porteur.photo_profil.url }}" 
+                                         alt="Photo of {{ projet.porteur.get_full_name|default:projet.porteur.username }}"
+                                         class="rounded-circle mb-3 shadow" 
+                                         style="width: 120px; height: 120px; object-fit: cover; border: 4px solid var(--bs-primary);">
+                                {% else %}
+                                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow" 
+                                         style="width: 120px; height: 120px; font-size: 3rem; border: 4px solid var(--bs-primary);">
+                                        {{ projet.porteur.get_full_name|default:projet.porteur.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                            
+                            <!-- Trust Badges -->
+                            <div class="mt-3">
+                                {% if projet.est_associe_a_une_association %}
+                                    <span class="badge bg-success mb-2">
+                                        <i class="bi bi-shield-check me-1"></i>Verified Association
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-primary mb-2">
+                                        <i class="bi bi-person-check me-1"></i>Verified Creator
+                                    </span>
+                                {% endif %}
+                                
+                                {% if projet.porteur.email_verifie %}
+                                    <span class="badge bg-info mb-2">
+                                        <i class="bi bi-envelope-check me-1"></i>Email Verified
+                                    </span>
+                                {% endif %}
+                            </div>
                         </div>
                         
-                        <!-- Distribution Progress -->
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span><strong>Funds Distributed</strong></span>
-                                <strong class="text-info">{{ projet.pourcentage_distribue }}%</strong>
-                            </div>
-                            <div class="progress" style="height: 20px;">
-                                <div class="progress-bar bg-info" 
-                                     style="width: {{ projet.pourcentage_distribue }}%">
-                                    {{ projet.montant_distribue|intcomma }}/{{ projet.montant_engage|intcomma }} HBAR
+                        <!-- Detailed Information -->
+                        <div class="col-md-9">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h4 class="text-primary">
+                                        {% if projet.est_associe_a_une_association %}
+                                            {{ projet.association.nom }}
+                                        {% else %}
+                                            {{ projet.porteur.get_full_name|default:projet.porteur.username }}
+                                        {% endif %}
+                                    </h4>
+                                    
+                                    <!-- Contact Information -->
+                                    <div class="mb-3">
+                                        {% if projet.est_associe_a_une_association %}
+                                            {% if projet.association.ville %}
+                                                <p class="mb-1">
+                                                    <i class="bi bi-geo-alt text-muted me-2"></i>
+                                                    {{ projet.association.ville }}
+                                                    {% if projet.association.pays %}, {{ projet.association.pays }}{% endif %}
+                                                </p>
+                                            {% endif %}
+                                            
+                                            {% if projet.association.date_creation_association %}
+                                                <p class="mb-1">
+                                                    <i class="bi bi-calendar text-muted me-2"></i>
+                                                    Founded {{ projet.association.date_creation_association|date:"Y" }}
+                                                </p>
+                                            {% endif %}
+                                        {% else %}
+                                            {% if projet.porteur.ville %}
+                                                <p class="mb-1">
+                                                    <i class="bi bi-geo-alt text-muted me-2"></i>
+                                                    {{ projet.porteur.ville }}
+                                                    {% if projet.porteur.pays %}, {{ projet.porteur.pays }}{% endif %}
+                                                </p>
+                                            {% endif %}
+                                            
+                                            {% if projet.porteur.date_naissance %}
+                                                <p class="mb-1">
+                                                    <i class="bi bi-person text-muted me-2"></i>
+                                                    {{ projet.porteur.get_age }} years old
+                                                </p>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Profile Completion -->
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <small class="text-muted">Profile Completion</small>
+                                            <small class="text-primary fw-bold">{{ projet.porteur.get_profile_completion }}%</small>
+                                        </div>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar bg-primary" style="width: {{ projet.porteur.get_profile_completion }}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <!-- Statistics -->
+                                    <div class="bg-light rounded p-3">
+                                        <h6 class="text-center mb-3">Creator Statistics</h6>
+                                        <div class="row text-center">
+                                            <div class="col-6 mb-2">
+                                                <div class="stat-number text-primary fw-bold">{{ projet.porteur.get_nombre_projets_lances }}</div>
+                                                <small class="text-muted">Projects</small>
+                                            </div>
+                                            <div class="col-6 mb-2">
+                                                <div class="stat-number text-success fw-bold">{{ projet.porteur.get_taux_reussite }}%</div>
+                                                <small class="text-muted">Success Rate</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="stat-number text-info fw-bold">{{ projet.porteur.get_total_collecte|intcomma }}ℏ</div>
+                                                <small class="text-muted">Total Raised</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="stat-number text-warning fw-bold">{{ projet.porteur.date_joined|timesince }}</div>
+                                                <small class="text-muted">Member Since</small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <small class="text-muted d-block mt-1">
-                                Commission: {{ projet.taux_commission }} ({{ projet.montant_commission_total|intcomma }} HBAR retained)
-                            </small>
+                            
+                            <!-- Bio and Description -->
+                            <div class="mt-3">
+                                {% if projet.est_associe_a_une_association %}
+                                    {% if projet.association.description_courte %}
+                                        <h6 class="text-primary">
+                                            <i class="bi bi-building me-1"></i>About Our Association
+                                        </h6>
+                                        <p class="mb-3">{{ projet.association.description_courte }}</p>
+                                    {% endif %}
+                                    
+                                    {% if projet.association.causes_defendues %}
+                                        <h6 class="text-primary">
+                                            <i class="bi bi-heart me-1"></i>Causes We Support
+                                        </h6>
+                                        <p class="mb-3">{{ projet.association.causes_defendues }}</p>
+                                    {% endif %}
+                                {% else %}
+                                    {% if projet.porteur.bio %}
+                                        <h6 class="text-primary">
+                                            <i class="bi bi-person-lines-fill me-1"></i>About Me
+                                        </h6>
+                                        <p class="mb-3">{{ projet.porteur.bio }}</p>
+                                    {% endif %}
+                                    
+                                    {% if projet.porteur.organisation %}
+                                        <h6 class="text-primary">
+                                            <i class="bi bi-building me-1"></i>Organization
+                                        </h6>
+                                        <p class="mb-3">{{ projet.porteur.organisation }}</p>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Social Links -->
+                            <div class="mt-3">
+                                <h6 class="text-primary mb-2">
+                                    <i class="bi bi-link-45deg me-1"></i>Connect
+                                </h6>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    {% if projet.est_associe_a_une_association %}
+                                        {% if projet.association.site_web %}
+                                            <a href="{{ projet.association.site_web }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-globe me-1"></i>Website
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if projet.porteur.site_web %}
+                                            <a href="{{ projet.porteur.site_web }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-globe me-1"></i>Website
+                                            </a>
+                                        {% endif %}
+                                        {% if projet.porteur.linkedin %}
+                                            <a href="{{ projet.porteur.linkedin }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-linkedin me-1"></i>LinkedIn
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+                                    
+                                    {% if not projet.est_associe_a_une_association %}
+                                        {% if projet.porteur.twitter %}
+                                            <a href="{{ projet.porteur.twitter }}" target="_blank" class="btn btn-outline-info btn-sm">
+                                                <i class="bi bi-twitter me-1"></i>Twitter
+                                            </a>
+                                        {% endif %}
+                                        {% if projet.porteur.facebook %}
+                                            <a href="{{ projet.porteur.facebook }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-facebook me-1"></i>Facebook
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-{% if projet.statut == 'actif' %}success{% else %}secondary{% endif %}">
-                            {{ projet.get_statut_display }}
-                        </span>
-                        {% if projet.statut == 'actif' %}
-                        <span><i class="fas fa-clock me-1"></i>{{ projet.jours_restants }} days remaining</span>
-                        {% endif %}
+                </div>
+            </div>
+
+            <!-- Project Description -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0"><i class="bi bi-info-circle me-2"></i>Project Description</h3>
+                </div>
+                <div class="card-body">
+                    <div class="projet-description">
+                        {{ projet.description|safe|linebreaks }}
                     </div>
                 </div>
             </div>
@@ -297,6 +569,7 @@
                     </div>
                 </div>
             </div>
+        
         </div>
 
         <!-- Sidebar -->
@@ -371,132 +644,61 @@
                 </div>
             </div>
 
-            <!-- Project Manager Information -->
-            <div class="card shadow-sm">
+            <!-- Quick Stats Card -->
+            <div class="card shadow-sm mb-4">
                 <div class="card-header bg-light">
-                    <h4 class="mb-0">
-                        <i class="bi bi-person-badge me-2"></i>
-                        {% if projet.est_associe_a_une_association %}
-                            About the Association
-                        {% else %}
-                            About the Project Manager
-                        {% endif %}
-                    </h4>
+                    <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Project Stats</h5>
                 </div>
                 <div class="card-body">
-                    <div class="text-center mb-4">
-                        {% if projet.est_associe_a_une_association %}
-                            {% if projet.association.logo %}
-                                <img src="{{ projet.association.logo.url }}" 
-                                     alt="Logo of {{ projet.association.nom }}"
-                                     class="rounded-circle mb-3" 
-                                     style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--bs-primary);">
-                            {% else %}
-                                <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center mb-3" 
-                                     style="width: 100px; height: 100px; font-size: 2.5rem; border: 3px solid var(--bs-primary);">
-                                    {{ projet.association.nom|first|upper }}
-                                </div>
-                            {% endif %}
-                            
-                            <h5 class="mb-1">{{ projet.association.nom }}</h5>
-                            
-                            {% if projet.association.slogan %}
-                                <p class="text-muted mb-2">
-                                    <i class="bi bi-quote me-1"></i>{{ projet.association.slogan }}
-                                </p>
-                            {% endif %}
-                            
-                            <span class="badge bg-secondary mb-3">
-                                <i class="bi bi-building me-1"></i>Association
-                            </span>
-                            
-                        {% else %}
-                            {% if projet.porteur.photo_profil %}
-                                <img src="{{ projet.porteur.photo_profil.url }}" 
-                                     alt="Photo of {{ projet.porteur.get_full_name|default:projet.porteur.username }}"
-                                     class="rounded-circle mb-3" 
-                                     style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--bs-primary);">
-                            {% else %}
-                                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" 
-                                     style="width: 100px; height: 100px; font-size: 2.5rem; border: 3px solid var(--bs-primary);">
-                                    {{ projet.porteur.get_full_name|default:projet.porteur.username|first|upper }}
-                                </div>
-                            {% endif %}
-                            
-                            <h5 class="mb-1">{{ projet.porteur.get_full_name|default:projet.porteur.username }}</h5>
-                            
-                            {% if projet.porteur.organisation %}
-                                <p class="text-muted mb-2">
-                                    <i class="bi bi-building me-1"></i>{{ projet.porteur.organisation }}
-                                </p>
-                            {% endif %}
-                            
-                            <span class="badge bg-primary mb-3">
-                                <i class="bi bi-person me-1"></i>Project Manager
-                            </span>
-                        {% endif %}
-                    </div>
-
-                    <!-- Contact Information -->
-                    <div class="row text-center mb-3">
-                        {% if projet.est_associe_a_une_association %}
-                            {% if projet.association.ville %}
-                                <div class="col-12 mb-2">
-                                    <small class="text-muted">
-                                        <i class="bi bi-geo-alt me-1"></i>
-                                        {{ projet.association.ville }}
-                                        {% if projet.association.pays %}, {{ projet.association.pays }}{% endif %}
-                                    </small>
-                                </div>
-                            {% endif %}
-                        {% else %}
-                            {% if projet.porteur.ville %}
-                                <div class="col-12 mb-2">
-                                    <small class="text-muted">
-                                        <i class="bi bi-geo-alt me-1"></i>
-                                        {{ projet.porteur.ville }}
-                                        {% if projet.porteur.pays %}, {{ projet.porteur.pays }}{% endif %}
-                                    </small>
-                                </div>
-                            {% endif %}
-                        {% endif %}
-                    </div>
-
-                    <!-- Bio -->
-                    {% if projet.est_associe_a_une_association and projet.association.description_courte %}
-                        <div class="mb-3">
-                            <h6 class="text-primary">
-                                <i class="bi bi-chat-quote me-1"></i>Presentation
-                            </h6>
-                            <p class="mb-0 small">
-                                "{{ projet.association.description_courte|truncatewords:30 }}"
-                            </p>
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="stat-number text-primary fw-bold">{{ projet.vues }}</div>
+                            <small class="text-muted">Views</small>
                         </div>
-                    {% elif not projet.est_associe_a_une_association and projet.porteur.bio %}
-                        <div class="mb-3">
-                            <h6 class="text-primary">
-                                <i class="bi bi-chat-quote me-1"></i>Presentation
-                            </h6>
-                            <p class="mb-0 small">
-                                "{{ projet.porteur.bio|truncatewords:30 }}"
-                            </p>
+                        <div class="col-6 mb-3">
+                            <div class="stat-number text-success fw-bold">{{ projet.contributeurs_count }}</div>
+                            <small class="text-muted">Contributors</small>
                         </div>
-                    {% endif %}
+                        <div class="col-6">
+                            <div class="stat-number text-info fw-bold">{{ projet.partages }}</div>
+                            <small class="text-muted">Shares</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-number text-warning fw-bold">{{ projet.taux_conversion }}%</div>
+                            <small class="text-muted">Conversion</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                    <!-- Actions -->
-                    <div class="text-center mt-4">
-                        {% if projet.est_associe_a_une_association %}
-                            {% if projet.association.site_web %}
-                                <a href="{{ projet.association.site_web }}" target="_blank" class="btn btn-outline-secondary btn-sm me-2 mb-2">
-                                    <i class="bi bi-globe me-1"></i>Website
-                                </a>
-                            {% endif %}
-                        {% else %}
-                            {% if projet.porteur.site_web %}
-                                <a href="{{ projet.porteur.site_web }}" target="_blank" class="btn btn-outline-secondary btn-sm me-2 mb-2">
-                                    <i class="bi bi-globe me-1"></i>Website
-                                </a>
-                            {% endif %}
+            <!-- Project Details Card -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-info-square me-2"></i>Project Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="project-details-list">
+                        <div class="detail-item mb-2">
+                            <strong><i class="bi bi-grid me-2 text-primary"></i>Category:</strong>
+                            <span class="float-end">{{ projet.categorie_display }}</span>
+                        </div>
+                        <div class="detail-item mb-2">
+                            <strong><i class="bi bi-cash-coin me-2 text-success"></i>Funding Type:</strong>
+                            <span class="float-end">{{ projet.get_type_financement_display }}</span>
+                        </div>
+                        <div class="detail-item mb-2">
+                            <strong><i class="bi bi-calendar me-2 text-info"></i>Campaign Duration:</strong>
+                            <span class="float-end">{{ projet.duree_campagne }} days</span>
+                        </div>
+                        <div class="detail-item mb-2">
+                            <strong><i class="bi bi-flag me-2 text-warning"></i>Minimum Goal:</strong>
+                            <span class="float-end">{{ projet.montant_minimal|intcomma }} HBAR</span>
+                        </div>
+                        {% if projet.date_debut %}
+                        <div class="detail-item mb-2">
+                            <strong><i class="bi bi-clock me-2 text-secondary"></i>Started:</strong>
+                            <span class="float-end">{{ projet.date_debut|date:"M d, Y" }}</span>
+                        </div>
                         {% endif %}
                     </div>
                 </div>
@@ -504,7 +706,7 @@
         </div>
     </div>
 
-    <!-- Similar Projects -->
+    <!-- Similar Projects Section -->
     {% if projets_similaires %}
     <div class="row mt-5">
         <div class="col-12">
@@ -552,6 +754,22 @@
     {% endif %}
 </div>
 
+<!-- Gallery Modal -->
+<div class="modal fade" id="galleryModal" tabindex="-1" aria-labelledby="galleryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="galleryModalLabel">Project Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" class="img-fluid rounded" alt="" style="max-height: 70vh;">
+                <div id="modalCaption" class="mt-3 text-muted"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Delete Confirmation Modal -->
 {% if projet.statut in 'brouillon rejete' %}
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -580,6 +798,55 @@
 
 {% block extra_css %}
 <style>
+    .hero-image-container {
+        position: relative;
+    }
+    
+    .hero-image-container::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 100px;
+        background: linear-gradient(transparent, rgba(255,255,255,0.8));
+    }
+    
+    .gallery-item {
+        transition: transform 0.3s ease;
+    }
+    
+    .gallery-item:hover {
+        transform: translateY(-5px);
+    }
+    
+    .image-caption {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .gallery-item:hover .image-caption {
+        opacity: 1;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .detail-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    
     .donation-card {
         border: 2px solid var(--bs-primary);
         border-radius: 15px;
@@ -590,19 +857,9 @@
         transform: translateY(-2px);
     }
     
-    .donation-card .card-header {
-        border-radius: 13px 13px 0 0 !important;
-    }
-    
     .progress-bar {
         font-weight: bold;
         font-size: 0.9rem;
-    }
-    
-    .btn-primar {
-        background: linear-gradient(45deg, #0d6efd, #6f42c1);
-        border: none;
-        transition: all 0.3s ease;
     }
     
     .btn-primary:hover {
@@ -610,33 +867,9 @@
         box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
     }
     
-    .default-cover-image,
-    .default-image {
-        border-radius: 10px;
-    }
-    
     .projet-description {
         line-height: 1.8;
         font-size: 1.1rem;
-    }
-    
-    .recompenses-content {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        padding: 1.5rem;
-        border-radius: 10px;
-        border-left: 4px solid var(--bs-success);
-    }
-    
-    .list-group-item {
-        transition: all 0.2s ease;
-        border-radius: 8px !important;
-        margin-bottom: 0.5rem;
-        border: 1px solid rgba(0,0,0,0.125);
-    }
-    
-    .list-group-item:hover {
-        transform: translateX(4px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     
     .card {
@@ -649,16 +882,42 @@
         border-radius: 15px 15px 0 0 !important;
         background: linear-gradient(135deg, #f8f9fa, #e9ecef);
     }
-    
-    /* Improved milestone list styling */
-    .list-group-item-success {
-        background-color: #d1e7dd;
-        border-color: #badbcc;
-    }
-    
-    .list-group-item-info {
-        background-color: #cff4fc;
-        border-color: #b6effb;
-    }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Gallery Modal functionality
+    const galleryModal = document.getElementById('galleryModal');
+    if (galleryModal) {
+        galleryModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const imageUrl = button.getAttribute('data-bs-image');
+            const caption = button.getAttribute('data-bs-caption');
+            
+            const modalImage = document.getElementById('modalImage');
+            const modalCaption = document.getElementById('modalCaption');
+            
+            modalImage.src = imageUrl;
+            modalCaption.textContent = caption || '';
+        });
+    }
+    
+    // Smooth scrolling for anchor links
+    document.addEventListener('DOMContentLoaded', function() {
+        const anchorLinks = document.querySelectorAll('a[href^="#"]');
+        anchorLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}
