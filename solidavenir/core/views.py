@@ -105,7 +105,8 @@ def contact(request):
         if form.is_valid():
             submission = form.save(commit=False)
             submission.save()  
-            messages.success(request, "Votre message a été envoyé avec succès!")
+            messages.success(request, "Your message has been sent successfully!")
+
             return redirect('contact')
     else:
         form = ContactForm()
@@ -408,12 +409,7 @@ def inscription(request):
                 
                 # Message de bienvenue personnalisé selon le type d'utilisateur
                 user_type_display = dict(User.USER_TYPES).get(user.user_type, 'utilisateur')
-                messages.success(
-                    request, 
-                    f"Bienvenue {user.get_full_name_or_username()} ! "
-                    f"Votre compte {user_type_display.lower()} a été créé avec succès."
-                )
-                
+                        
                 # Redirection selon le type d'utilisateur
                 if user.user_type == 'association':
                     return redirect('espace_association')
@@ -561,7 +557,7 @@ def deconnexion(request):
     )
     
     logout(request)
-    messages.success(request, "Vous avez été déconnecté avec succès.")
+    
     return redirect('accueil')
 
 @login_required
@@ -601,7 +597,8 @@ def changer_mot_de_passe(request):
                 adresse_ip=request.META.get('REMOTE_ADDR')
             )
             
-            messages.success(request, "Votre mot de passe a été changé avec succès.")
+            messages.success(request, "Your password has been changed successfully.")
+
             return redirect('accueil')
     else:
         form = PasswordChangeForm(request.user)
@@ -648,7 +645,8 @@ def modifier_profil(request):
                 adresse_ip=request.META.get('REMOTE_ADDR')
             )
             
-            messages.success(request, "Votre profil a été mis à jour avec succès.")
+            messages.success(request, "Your profile has been updated successfully.")
+
             return redirect('modifier_profil')
     else:
         form = ProfilUtilisateurForm(instance=request.user)
@@ -862,7 +860,8 @@ def modifier_profil_association(request):
         form = AssociationForm(request.POST, request.FILES, instance=association)
         if form.is_valid():
             form.save()
-            messages.success(request, "Profil mis à jour avec succès !")
+            messages.success(request, "Your profile has been updated successfully.")
+
             return redirect('espace_association')
     else:
         form = AssociationForm(instance=association)
@@ -970,7 +969,7 @@ def upload_association_image(request, slug):
             # Sauvegarde finale
             image.save()
             
-            messages.success(request, "Photo ajoutée avec succès !")
+            messages.success(request, "Photo added !")
             return redirect('detail_association', slug=slug)
     else:
         form = AssociationImageForm()
@@ -1082,7 +1081,7 @@ def creer_projet(request):
 
                 messages.success(
                     request,
-                    "Votre projet a été créé avec succès avec un compte Hedera dédié !"
+                    "Your project has been successfully created with a dedicated Hedera account!"
                 )
                 return redirect('mes_projets')
 
@@ -1154,7 +1153,7 @@ def modifier_projet(request, uuid):
                             adresse_ip=request.META.get('REMOTE_ADDR')
                         )
 
-                    messages.success(request, "Votre projet a été modifié avec succès !")
+                    messages.success(request, "Your project has been successfully updated.")
                     return redirect('detail_projet', uuid=uuid)
 
                 except Exception as e:
@@ -1207,7 +1206,7 @@ def ajouter_images_projet(request, uuid):
                         adresse_ip=request.META.get('REMOTE_ADDR')
                     )
                     
-                    messages.success(request, f"{len(images_crees)} image(s) ajoutée(s) avec succès !")
+
                     return redirect('detail_projet', uuid=uuid)
                     
                 except Exception as e:
@@ -1283,7 +1282,7 @@ def supprimer_projet(request, uuid):
                 )
                 
                 projet.delete()
-                messages.success(request, "Votre projet a été supprimé avec succès!")
+                messages.success(request, "Your project has been successfully deleted")
                 return redirect('mes_projets')
                 
             except Exception as e:
@@ -1635,7 +1634,8 @@ def mes_projets(request):
                     adresse_ip=request.META.get('REMOTE_ADDR')
                 )
                 
-                messages.success(request, f"Le projet '{projet.titre}' a été soumis pour validation.")
+                messages.success(request, f"The project '{projet.titre}' has been submitted for approval.")
+
             
             elif action == 'annuler' and projet.statut == 'en_attente':
                 projet.statut = 'brouillon'
@@ -1651,7 +1651,7 @@ def mes_projets(request):
                     adresse_ip=request.META.get('REMOTE_ADDR')
                 )
                 
-                messages.success(request, f"La soumission du projet '{projet.titre}' a été annulée.")
+                messages.success(request, f"The submission of the project '{projet.titre}' has been canceled.")
             
             else:
                 messages.error(request, "Action non autorisée.")
@@ -1885,10 +1885,12 @@ def soumettre_preuves_palier(request, palier_id):
                 # Notification HCS
                 notifier_soumission_preuve_hcs(projet, palier, len(fichiers_uploades))
             
-            messages.success(request, 
-                f"✅ {len(fichiers_uploades)} preuve(s) soumise(s) avec succès. "
-                f"En attente de vérification par l'administrateur."
-            )
+                messages.success(
+                    request, 
+                    f"✅ {len(fichiers_uploades)} proof(s) submitted successfully. "
+                    "Waiting for verification by the administrator."
+                )
+
             return redirect('mes_projets')
     
     else:
@@ -2157,12 +2159,13 @@ def gerer_distributions(request):
                         statut='SUCCESS'
                     )
                     
-                    messages.success(request, 
-                        f"✅ Distribution de {palier.montant} HBAR effectuée\n"
-                        f"📧 Notification envoyée au porteur\n"
-                        f"🔗 Transaction: {transaction_hash}"
-                    )
-                    
+                    messages.success(
+                       request, 
+                       f"✅ {palier.montant} HBAR distributed successfully\n"
+                       f"📧 Notification sent to the project owner\n"
+                       f"🔗 Transaction: {transaction_hash}"
+                    )                    
+                   
                 else:
                     # Journaliser l'échec
                     AuditLog.objects.create(
@@ -2815,7 +2818,6 @@ L'équipe Solidavenir""",
         except Exception as e:
             print(f"Erreur envoi email: {e}")
         
-        messages.success(request, f"L'association {association.nom} a été validée avec succès.")
         return redirect('tableau_de_bord')
     
     context = {'association': association}
@@ -2930,7 +2932,8 @@ def valider_projet(request, audit_uuid):
                                 adresse_ip=request.META.get('REMOTE_ADDR')
                             )
                             
-                            messages.success(request, f"Topic HCS créé: {projet.topic_id}")
+                            messages.success(request, f"HCS topic created: {projet.topic_id}")
+
                         else:
                             error_msg = topic_response.get('error', 'Erreur inconnue') if topic_response else 'Erreur inconnue'
                             messages.warning(request, f"Projet validé mais erreur création topic HCS: {error_msg}")
@@ -3026,7 +3029,7 @@ L'équipe Solid'Avenir"""
                     messages.warning(request, "Erreur lors de l'envoi d'email, mais le projet a été validé.")
             
             action_msg = "validé et activé" if nouveau_statut == 'actif' else "rejeté"
-            messages.success(request, f"Le projet a été {action_msg} avec succès.")
+            
             
             return redirect('tableau_de_bord')
     else:
@@ -3143,7 +3146,7 @@ def verifier_preuves_palier(request, palier_id):
                 # Notifier le porteur
                 envoyer_notification_porteur(projet.porteur, palier, 'approuve', commentaires)
                 
-                messages.success(request, "Preuves approuvées avec succès")
+                
                 
             elif action == 'rejeter':
                 preuve.statut = 'rejete'
@@ -3617,7 +3620,8 @@ def process_donation(request, project_id):
                         transaction.hedera_message_hashscan_url = f"https://hashscan.io/testnet/topic/{project.topic_id}?message={hcs_response.get('messageId')}"
                         transaction.save(update_fields=['hedera_message_id', 'hedera_message_hashscan_url'])
 
-                        messages.success(request, f"Votre don de {amount} HBAR a été effectué ✅ et tracé sur HCS")
+                        messages.success(request, f"Your donation of {amount} HBAR has been successfully made ✅ and recorded on HCS")
+
                         
                         # 🔹 Optionnel : envoyer email au contributeur
                         # send_email_hedera_confirmation(user.email, transaction)
@@ -4231,10 +4235,12 @@ def handle_contribution(request, projet, user_has_wallet):
             except Exception as e:
                 logger.error(f"Erreur notification contribution: {e}")
 
-            messages.success(request, 
-                f"✅ Votre contribution de {transaction_obj.montant} HBAR a été enregistrée ! "
-                f"Elle est en attente de confirmation sur la blockchain."
+            messages.success(
+                request, 
+                f"✅ Your contribution of {transaction_obj.montant} HBAR has been recorded! "
+                f"It is pending confirmation on the blockchain."
             )
+            
 
     except Exception as e:
         logger.error(f"Erreur lors de la contribution: {e}")
@@ -4333,7 +4339,7 @@ def envoyer_email_view(request):
                 # Marquer comme envoyé
                 email_log.marquer_comme_envoye()
                 
-                messages.success(request, f"Email envoyé avec succès à {destinataire}")
+                messages.success(request, f"Email has been successfully sent to {destinataire}")
                 return redirect('envoyer_email')
                 
             except Exception as e:
