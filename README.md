@@ -45,13 +45,13 @@ cd solidavenir
 ```
 powershell
 
-```
 # Terminal 1
 .\scripts\windows\run_hedera_service.bat
 
 # Terminal 2
 .\scripts\windows\run_backend.bat
 
+```
 
 > The backend script will create a Python virtual environment, install dependencies, apply migrations, and create a **superuser admin** with:
 >
@@ -88,13 +88,13 @@ chmod +x scripts/linux/run_backend.sh
 3. Launch the services in separate terminals:
 ```bash
 
-```
-
 # Terminal 1
 ./scripts/linux/run_hedera_service.sh
 
 # Terminal 2
 ./scripts/linux/run_backend.sh
+
+```
 
 
 
