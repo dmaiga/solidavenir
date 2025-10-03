@@ -28,7 +28,7 @@ from decimal import Decimal
 from .models import Projet
 
 from django import forms
-from .models import User
+from .models import User,Palier
 from django.core.validators import FileExtensionValidator
 
 
@@ -1041,22 +1041,22 @@ class ContactForm(forms.ModelForm):
         return answer
     
 
-
-
 class CreationProjetForm(forms.ModelForm):
-    """Formulaire simplifié de création de projet"""
+    """
+    Simplified project creation form with reward-based business/social distinction
+    """
     
-    # Champ description avec éditeur riche
+    # Description field with rich editor
     description = forms.CharField(
         widget=forms.Textarea(attrs={
             'rows': 8,
             'class': 'form-control',
-            'placeholder': 'Décrivez votre projet en détail...'
+            'placeholder': 'Describe your project in detail...'
         }),
-        label="Description complète"
+        label="Complete Description"
     )
     
-    # Description courte
+    # Short description
     description_courte = forms.CharField(
         max_length=300,
         required=True,
@@ -1064,29 +1064,29 @@ class CreationProjetForm(forms.ModelForm):
             'rows': 3, 
             'maxlength': '300',
             'class': 'form-control',
-            'placeholder': 'Résumez votre projet en 300 caractères maximum...'
+            'placeholder': 'Summarize your project in 300 characters maximum...'
         }),
-        label="Résumé du projet",
-        help_text="300 caractères maximum - Ce résumé apparaîtra dans les listes de projets"
+        label="Project Summary",
+        help_text="300 characters maximum - This summary will appear in project lists"
     )
     
-    # Montants
+    # Amounts
     montant_demande = forms.DecimalField(
         max_digits=15,
         decimal_places=0,
-        label="Montant demandé (FCFA)",
-        help_text="Montant total nécessaire pour réaliser votre projet",
+        label="Requested Amount (FCFA)",
+        help_text="Total amount needed to realize your project",
         widget=forms.NumberInput(attrs={
             'class': 'form-control',
             'placeholder': '500000'
         })
     )
     
-    # Récompenses simplifiées
+    # Rewards section - Natural business/social distinction
     offre_recompenses = forms.BooleanField(
         required=False,
-        label="Proposer des contreparties aux contributeurs ?",
-        help_text="Cochez cette case si vous souhaitez offrir des récompenses en échange des contributions",
+        label="Offer rewards to contributors?",
+        help_text="Check this box if you wish to offer rewards in exchange for contributions",
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
     
@@ -1095,33 +1095,34 @@ class CreationProjetForm(forms.ModelForm):
         widget=forms.Textarea(attrs={
             'rows': 4,
             'class': 'form-control',
-            'placeholder': 'Décrivez les contreparties que vous offrez (ex: Nom sur le mur des donateurs, produit personnalisé, invitation à l\'inauguration, etc.)...'
+            'placeholder': 'Describe the rewards you offer (examples below)...\n\n💼 BUSINESS: Equity, profit-sharing, product pre-orders, VIP services\n🚀 SOCIAL: Donor wall recognition, naming opportunities, community events, impact reports\n🌱 ECOLOGICAL: Eco-friendly products, planting certificates, sustainability workshops'
         }),
-        label="Description des contreparties",
-        help_text="Décrivez brièvement ce que vous proposez en échange des contributions"
+        label="Rewards Description",
+        help_text="The type of rewards naturally indicates your project nature (business, social, ecological)"
     )
+    
     class Meta:
         model = Projet
         fields = [
             'titre', 'description_courte', 'description', 'categorie', 'autre_categorie',
             'type_financement', 'montant_demande', 'offre_recompenses', 'description_recompenses',
-            'cover_image','video_presentation', 'duree_campagne', 'tags', 'association'
+            'cover_image', 'video_presentation', 'duree_campagne', 'tags', 'association'
         ]
         widgets = {
             'titre': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Titre accrocheur de votre projet...'
+                'placeholder': 'Catchy title for your project...'
             }),
             'categorie': forms.Select(attrs={'class': 'form-control'}),
             'autre_categorie': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Précisez votre catégorie...',
+                'placeholder': 'Specify your category...',
                 'style': 'display: none;'
             }),
             'type_financement': forms.Select(attrs={'class': 'form-control'}),
             'video_presentation': forms.URLInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'https://youtube.com/... (optionnel)'
+                'placeholder': 'https://youtube.com/... (optional)'
             }),
             'duree_campagne': forms.NumberInput(attrs={
                 'class': 'form-control',
@@ -1131,32 +1132,32 @@ class CreationProjetForm(forms.ModelForm):
             }),
             'tags': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'innovation, écologie, éducation... (séparés par des virgules)'
+                'placeholder': 'innovation, ecology, education... (comma separated)'
             }),
             'cover_image': forms.FileInput(attrs={'class': 'form-control'}),
-            'association': forms.HiddenInput(),  # Champ caché pour l'association
+            'association': forms.HiddenInput(),  # Hidden field for association
         }
     
     def __init__(self, *args, **kwargs):
         self.porteur = kwargs.pop('porteur', None)
         super().__init__(*args, **kwargs)
         
-        # Configuration initiale
+        # Initial configuration
         self.fields['duree_campagne'].initial = 30
         self.fields['type_financement'].initial = 'don'
-        self.fields['cover_image'].help_text = "Image de présentation (format recommandé: 1200x600px)"
+        self.fields['cover_image'].help_text = "Presentation image (recommended format: 1200x600px)"
         
-        # Gérer le champ association
+        # Manage association field
         if self.porteur and hasattr(self.porteur, 'association_profile'):
-            # Si l'utilisateur est une association, pré-remplir et cacher le champ
+            # If user is an association, pre-fill and hide the field
             self.fields['association'].initial = self.porteur.association_profile
             self.fields['association'].widget = forms.HiddenInput()
         else:
-            # Si l'utilisateur n'est pas une association, cacher le champ
+            # If user is not an association, hide the field
             self.fields['association'].widget = forms.HiddenInput()
             self.fields['association'].required = False
         
-        # Si modification et récompenses existent
+        # If modification and rewards exist
         if self.instance and self.instance.has_recompenses:
             self.fields['offre_recompenses'].initial = True
             self.fields['description_recompenses'].initial = self.instance.recompenses_description
@@ -1170,49 +1171,48 @@ class CreationProjetForm(forms.ModelForm):
         type_financement = cleaned_data.get('type_financement')
         association = cleaned_data.get('association')
         
-        # Validation récompenses
+        # Rewards validation
         if offre_recompenses and not description_recompenses:
-            self.add_error('description_recompenses', "Veuillez décrire les contreparties que vous proposez.")
+            self.add_error('description_recompenses', "Please describe the rewards you are offering.")
         
-        # Validation catégorie
+        # Category validation
         if categorie == 'autre' and not autre_categorie:
-            self.add_error('autre_categorie', "Veuillez préciser la catégorie de votre projet.")
+            self.add_error('autre_categorie', "Please specify your project category.")
         
         if categorie != 'autre' and autre_categorie:
-            self.add_error('autre_categorie', "Ce champ ne doit être rempli que si vous sélectionnez 'Autre domaine'.")
+            self.add_error('autre_categorie', "This field should only be filled if you select 'Other domain'.")
         
-        # Validation type financement vs récompenses
+        # Funding type vs rewards validation
         if offre_recompenses and type_financement not in ['don', 'recompense', 'mixte']:
-            self.add_error('offre_recompenses', "Les contreparties ne sont disponibles que pour les dons, récompenses ou financements mixtes.")
+            self.add_error('offre_recompenses', "Rewards are only available for donations, rewards, or mixed funding.")
         
-        # Validation association
+        # Association validation
         if association and self.porteur:
-            # Vérifier que l'utilisateur a le droit d'associer ce projet à cette association
+            # Verify user has the right to associate this project with this association
             if hasattr(self.porteur, 'association_profile') and self.porteur.association_profile != association:
-                self.add_error('association', "Vous ne pouvez pas associer ce projet à cette association.")
+                self.add_error('association', "You cannot associate this project with this association.")
         
         return cleaned_data
     
     def clean_description_courte(self):
-        """Validation pour la description courte"""
+        """Validation for short description"""
         description_courte = self.cleaned_data.get('description_courte', '')
         description_courte = description_courte.strip()
         
         if len(description_courte) < 10:
-            raise ValidationError("Le résumé doit contenir au moins 10 caractères.")
+            raise ValidationError("The summary must contain at least 10 characters.")
         
         if len(description_courte) > 300:
-            raise ValidationError("Le résumé ne peut pas dépasser 300 caractères.")
+            raise ValidationError("The summary cannot exceed 300 characters.")
         
         return description_courte
     
     def clean_montant_demande(self):
-        """Validation du montant demandé"""
+        """Validation for requested amount"""
         montant = self.cleaned_data.get('montant_demande')
         if montant and montant < 5:
-            raise ValidationError("Le montant demandé doit être d'au moins 10 FCFA.")
+            raise ValidationError("The requested amount must be at least 10 FCFA.")
         return montant
-    
     
     def save(self, commit=True):
         projet = super().save(commit=False)
@@ -1220,14 +1220,14 @@ class CreationProjetForm(forms.ModelForm):
         if self.porteur:
             projet.porteur = self.porteur
 
-        # Gestion des récompenses
+        # Rewards management
         offre_recompenses = self.cleaned_data.get('offre_recompenses', False)
         description_recompenses = self.cleaned_data.get('description_recompenses', '')
 
         projet.has_recompenses = offre_recompenses
         projet.recompenses_description = description_recompenses if offre_recompenses else None
 
-        # Montant minimal par défaut à 50%
+        # Default minimum amount at 50%
         if not projet.montant_minimal and projet.montant_demande:
             projet.montant_minimal = Decimal(projet.montant_demande) * Decimal('0.5')
 
@@ -1235,6 +1235,28 @@ class CreationProjetForm(forms.ModelForm):
             projet.save()
             self.save_m2m()     
         return projet
+
+
+class PalierForm(forms.ModelForm):
+    class Meta:
+        model = Palier
+        fields = ['titre', 'description', 'montant']
+        widgets = {
+            'titre': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'montant': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+from django.forms import modelformset_factory
+
+PalierFormSet = modelformset_factory(
+    Palier,
+    form=PalierForm,
+    extra=3,
+    can_delete=True,
+    min_num=1,  # Au moins 1 palier
+    validate_min=True
+)
 
 class AjoutImagesProjetForm(forms.Form):
     """Formulaire dédié à l'ajout d'images secondaires"""

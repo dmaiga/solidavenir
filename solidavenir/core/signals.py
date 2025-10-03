@@ -18,13 +18,6 @@ def create_user_profile(sender, instance, created, **kwargs):
             Association.objects.create(
                 user=instance,
                 nom=instance.nom_association or f"Association {instance.username}",
-                domaine_principal='autre',
-                causes_defendues=instance.causes_defendues or "Causes à définir",
-                statut_juridique='loi_1901',
-                adresse_siege=instance.adresse or "Adresse à compléter",
-                ville=instance.ville or "Ville à compléter",
-                code_postal=instance.code_postal or "00000",
-                telephone=instance.telephone or "0000000000",
                 email_contact=instance.email,
                 date_creation=instance.date_creation_association or timezone.now().date()
             )

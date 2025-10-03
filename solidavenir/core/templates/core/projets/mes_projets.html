@@ -66,6 +66,7 @@
                             <th>Montant</th>
                             <th>Collecté</th>
                             <th>Paliers</th>
+                            <th>Gestion Paliers</th>
                             <th>Contributeurs</th>
                             <th>Date création</th>
                             <th>Actions</th>
@@ -105,7 +106,7 @@
                                     <div class="palier-item mb-2 p-2 border rounded">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <small>
-                                                <strong>Palier {{ palier.pourcentage }}%</strong><br>
+                                                <strong>{{ palier.titre }}</strong><br>
                                                 <span class="text-muted">{{ palier.montant|intcomma }} FCFA</span>
                                             </small>
                                             <div>
@@ -143,7 +144,7 @@
                                                     {% endwith %}
                                                 {% else %}
                                                     <span class="badge bg-secondary">
-                                                        {{ palier.pourcentage }}% non atteint
+                                                        Seuil: {{ palier.montant_minimum|intcomma }} FCFA
                                                     </span>
                                                 {% endif %}
                                             </div>
@@ -160,8 +161,53 @@
                                             {% endif %}
                                         </div>
                                     </div>
+                                    {% empty %}
+                                    <div class="text-center text-muted py-2">
+                                        <small>Aucun palier défini</small>
+                                    </div>
                                     {% endfor %}
                                 </div>
+                            </td>
+                            <td>
+                                <!-- NOUVELLE COLONNE : Gestion des paliers -->
+                                <div class="btn-group-vertical btn-group-sm">
+                                    {% if projet.statut in 'brouillon en_attente actif' %}
+                                        <a href="{% url 'gerer_paliers' projet.id %}" 
+                                           class="btn btn-outline-primary mb-1"
+                                           title="Gérer les paliers de financement">
+                                            <i class="fas fa-chart-line"></i> Gérer
+                                        </a>
+                                        
+                                        {% if projet.paliers.count == 0 %}
+                                            <a href="{% url 'ajouter_palier' projet.id %}" 
+                                               class="btn btn-success btn-sm"
+                                               title="Ajouter le premier palier">
+                                                <i class="fas fa-plus"></i> Premier palier
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'ajouter_palier' projet.id %}" 
+                                               class="btn btn-outline-success btn-sm"
+                                               title="Ajouter un nouveau palier">
+                                                <i class="fas fa-plus"></i> Ajouter
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-secondary">Non modifiable</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Résumé des paliers -->
+                                {% if projet.paliers.count > 0 %}
+                                <div class="mt-2 small text-center">
+                                    <div class="text-success">
+                                        <i class="fas fa-check-circle"></i>
+                                        {{ projet.paliers.count }} palier(s)
+                                    </div>
+                                    <div class="text-muted">
+                                        Total: {{ projet.paliers_total|intcomma }} FCFA
+                                    </div>
+                                </div>
+                                {% endif %}
                             </td>
                             <td>{{ projet.nombre_donateurs }}</td>
                             <td>{{ projet.date_creation|date:"d/m/Y" }}</td>
@@ -171,11 +217,9 @@
                                         <i class="fas fa-eye"></i> Voir
                                     </a>
                                     
-                                    
                                     <a href="{% url 'modifier_projet' projet.audit_uuid %}" class="btn btn-sm btn-outline-secondary mb-1">
                                         <i class="fas fa-edit"></i> Modifier
                                     </a>
-                                    
                                     
                                     <!-- Actions spécifiques selon le statut -->
                                     {% if projet.statut == 'brouillon' %}
@@ -265,6 +309,11 @@
 
 .btn-group-vertical .btn {
     margin-bottom: 2px;
+}
+
+/* Style pour la nouvelle colonne */
+.table td:nth-child(6) {
+    min-width: 150px;
 }
 </style>
 {% endblock %}

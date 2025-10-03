@@ -187,13 +187,14 @@ SUMMERNOTE_CONFIG = {
     },
 }
 
-
-# Pour simulation / développement
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# Expéditeur par défaut (utilisé si from_email n'est pas précisé)
-DEFAULT_FROM_EMAIL = 'info@solidAvenir.ml'
-EMAIL_HOST_USER = 'info@solidAvenir.ml'
+# Configuration Email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465))
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
 LOGIN_URL = 'connexion'   # correspond au name de ton url
 LOGIN_REDIRECT_URL = 'accueil'  # après connexion, on redirige vers accueil (ou autre)
@@ -204,8 +205,3 @@ import os
 # Configuration Hedera
 HEDERA_SERVICE_URL = env("HEDERA_SERVICE_URL", default="http://hedera_service:3001")
 # Configuration Email
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Affiche les emails dans la console
-
-# Adresse email par défaut
-DEFAULT_FROM_EMAIL = 'noreply@solidavenir.com'
-SERVER_EMAIL = 'server@solidavenir.com'

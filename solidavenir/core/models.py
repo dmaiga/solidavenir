@@ -803,7 +803,11 @@ class Projet(models.Model):
         )
         return stats
 
-
+    @property
+    def paliers_total(self):
+           """Retourne la somme totale des montants des paliers"""
+           return sum(palier.montant for palier in self.paliers.all())
+    
     def incrementer_vues(self):
         """
         Increments the view counter for the project.
@@ -1402,7 +1406,9 @@ class Palier(models.Model):
     this milestone can be unlocked and transferred.
     """
     projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name='paliers')
-    pourcentage = models.DecimalField(max_digits=5, decimal_places=2)
+    titre = models.CharField(max_length=255, help_text="Titre court du palier (ex: Achat terrain)")
+    description = models.TextField(blank=True, help_text="Description détaillée de l’utilisation des fonds pour ce palier")
+    pourcentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     montant = models.DecimalField(max_digits=15, decimal_places=0)
     montant_minimum = models.DecimalField(max_digits=15, decimal_places=0, editable=False)
     transfere = models.BooleanField(default=False)
@@ -1411,31 +1417,40 @@ class Palier(models.Model):
 
     class Meta:
         ordering = ['montant_minimum']
-
-        
+    
     def save(self, *args, **kwargs):
         """
-        Override save to calculate the milestone amount and
-        its minimum threshold based on previous milestones.
+        Surcharge de la méthode save pour calculer le montant minimum.
         """
-        if not self.montant and self.projet.montant_demande:
-            self.montant = (self.projet.montant_demande * self.pourcentage) / 100
-
-        # Calculate the minimum cumulative amount needed for this milestone
-        montant_anterieur = Decimal('0')
-
-        paliers_existants = Palier.objects.filter(
-            projet=self.projet, 
-            pourcentage__lt=self.pourcentage
-        )
-
-        for palier in paliers_existants:
-            montant_anterieur += palier.montant
-
-        self.montant_minimum = montant_anterieur + Decimal('0.01')
-
+        # Si c'est un nouveau palier, on calcule le montant minimum
+        if self.pk is None:
+            # Récupérer le montant total des paliers existants
+            paliers_existants = Palier.objects.filter(projet=self.projet)
+            montant_total_existant = sum(palier.montant for palier in paliers_existants)
+            self.montant_minimum = montant_total_existant
+        else:
+            # Pour un palier existant, on garde le montant minimum actuel
+            # ou on recalcule si nécessaire
+            pass
+            
         super().save(*args, **kwargs)
-
+    
+    def delete(self, *args, **kwargs):
+        """
+        Surcharge de la suppression pour recalculer les montants minimums après
+        """
+        projet = self.projet
+        super().delete(*args, **kwargs)
+        
+        # Recalculer les montants minimums des paliers restants
+        paliers_restants = Palier.objects.filter(projet=projet).order_by('id')
+        montant_cumulatif = Decimal('0')
+        
+        for palier in paliers_restants:
+            palier.montant_minimum = montant_cumulatif
+            palier.save(update_fields=['montant_minimum'])
+            montant_cumulatif += palier.montant
+    
 class PreuvePalier(models.Model):
     """
     Model representing proof of milestone achievement.

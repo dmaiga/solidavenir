@@ -62,4 +62,10 @@ urlpatterns = [
          views.verifier_preuves_palier, name='verifier_preuves_palier'),
    path('<slug:slug>/galerie/upload/', views.upload_association_image, name='upload_association_image'),
     path('<slug:slug>/galerie/', views.association_images_list, name='association_images_list'),
+
+    path('projet/<int:projet_id>/paliers/', views.gerer_paliers, name='gerer_paliers'),
+    path('projet/<int:projet_id>/paliers/ajouter/', views.ajouter_palier, name='ajouter_palier'),
+    path('palier/<int:palier_id>/modifier/', views.modifier_palier, name='modifier_palier'),
+    path('palier/<int:palier_id>/supprimer/', views.supprimer_palier, name='supprimer_palier'),
+
 ]

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gérer les Paliers - {{ projet.titre }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+<div class="container py-4">
+    <!-- En-tête -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Paliers de Financement</h1>
+            <p class="text-muted mb-0">{{ projet.titre }}</p>
+        </div>
+        <a href="{% url 'ajouter_palier' projet.id %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Ajouter un Palier
+        </a>
+    </div>
+
+    <!-- Résumé -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ projet.montant_demande|floatformat:0 }} FCFA</h5>
+                    <p class="card-text small">Montant demandé</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ total_paliers|floatformat:0 }} FCFA</h5>
+                    <p class="card-text small">Total assigné aux paliers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h5 class="card-title {% if reste_a_assigner < 0 %}text-danger{% endif %}">
+                        {{ reste_a_assigner|floatformat:0 }} FCFA
+                    </h5>
+                    <p class="card-text small">Reste à assigner</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des paliers -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Paliers définis</h5>
+        </div>
+        <div class="card-body">
+            {% if paliers %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Montant</th>
+                                <th>Seuil de déblocage</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for palier in paliers %}
+                            <tr>
+                                <td>
+                                    <strong>{{ palier.titre }}</strong>
+                                    {% if palier.description %}
+                                    <br><small class="text-muted">{{ palier.description|truncatewords:10 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ palier.montant|floatformat:0 }} FCFA</td>
+                                <td>{{ palier.montant_minimum|floatformat:0 }} FCFA</td>
+                                <td>
+                                    {% if palier.transfere %}
+                                        <span class="badge bg-success">Débloqué</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">En attente</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'modifier_palier' palier.id %}" class="btn btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'supprimer_palier' palier.id %}" class="btn btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                    <h5>Aucun palier défini</h5>
+                    <p class="text-muted">Commencez par ajouter votre premier palier de financement.</p>
+                    <a href="{% url 'ajouter_palier' projet.id %}" class="btn btn-primary">
+                        Ajouter le premier palier
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'mes_projets' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Retour aux projets
+        </a>
+        {% if paliers %}
+        <div>
+            <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-success">
+                <i class="fas fa-eye me-2"></i>Voir le projet
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ajouter un Palier - {{ projet.titre }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-plus me-2"></i>Ajouter un Palier
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Projet : <strong>{{ projet.titre }}</strong><br>
+                        Montant restant à assigner : <strong>{{ montant_restant|floatformat:0 }} FCFA</strong>
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.titre.id_for_label }}" class="form-label">Titre du palier *</label>
+                            {{ form.titre }}
+                            <div class="form-text">Ex: "Achat des matériaux", "Construction phase 1"</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                            {{ form.description }}
+                            <div class="form-text">Décrivez comment ces fonds seront utilisés</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.montant.id_for_label }}" class="form-label">Montant (FCFA) *</label>
+                            {{ form.montant }}
+                            <div class="form-text">
+                                Maximum possible : <strong>{{ montant_restant|floatformat:0 }} FCFA</strong>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'gerer_paliers' projet.id %}" class="btn btn-outline-secondary">
+                                Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Ajouter le palier
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -94,29 +94,16 @@
                             <div class="progress-bar bg-success" 
                                  style="width: {{ projet.pourcentage_financement }}%">
                                 {{ projet.montant_engage|intcomma }}/{{ projet.montant_demande|intcomma }} HBAR
+                                
                             </div>
                         </div>
                         <small class="text-muted d-block mt-1">
-                            {{ conversions.montant_engage_fcfa|intcomma }} FCFA / {{ conversions.montant_demande_fcfa|intcomma }} FCFA
+                            {{ conversions.montant_engage_fcfa|intcomma }} FCFA / {{ conversions.montant_demande_fcfa|intcomma }} FCFA </br>
+                             Commission: {{ projet.taux_commission }} ({{ projet.montant_commission_total|intcomma }} HBAR retained)
                         </small>
                     </div>
                     
-                    <!-- Distribution Progress -->
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span><strong>Funds Distributed</strong></span>
-                            <strong class="text-info">{{ projet.pourcentage_distribue }}%</strong>
-                        </div>
-                        <div class="progress" style="height: 20px;">
-                            <div class="progress-bar bg-info" 
-                                 style="width: {{ projet.pourcentage_distribue }}%">
-                                {{ projet.montant_distribue|intcomma }}/{{ projet.montant_engage|intcomma }} HBAR
-                            </div>
-                        </div>
-                        <small class="text-muted d-block mt-1">
-                            Commission: {{ projet.taux_commission }} ({{ projet.montant_commission_total|intcomma }} HBAR retained)
-                        </small>
-                    </div>
+                   
                 </div>
                 
                 <div class="d-flex justify-content-between align-items-center">
@@ -166,300 +153,10 @@
             </div>
             {% endif %}
 
-            <!-- Detailed Project Manager/Association Section -->
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-light">
-                    <h3 class="mb-0">
-                        <i class="bi bi-person-badge me-2"></i>
-                        {% if projet.est_associe_a_une_association %}
-                            About the Association
-                        {% else %}
-                            About the Project Manager
-                        {% endif %}
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <!-- Profile Picture and Basic Info -->
-                        <div class="col-md-3 text-center">
-                            {% if projet.est_associe_a_une_association %}
-                                {% if projet.association.logo %}
-                                    <img src="{{ projet.association.logo.url }}" 
-                                         alt="Logo of {{ projet.association.nom }}"
-                                         class="rounded-circle mb-3 shadow" 
-                                         style="width: 120px; height: 120px; object-fit: cover; border: 4px solid var(--bs-primary);">
-                                {% else %}
-                                    <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow" 
-                                         style="width: 120px; height: 120px; font-size: 3rem; border: 4px solid var(--bs-primary);">
-                                        {{ projet.association.nom|first|upper }}
-                                    </div>
-                                {% endif %}
-                            {% else %}
-                                {% if projet.porteur.photo_profil %}
-                                    <img src="{{ projet.porteur.photo_profil.url }}" 
-                                         alt="Photo of {{ projet.porteur.get_full_name|default:projet.porteur.username }}"
-                                         class="rounded-circle mb-3 shadow" 
-                                         style="width: 120px; height: 120px; object-fit: cover; border: 4px solid var(--bs-primary);">
-                                {% else %}
-                                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow" 
-                                         style="width: 120px; height: 120px; font-size: 3rem; border: 4px solid var(--bs-primary);">
-                                        {{ projet.porteur.get_full_name|default:projet.porteur.username|first|upper }}
-                                    </div>
-                                {% endif %}
-                            {% endif %}
-                            
-                            <!-- Trust Badges -->
-                            <div class="mt-3">
-                                {% if projet.est_associe_a_une_association %}
-                                    <span class="badge bg-success mb-2">
-                                        <i class="bi bi-shield-check me-1"></i>Verified Association
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-primary mb-2">
-                                        <i class="bi bi-person-check me-1"></i>Verified Creator
-                                    </span>
-                                {% endif %}
-                                
-                                {% if projet.porteur.email_verifie %}
-                                    <span class="badge bg-info mb-2">
-                                        <i class="bi bi-envelope-check me-1"></i>Email Verified
-                                    </span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <!-- Detailed Information -->
-                        <div class="col-md-9">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h4 class="text-primary">
-                                        {% if projet.est_associe_a_une_association %}
-                                            {{ projet.association.nom }}
-                                        {% else %}
-                                            {{ projet.porteur.get_full_name|default:projet.porteur.username }}
-                                        {% endif %}
-                                    </h4>
-                                    
-                                    <!-- Contact Information -->
-                                    <div class="mb-3">
-                                        {% if projet.est_associe_a_une_association %}
-                                            {% if projet.association.ville %}
-                                                <p class="mb-1">
-                                                    <i class="bi bi-geo-alt text-muted me-2"></i>
-                                                    {{ projet.association.ville }}
-                                                    {% if projet.association.pays %}, {{ projet.association.pays }}{% endif %}
-                                                </p>
-                                            {% endif %}
-                                            
-                                            {% if projet.association.date_creation_association %}
-                                                <p class="mb-1">
-                                                    <i class="bi bi-calendar text-muted me-2"></i>
-                                                    Founded {{ projet.association.date_creation_association|date:"Y" }}
-                                                </p>
-                                            {% endif %}
-                                        {% else %}
-                                            {% if projet.porteur.ville %}
-                                                <p class="mb-1">
-                                                    <i class="bi bi-geo-alt text-muted me-2"></i>
-                                                    {{ projet.porteur.ville }}
-                                                    {% if projet.porteur.pays %}, {{ projet.porteur.pays }}{% endif %}
-                                                </p>
-                                            {% endif %}
-                                            
-                                            {% if projet.porteur.date_naissance %}
-                                                <p class="mb-1">
-                                                    <i class="bi bi-person text-muted me-2"></i>
-                                                    {{ projet.porteur.get_age }} years old
-                                                </p>
-                                            {% endif %}
-                                        {% endif %}
-                                    </div>
-                                    
-                                    <!-- Profile Completion -->
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <small class="text-muted">Profile Completion</small>
-                                            <small class="text-primary fw-bold">{{ projet.porteur.get_profile_completion }}%</small>
-                                        </div>
-                                        <div class="progress" style="height: 6px;">
-                                            <div class="progress-bar bg-primary" style="width: {{ projet.porteur.get_profile_completion }}%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <!-- Statistics -->
-                                    <div class="bg-light rounded p-3">
-                                        <h6 class="text-center mb-3">Creator Statistics</h6>
-                                        <div class="row text-center">
-                                            <div class="col-6 mb-2">
-                                                <div class="stat-number text-primary fw-bold">{{ projet.porteur.get_nombre_projets_lances }}</div>
-                                                <small class="text-muted">Projects</small>
-                                            </div>
-                                            <div class="col-6 mb-2">
-                                                <div class="stat-number text-success fw-bold">{{ projet.porteur.get_taux_reussite }}%</div>
-                                                <small class="text-muted">Success Rate</small>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="stat-number text-info fw-bold">{{ projet.porteur.get_total_collecte|intcomma }}ℏ</div>
-                                                <small class="text-muted">Total Raised</small>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="stat-number text-warning fw-bold">{{ projet.porteur.date_joined|timesince }}</div>
-                                                <small class="text-muted">Member Since</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Bio and Description -->
-                            <div class="mt-3">
-                                {% if projet.est_associe_a_une_association %}
-                                    {% if projet.association.description_courte %}
-                                        <h6 class="text-primary">
-                                            <i class="bi bi-building me-1"></i>About Our Association
-                                        </h6>
-                                        <p class="mb-3">{{ projet.association.description_courte }}</p>
-                                    {% endif %}
-                                    
-                                    {% if projet.association.causes_defendues %}
-                                        <h6 class="text-primary">
-                                            <i class="bi bi-heart me-1"></i>Causes We Support
-                                        </h6>
-                                        <p class="mb-3">{{ projet.association.causes_defendues }}</p>
-                                    {% endif %}
-                                {% else %}
-                                    {% if projet.porteur.bio %}
-                                        <h6 class="text-primary">
-                                            <i class="bi bi-person-lines-fill me-1"></i>About Me
-                                        </h6>
-                                        <p class="mb-3">{{ projet.porteur.bio }}</p>
-                                    {% endif %}
-                                    
-                                    {% if projet.porteur.organisation %}
-                                        <h6 class="text-primary">
-                                            <i class="bi bi-building me-1"></i>Organization
-                                        </h6>
-                                        <p class="mb-3">{{ projet.porteur.organisation }}</p>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Social Links -->
-                            <div class="mt-3">
-                                <h6 class="text-primary mb-2">
-                                    <i class="bi bi-link-45deg me-1"></i>Connect
-                                </h6>
-                                <div class="d-flex gap-2 flex-wrap">
-                                    {% if projet.est_associe_a_une_association %}
-                                        {% if projet.association.site_web %}
-                                            <a href="{{ projet.association.site_web }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                                <i class="bi bi-globe me-1"></i>Website
-                                            </a>
-                                        {% endif %}
-                                    {% else %}
-                                        {% if projet.porteur.site_web %}
-                                            <a href="{{ projet.porteur.site_web }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                                <i class="bi bi-globe me-1"></i>Website
-                                            </a>
-                                        {% endif %}
-                                        {% if projet.porteur.linkedin %}
-                                            <a href="{{ projet.porteur.linkedin }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                                <i class="bi bi-linkedin me-1"></i>LinkedIn
-                                            </a>
-                                        {% endif %}
-                                    {% endif %}
-                                    
-                                    {% if not projet.est_associe_a_une_association %}
-                                        {% if projet.porteur.twitter %}
-                                            <a href="{{ projet.porteur.twitter }}" target="_blank" class="btn btn-outline-info btn-sm">
-                                                <i class="bi bi-twitter me-1"></i>Twitter
-                                            </a>
-                                        {% endif %}
-                                        {% if projet.porteur.facebook %}
-                                            <a href="{{ projet.porteur.facebook }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                                <i class="bi bi-facebook me-1"></i>Facebook
-                                            </a>
-                                        {% endif %}
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Project Description -->
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-light">
-                    <h3 class="mb-0"><i class="bi bi-info-circle me-2"></i>Project Description</h3>
-                </div>
-                <div class="card-body">
-                    <div class="projet-description">
-                        {{ projet.description|safe|linebreaks }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Distribution Milestones -->
-            {% if paliers %}
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-light">
-                    <h3 class="mb-0"><i class="fas fa-target me-2"></i>Distribution Milestones</h3>
-                </div>
-                <div class="card-body">
-                    <div class="list-group">
-                        {% for palier_info in paliers %}
-                        <div class="list-group-item {% if palier_info.distribue %}list-group-item-success{% elif palier_info.statut_preuve == 'approuve' %}list-group-item-info{% endif %}">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <h6 class="mb-1">Milestone {{ palier_info.palier.pourcentage }}%</h6>
-                                    <p class="mb-1 text-muted">
-                                        Amount: <strong>{{ palier_info.palier.montant|intcomma }} HBAR</strong>
-                                        ({{ palier_info.montant_fcfa|intcomma }} FCFA)
-                                    </p>
-                                </div>
-                                <span class="badge {% if palier_info.distribue %}bg-success{% elif palier_info.statut_preuve == 'approuve' %}bg-info{% else %}bg-secondary{% endif %}">
-                                    {% if palier_info.distribue %}
-                                        Distributed
-                                    {% elif palier_info.statut_preuve == 'approuve' %}
-                                        Approved
-                                    {% elif palier_info.statut_preuve == 'en_attente' %}
-                                        Pending Review
-                                    {% else %}
-                                        In Preparation
-                                    {% endif %}
-                                </span>
-                            </div>
-                            
-                            {% if palier_info.distribue and palier_info.palier.transaction_hash %}
-                            <div class="mt-2">
-                                <small class="text-muted">Transaction:</small>
-                                <a href="https://hashscan.io/testnet/transaction/{{ palier_info.palier.transaction_hash }}" 
-                                   target="_blank" class="d-block text-truncate small">
-                                    <code>{{ palier_info.palier.transaction_hash|truncatechars:30 }}</code>
-                                </a>
-                            </div>
-                            {% endif %}
-                            
-                            {% if palier_info.palier.description %}
-                            <div class="mt-2">
-                                <small class="text-muted">Objective:</small>
-                                <p class="mb-0 small">{{ palier_info.palier.description }}</p>
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Project Description -->
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-light">
-                    <h3 class="mb-0"><i class="bi bi-info-circle me-2"></i>Project Description</h3>
+                    <h3 class="mb-0"><i class="bi bi-info-circle me-2"></i>Project Story</h3>
                 </div>
                 <div class="card-body">
                     <div class="projet-description">
@@ -481,6 +178,282 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- Distribution Milestones - VERSION SIMPLIFIÉE -->
+            {% if paliers %}
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0"><i class="fas fa-target me-2"></i>Funding Milestones</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="milestones-container">
+                        {% for palier_info in paliers %}
+                        <div class="milestone-item {% if palier_info.distribue %}completed{% elif palier_info.statut_preuve == 'approuve' %}approved{% endif %}">
+                            <div class="milestone-header">
+                                <div class="milestone-icon">
+                                    {% if palier_info.distribue %}
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    {% elif palier_info.statut_preuve == 'approuve' %}
+                                        <i class="fas fa-check-double text-info"></i>
+                                    {% else %}
+                                        <i class="fas fa-clock text-secondary"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="milestone-content">
+                                    <div class="milestone-title">
+                                        <strong>{{ palier_info.palier.titre|default:"Milestone" }}</strong>
+                                        <span class="milestone-amount">{{ palier_info.palier.montant|intcomma }} HBAR</span>
+                                    </div>
+                                    <div class="milestone-status">
+                                        {% if palier_info.distribue %}
+                                            <span class="status-badge completed">Funds Sent</span>
+                                            {% if palier_info.palier.transaction_hash %}
+                                            <a href="https://hashscan.io/testnet/transaction/{{ palier_info.palier.transaction_hash }}" 
+                                               target="_blank" class="transaction-link" title="View transaction">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                            {% endif %}
+                                        {% elif palier_info.statut_preuve == 'approuve' %}
+                                            <span class="status-badge approved">Ready for Payment</span>
+                                        {% elif palier_info.statut_preuve == 'en_attente' %}
+                                            <span class="status-badge pending">Under Review</span>
+                                        {% else %}
+                                            <span class="status-badge waiting">Awaiting Proof</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% if palier_info.palier.description %}
+                            <div class="milestone-description">
+                                <small class="text-muted">{{ palier_info.palier.description }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- About Project Manager/Association - VERSION ACCORDÉON -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">
+                        <i class="bi bi-person-badge me-2"></i>
+                        {% if projet.est_associe_a_une_association %}
+                            About the Association
+                        {% else %}
+                            About the Creator
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="accordion" id="creatorAccordion">
+                        <!-- Basic Info Accordion Item -->
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#basicInfo">
+                                    <div class="d-flex align-items-center w-100">
+                                        {% if projet.est_associe_a_une_association %}
+                                            {% if projet.association.logo %}
+                                                <img src="{{ projet.association.logo.url }}" 
+                                                     alt="Logo of {{ projet.association.nom }}"
+                                                     class="rounded-circle me-3" 
+                                                     style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center me-3" 
+                                                     style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                                    {{ projet.association.nom|first|upper }}
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            {% if projet.porteur.photo_profil %}
+                                                <img src="{{ projet.porteur.photo_profil.url }}" 
+                                                     alt="Photo of {{ projet.porteur.get_full_name|default:projet.porteur.username }}"
+                                                     class="rounded-circle me-3" 
+                                                     style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center me-3" 
+                                                     style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                                    {{ projet.porteur.get_full_name|default:projet.porteur.username|first|upper }}
+                                                </div>
+                                            {% endif %}
+                                        {% endif %}
+                                        <div class="text-start">
+                                            <strong class="d-block">
+                                                {% if projet.est_associe_a_une_association %}
+                                                    {{ projet.association.nom }}
+                                                {% else %}
+                                                    {{ projet.porteur.get_full_name|default:projet.porteur.username }}
+                                                {% endif %}
+                                            </strong>
+                                            <small class="text-muted">
+                                                {% if projet.est_associe_a_une_association %}
+                                                    Verified Association
+                                                {% else %}
+                                                    Project Creator
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="basicInfo" class="accordion-collapse collapse" data-bs-parent="#creatorAccordion">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <strong><i class="bi bi-geo-alt text-muted me-2"></i>Location</strong>
+                                                <p class="mb-0">
+                                                    {% if projet.est_associe_a_une_association %}
+                                                        {{ projet.association.ville|default:"Not specified" }}
+                                                        {% if projet.association.pays %}, {{ projet.association.pays }}{% endif %}
+                                                    {% else %}
+                                                        {{ projet.porteur.ville|default:"Not specified" }}
+                                                        {% if projet.porteur.pays %}, {{ projet.porteur.pays }}{% endif %}
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <strong><i class="bi bi-calendar text-muted me-2"></i>Member Since</strong>
+                                                <p class="mb-0">
+                                                    {% if projet.est_associe_a_une_association %}
+                                                        {{ projet.association.date_creation_association|date:"Y"|default:"Not specified" }}
+                                                    {% else %}
+                                                        {{ projet.porteur.date_joined|date:"M Y" }}
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Trust Badges -->
+                                    <div class="d-flex gap-2 mb-3">
+                                        {% if projet.est_associe_a_une_association %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-shield-check me-1"></i>Verified
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-person-check me-1"></i>Verified
+                                            </span>
+                                        {% endif %}
+                                        
+                                        {% if projet.porteur.email_verifie %}
+                                            <span class="badge bg-info">
+                                                <i class="bi bi-envelope-check me-1"></i>Email Verified
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statistics Accordion Item -->
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#statistics">
+                                    <i class="bi bi-graph-up me-2"></i>Performance Statistics
+                                </button>
+                            </h2>
+                            <div id="statistics" class="accordion-collapse collapse" data-bs-parent="#creatorAccordion">
+                                <div class="accordion-body">
+                                    <div class="row text-center">
+                                        <div class="col-6 mb-3">
+                                            <div class="stat-number text-primary fw-bold">{{ projet.porteur.get_nombre_projets_lances }}</div>
+                                            <small class="text-muted">Projects</small>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <div class="stat-number text-success fw-bold">{{ projet.porteur.get_taux_reussite }}%</div>
+                                            <small class="text-muted">Success Rate</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="stat-number text-info fw-bold">{{ projet.porteur.get_total_collecte|intcomma }}ℏ</div>
+                                            <small class="text-muted">Total Raised</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="stat-number text-warning fw-bold">{{ projet.porteur.get_contributeurs_totaux }}</div>
+                                            <small class="text-muted">Supporters</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bio Accordion Item -->
+                        {% if projet.est_associe_a_une_association and projet.association.description_courte or not projet.est_associe_a_une_association and projet.porteur.bio %}
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bio">
+                                    <i class="bi bi-person-lines-fill me-2"></i>About
+                                </button>
+                            </h2>
+                            <div id="bio" class="accordion-collapse collapse" data-bs-parent="#creatorAccordion">
+                                <div class="accordion-body">
+                                    {% if projet.est_associe_a_une_association %}
+                                        {{ projet.association.description_courte|linebreaks }}
+                                        {% if projet.association.causes_defendues %}
+                                        <div class="mt-3">
+                                            <strong>Causes We Support:</strong>
+                                            <p class="mb-0">{{ projet.association.causes_defendues }}</p>
+                                        </div>
+                                        {% endif %}
+                                    {% else %}
+                                        {{ projet.porteur.bio|linebreaks }}
+                                        {% if projet.porteur.organisation %}
+                                        <div class="mt-3">
+                                            <strong>Organization:</strong>
+                                            <p class="mb-0">{{ projet.porteur.organisation }}</p>
+                                        </div>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Contact Accordion Item -->
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#contact">
+                                    <i class="bi bi-link-45deg me-2"></i>Connect & Links
+                                </button>
+                            </h2>
+                            <div id="contact" class="accordion-collapse collapse" data-bs-parent="#creatorAccordion">
+                                <div class="accordion-body">
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        {% if projet.est_associe_a_une_association %}
+                                            {% if projet.association.site_web %}
+                                                <a href="{{ projet.association.site_web }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-globe me-1"></i>Website
+                                                </a>
+                                            {% endif %}
+                                        {% else %}
+                                            {% if projet.porteur.site_web %}
+                                                <a href="{{ projet.porteur.site_web }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-globe me-1"></i>Website
+                                                </a>
+                                            {% endif %}
+                                            {% if projet.porteur.linkedin %}
+                                                <a href="{{ projet.porteur.linkedin }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-linkedin me-1"></i>LinkedIn
+                                                </a>
+                                            {% endif %}
+                                            {% if projet.porteur.twitter %}
+                                                <a href="{{ projet.porteur.twitter }}" target="_blank" class="btn btn-outline-info btn-sm">
+                                                    <i class="bi bi-twitter me-1"></i>Twitter
+                                                </a>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Blockchain Activity -->
             <div class="card mb-4 shadow-sm">
@@ -881,6 +854,141 @@
     .card-header {
         border-radius: 15px 15px 0 0 !important;
         background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    }
+
+    /* Milestones Styles */
+    .milestones-container {
+        padding: 0;
+    }
+
+    .milestone-item {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.2s ease;
+    }
+
+    .milestone-item:last-child {
+        border-bottom: none;
+    }
+
+    .milestone-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .milestone-item.completed {
+        background-color: #f8fff8;
+        border-left: 4px solid #28a745;
+    }
+
+    .milestone-item.approved {
+        background-color: #f0f9ff;
+        border-left: 4px solid #17a2b8;
+    }
+
+    .milestone-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .milestone-icon {
+        font-size: 1.5rem;
+        margin-top: 0.25rem;
+        flex-shrink: 0;
+    }
+
+    .milestone-content {
+        flex: 1;
+    }
+
+    .milestone-title {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        gap: 1rem;
+    }
+
+    .milestone-amount {
+        background: #e9ecef;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .milestone-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-badge.completed {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-badge.approved {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-badge.pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-badge.waiting {
+        background-color: #e2e3e5;
+        color: #383d41;
+    }
+
+    .transaction-link {
+        color: #6c757d;
+        text-decoration: none;
+        font-size: 0.875rem;
+    }
+
+    .transaction-link:hover {
+        color: #495057;
+    }
+
+    .milestone-description {
+        margin-top: 0.5rem;
+        padding-left: 2.5rem;
+    }
+
+    /* Accordion Improvements */
+    .accordion-button {
+        border-radius: 0 !important;
+        padding: 1rem 1.5rem;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+
+    .accordion-body {
+        padding: 1.5rem;
+    }
+
+    .accordion-item:first-of-type .accordion-button {
+        border-top-left-radius: 0.375rem !important;
+        border-top-right-radius: 0.375rem !important;
+    }
+
+    .accordion-item:last-of-type .accordion-button.collapsed {
+        border-bottom-left-radius: 0.375rem !important;
+        border-bottom-right-radius: 0.375rem !important;
     }
 </style>
 {% endblock %}

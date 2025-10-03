@@ -48,8 +48,9 @@ from .forms import (
     InscriptionFormSimplifiee, CreationProjetForm,AjoutImagesProjetForm, ValidationProjetForm,
     ProfilUtilisateurForm, ContactForm, Transfer_fond, AssociationForm,
     FiltreMembresForm, FiltreTransactionsForm, FiltreAuditForm,
-    EmailFormSimple, PreuveForm, VerificationPreuveForm
+    EmailFormSimple, PreuveForm, VerificationPreuveForm,PalierForm
 )
+from .utils import safe_float, safe_int, safe_decimal
 
 logger = logging.getLogger(__name__)
 
@@ -444,6 +445,7 @@ def inscription(request):
     }
     
     return render(request, 'core/users/inscription.html', context)
+
 from django.contrib.auth import get_user_model
 
 @csrf_protect
@@ -1058,8 +1060,7 @@ def creer_projet(request):
                     projet.save()
                     projet.identifiant_unique = f"SOLID{projet.id:06d}-{request.user.id}-{timezone.now().strftime('%Y%m%d')}"
                     projet.save(update_fields=['identifiant_unique'])
-                    for pct in [40, 30, 30]:
-                        Palier.objects.create(projet=projet, pourcentage=pct)
+                    
                      # Journalisation complète
                     AuditLog.objects.create(
                         utilisateur=request.user,
@@ -1961,10 +1962,10 @@ def detail_membre(request, user_id):
     
     return render(request, 'core/admin/detail_membre.html', context)
 
-
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
 def gerer_distributions(request):
+
     """
     Admin interface to manage milestone-based fund distributions for projects.
 
@@ -1992,6 +1993,8 @@ def gerer_distributions(request):
 
     """Interface admin pour libérer les fonds selon les paliers avec vérification des preuves"""
     
+
+    
     # Récupérer les projets éligibles
     projets = Projet.objects.filter(
         Q(montant_engage__gt=0) | 
@@ -2001,16 +2004,16 @@ def gerer_distributions(request):
     distributions = []
     
     for projet in projets:
-        # Calcul manuel du total des dons
+        # Calcul manuel du total des dons avec gestion des valeurs None
         total_dons = sum(
-            float(t.montant) for t in projet.transaction_set.all() 
+            float(t.montant or 0) for t in projet.transaction_set.all() 
             if t.statut == 'confirme' and t.destination == 'operator'
         )
         
-        # Calcul des métriques
+        # Calcul des métriques avec gestion des valeurs None
         montant_engage = float(projet.montant_engage or 0)
         montant_distribue = float(projet.montant_distribue or 0)
-        montant_demande = float(projet.montant_demande or 0)
+        montant_demande = float(projet.montant_demande or 1)  # Éviter division par zéro
         
         montant_disponible = montant_engage - montant_distribue
         pourcentage_engage = (montant_engage / montant_demande * 100) if montant_demande > 0 else 0
@@ -2020,7 +2023,9 @@ def gerer_distributions(request):
         paliers_avec_statut = []
         
         for palier in projet.paliers.order_by('montant_minimum'):
+            # Gestion des valeurs None pour les montants des paliers
             palier_montant = float(palier.montant or 0)
+            palier_pourcentage = float(palier.pourcentage or 0)
             
             # Vérifier le statut des preuves
             try:
@@ -2042,7 +2047,7 @@ def gerer_distributions(request):
             
             palier_data = {
                 'id': palier.id,
-                'pourcentage': float(palier.pourcentage),
+                'pourcentage': palier_pourcentage,
                 'montant': palier_montant,
                 'transfere': palier.transfere,
                 'date_transfert': palier.date_transfert,
@@ -2096,8 +2101,13 @@ def gerer_distributions(request):
                     messages.error(request, "Aucune preuve soumise pour ce palier")
                     return redirect('gerer_distributions')
                 
-                montant_disponible = projet.montant_engage - projet.montant_distribue
-                if montant_disponible < float(palier.montant):
+                # Gestion des valeurs None pour les montants
+                montant_engage = float(projet.montant_engage or 0)
+                montant_distribue = float(projet.montant_distribue or 0)
+                palier_montant = float(palier.montant or 0)
+                
+                montant_disponible = montant_engage - montant_distribue
+                if montant_disponible < palier_montant:
                     messages.error(request, "Fonds insuffisants pour ce palier")
                     return redirect('gerer_distributions')
                 
@@ -2114,35 +2124,38 @@ def gerer_distributions(request):
                 
                 # ⚡ EFFECTUER LE TRANSFERT
                 resultat = transfer_from_admin_to_doer(
-                        projet=projet,
-                        porteur=projet.porteur,
-                        montant_brut=palier.montant,
-                        palier=palier,
-                        initiateur=request.user 
-                    )
+                    projet=projet,
+                    porteur=projet.porteur,
+                    montant_brut=palier_montant,  # Utiliser la valeur convertie
+                    palier=palier,
+                    initiateur=request.user 
+                )
+                
                 if resultat['success']:
                     transaction_hash = resultat['transactionId']
                     
-                    #  Mettre à jour le palier avec le hash de transaction
+                    # Mettre à jour le palier avec le hash de transaction
                     palier.transfere = True
                     palier.date_transfert = timezone.now()
                     palier.transaction_hash = resultat['transactionId']
                     palier.save()
                     
                     # Mettre à jour les montants du projet
-                    projet.montant_distribue += palier.montant
+                    nouveau_montant_distribue = montant_distribue + palier_montant
+                    projet.montant_distribue = nouveau_montant_distribue
                     projet.save(update_fields=['montant_distribue'])
                     
                     # 📧 ENVOYER LA NOTIFICATION AU PORTEUR
                     envoyer_notification_porteur(projet.porteur, palier, 'distribution')
                     
                     # Notification HCS
-                    envoyer_don_hcs(
-                        topic_id=projet.topic_id,
-                        utilisateur_email=projet.porteur.email,
-                        montant=palier.montant,
-                        transaction_hash=transaction_hash
-                    )
+                    if projet.topic_id:
+                        envoyer_don_hcs(
+                            topic_id=projet.topic_id,
+                            utilisateur_email=projet.porteur.email,
+                            montant=palier_montant,
+                            transaction_hash=transaction_hash
+                        )
                     
                     # 📝 Journaliser le succès
                     AuditLog.objects.create(
@@ -2153,7 +2166,7 @@ def gerer_distributions(request):
                         details={
                             'action': 'distribution_success',
                             'transaction_hash': transaction_hash,
-                            'montant': float(palier.montant)
+                            'montant': palier_montant
                         },
                         adresse_ip=request.META.get('REMOTE_ADDR'),
                         statut='SUCCESS'
@@ -2161,7 +2174,7 @@ def gerer_distributions(request):
                     
                     messages.success(
                        request, 
-                       f"✅ {palier.montant} HBAR distributed successfully\n"
+                       f"✅ {palier_montant} HBAR distributed successfully\n"
                        f"📧 Notification sent to the project owner\n"
                        f"🔗 Transaction: {transaction_hash}"
                     )                    
@@ -2202,12 +2215,12 @@ def gerer_distributions(request):
         
         return redirect('gerer_distributions')
     
-    # Calcul des totaux
-    total_engage = sum(dist['montant_engage'] for dist in distributions)
-    total_distribue = sum(dist['montant_distribue'] for dist in distributions)
-    total_disponible = sum(dist['montant_disponible'] for dist in distributions)
-    total_paliers_attente = sum(len(dist['paliers_en_attente']) for dist in distributions)
-    total_paliers_distribuables = sum(len(dist['paliers_distribuables']) for dist in distributions)
+    # Calcul des totaux avec gestion des valeurs manquantes
+    total_engage = sum(dist.get('montant_engage', 0) for dist in distributions)
+    total_distribue = sum(dist.get('montant_distribue', 0) for dist in distributions)
+    total_disponible = sum(dist.get('montant_disponible', 0) for dist in distributions)
+    total_paliers_attente = sum(len(dist.get('paliers_en_attente', [])) for dist in distributions)
+    total_paliers_distribuables = sum(len(dist.get('paliers_distribuables', [])) for dist in distributions)
     
     context = {
         'distributions': distributions,
@@ -2219,7 +2232,6 @@ def gerer_distributions(request):
     }
     
     return render(request, 'core/admin/gerer_distributions.html', context)
-
 
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
@@ -2947,7 +2959,7 @@ def valider_projet(request, audit_uuid):
                 
                 # Envoyer un email au porteur en cas de rejet
                 try:
-                    sujet_email = f'Votre projet  a été examiné - Solid\'Avenir'
+                    sujet_email = f'Votre projet  a été examiné par SolidAvenir'
                     message_email = f"""Bonjour {projet.porteur.get_full_name() or projet.porteur.username},
 
 Votre projet "{projet.titre}" a été examiné par notre équipe.
@@ -3327,7 +3339,146 @@ def preview_association_admin(request, association_id):
 #===================
 # END ADMIN
 #===================
+#===========
+# PALLIER
+#===========
+@login_required
+def gerer_paliers(request, projet_id):
+    """
+    Vue principale pour gérer tous les paliers d'un projet
+    """
+    projet = get_object_or_404(Projet, id=projet_id, porteur=request.user)
+    paliers = projet.paliers.all().order_by('montant_minimum')
+    
+    # Calcul du total des paliers pour validation
+    total_paliers = sum(palier.montant for palier in paliers)
+    
+    context = {
+        'projet': projet,
+        'paliers': paliers,
+        'total_paliers': total_paliers,
+        'reste_a_assigner': projet.montant_demande - total_paliers,
+        'projet_audit_uuid': projet.audit_uuid,  
+    }
+    return render(request, 'core/projets/gerer_paliers.html', context)
 
+
+@login_required
+def ajouter_palier(request, projet_id):
+    """
+    Vue pour ajouter un nouveau palier à un projet
+    """
+    projet = get_object_or_404(Projet, id=projet_id, porteur=request.user)
+    
+    # Calcul du montant déjà assigné aux paliers existants
+    montant_assigné = sum(palier.montant for palier in projet.paliers.all())
+    montant_restant = projet.montant_demande - montant_assigné
+    
+    if request.method == 'POST':
+        form = PalierForm(request.POST)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    palier = form.save(commit=False)
+                    palier.projet = projet
+                    
+                    # Validation : ne pas dépasser le montant demandé
+                    nouveau_total = montant_assigné + palier.montant
+                    if nouveau_total > projet.montant_demande:
+                        messages.error(
+                            request, 
+                            f"Le montant total des paliers ({nouveau_total:,} FCFA) dépasse le montant demandé ({projet.montant_demande:,} FCFA). "
+                            f"Montant restant à assigner : {montant_restant:,} FCFA."
+                        )
+                    else:
+                        palier.save()
+                        messages.success(request, f"Palier '{palier.titre}' ajouté avec succès !")
+                        return redirect('gerer_paliers', projet_id=projet.id)
+                        
+            except Exception as e:
+                messages.error(request, f"Erreur lors de l'ajout du palier : {str(e)}")
+    else:
+        form = PalierForm()
+    
+    context = {
+        'projet': projet,
+        'form': form,
+        'montant_restant': montant_restant,
+        'montant_assigné': montant_assigné,
+    }
+    return render(request, 'core/projets/ajouter_palier.html', context)
+
+@login_required
+def modifier_palier(request, palier_id):
+    """
+    Vue pour modifier un palier existant
+    """
+    palier = get_object_or_404(Palier, id=palier_id, projet__porteur=request.user)
+    projet = palier.projet
+    
+    # Calcul des montants pour validation
+    montant_autres_paliers = sum(p.montant for p in projet.paliers.exclude(id=palier_id))
+    montant_restant = projet.montant_demande - montant_autres_paliers
+    
+    if request.method == 'POST':
+        form = PalierForm(request.POST, instance=palier)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    palier_modifie = form.save(commit=False)
+                    
+                    # Validation du montant
+                    nouveau_total = montant_autres_paliers + palier_modifie.montant
+                    if nouveau_total > projet.montant_demande:
+                        messages.error(
+                            request,
+                            f"Le nouveau montant total ({nouveau_total:,} FCFA) dépasse le montant demandé. "
+                            f"Montant maximum possible : {montant_restant:,} FCFA."
+                        )
+                    else:
+                        palier_modifie.save()
+                        messages.success(request, f"Palier '{palier_modifie.titre}' modifié avec succès !")
+                        return redirect('gerer_paliers', projet_id=projet.id)
+                        
+            except Exception as e:
+                messages.error(request, f"Erreur lors de la modification : {str(e)}")
+    else:
+        form = PalierForm(instance=palier)
+    
+    context = {
+        'form': form,
+        'palier': palier,
+        'projet': projet,
+        'montant_restant': montant_restant,
+    }
+    return render(request, 'core/projets/modifier_palier.html', context)
+
+@login_required
+def supprimer_palier(request, palier_id):
+    """
+    Vue pour supprimer un palier
+    """
+    palier = get_object_or_404(Palier, id=palier_id, projet__porteur=request.user)
+    projet = palier.projet
+    
+    if request.method == 'POST':
+        try:
+            titre_palier = palier.titre
+            palier.delete()
+            messages.success(request, f"Palier '{titre_palier}' supprimé avec succès !")
+        except Exception as e:
+            messages.error(request, f"Erreur lors de la suppression : {str(e)}")
+        
+        return redirect('gerer_paliers', projet_id=projet.id)
+    
+    context = {
+        'palier': palier,
+        'projet': projet,
+    }
+    return render(request, 'core/projets/supprimer_palier.html', context)
+#-----------------------------------
+#END PALIER
+#===================================
 
 def voir_wallet(request):
     """
