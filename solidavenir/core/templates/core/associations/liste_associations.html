@@ -4,57 +4,112 @@
 {% block title %}Associations & NGOs - Solidavenir{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Header -->
-    <div class="row mb-5">
+<div class="container py-3">
+    <!-- Header Section -->
+    <section class="row ">
         <div class="col-12 text-center">
-            <h1 class="display-4 fw-bold mb-3" style="color: var(--primary-blue);">
-                <i class="bi bi-people-fill me-2"></i>Associations & NGOs
-            </h1>
-            <p class="lead" style="color: var(--dark-color);">
-                Discover the associations and organizations working for a better future in Mali
-            </p>
+            <div class="mb-4">
+                <span class="badge bg-primary-soft text-primary rounded-pill px-3 py-2 mb-3">
+                    <i class="bi bi-people-fill me-1"></i>Trusted Organizations
+                </span>
+                <h1 class="display-4 fw-bold mb-3 text-primary">Building Communities Together</h1>
+                <p class="lead text-muted fs-5">
+                    Discover verified associations and NGOs creating sustainable impact across Mali through transparent, community-driven initiatives.
+                </p>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Encouragement message -->
-    <div class="row mb-4">
+    <!-- Stats Overview -->
+    <section class="row mb-5">
         <div class="col-12">
-            <div class="alert border-0 shadow-sm" style="background-color: var(--light-bg); border-left: 4px solid var(--primary-blue-light);">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-megaphone-fill me-3 fs-2" style="color: var(--primary-blue);"></i>
-                    <div>
-                        <h5 class="alert-heading mb-2" style="color: var(--primary-blue);">💡 Do you represent an association?</h5>
-                        <p class="mb-0" style="color: var(--dark-color);">
-                            Join our platform to <strong>highlight your cause</strong>, 
-                            <strong>reach more donors</strong> and <strong>fund your projects</strong> 
-                            through collective solidarity. 
-                            <a href="{% url 'inscription' %}" class="fw-bold" style="color: var(--primary-orange);">Register your association →</a>
-                        </p>
+            <div class="row g-4 text-center">
+                <div class="col-md-3 col-6">
+                    <div class="card border-0 bg-primary-soft rounded-4 h-100">
+                        <div class="card-body py-4">
+                            <div class="display-6 fw-bold text-primary mb-2">{{ featured_associations.count|add:autres_associations.count }}</div>
+                            <p class="small text-muted mb-0">Active Associations</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card border-0 bg-orange-soft rounded-4 h-100">
+                        <div class="card-body py-4">
+                            <div class="display-6 fw-bold text-orange mb-2">{{ total_adherents|default:0|intcomma }}</div>
+                            <p class="small text-muted mb-0">Engaged Members</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card border-0 bg-success-soft rounded-4 h-100">
+                        <div class="card-body py-4">
+                            <div class="display-6 fw-bold text-success mb-2">{{ total_projets|default:0|intcomma }}</div>
+                            <p class="small text-muted mb-0">Active Projects</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card border-0 bg-info-soft rounded-4 h-100">
+                        <div class="card-body py-4">
+                            <div class="display-6 fw-bold text-info mb-2">{{ total_villes|default:0 }}</div>
+                            <p class="small text-muted mb-0">Cities Covered</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Filters -->
-    <div class="row mb-4">
+    <!-- Call to Action Banner -->
+    <section class="row mb-5">
         <div class="col-12">
-            <div class="card shadow-sm border-0" style="background-color: var(--light-color);">
-                <div class="card-body">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-gradient-primary text-white">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-megaphone-fill fs-1 me-4 mt-1"></i>
+                                <div>
+                                    <h3 class="h2 mb-3">Represent an Association?</h3>
+                                    <p class="lead mb-0 opacity-90">
+                                        Join our platform to showcase your cause, reach more donors, and fund your projects through transparent community solidarity.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                            <a href="{% url 'inscription' %}" class="btn btn-light btn-lg px-4 rounded-pill fw-semibold">
+                                <i class="bi bi-person-plus me-2"></i>Register Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filters Section -->
+    <section class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
                     <form method="GET" action="{% url 'liste_associations' %}">
                         <div class="row g-3 align-items-end">
-                            <div class="col-md-4">
-                                <label class="form-label small" style="color: var(--gray-medium);">Search</label>
-                                <input type="text" name="recherche" class="form-control" 
-                                       placeholder="Name, field, city..." 
-                                       value="{{ request.GET.recherche|default:'' }}"
-                                       style="border-radius: var(--border-radius-sm);">
+                            <div class="col-lg-4 col-md-6">
+                                <label class="form-label small text-muted fw-semibold">Search Associations</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-search text-muted"></i>
+                                    </span>
+                                    <input type="text" name="recherche" class="form-control border-start-0" 
+                                           placeholder="Name, field, city..." 
+                                           value="{{ request.GET.recherche|default:'' }}">
+                                </div>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label small" style="color: var(--gray-medium);">Field</label>
-                                <select class="form-select" name="domaine" style="border-radius: var(--border-radius-sm);">
-                                    <option value="">All fields</option>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small text-muted fw-semibold">Field of Action</label>
+                                <select class="form-select" name="domaine">
+                                    <option value="">All Fields</option>
                                     {% for value, label in domaines %}
                                     <option value="{{ value }}" {% if request.GET.domaine == value %}selected{% endif %}>
                                         {{ label }}
@@ -62,15 +117,19 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label small" style="color: var(--gray-medium);">City</label>
-                                <input type="text" name="ville" class="form-control" 
-                                       placeholder="Bamako, Kayes, Sikasso..." 
-                                       value="{{ request.GET.ville|default:'' }}"
-                                       style="border-radius: var(--border-radius-sm);">
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small text-muted fw-semibold">City/Location</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-geo-alt text-muted"></i>
+                                    </span>
+                                    <input type="text" name="ville" class="form-control border-start-0" 
+                                           placeholder="Bamako, Kayes..." 
+                                           value="{{ request.GET.ville|default:'' }}">
+                                </div>
                             </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn w-100" style="background-color: var(--primary-blue); color: var(--light-color); border-radius: var(--border-radius-sm);">
+                            <div class="col-lg-2 col-md-6">
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill fw-semibold">
                                     <i class="bi bi-funnel me-1"></i> Filter
                                 </button>
                             </div>
@@ -79,294 +138,338 @@
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Featured associations -->
+    <!-- Featured Associations -->
     {% if featured_associations %}
-    <div class="row mb-5">
+    <section class="row mb-5">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="h3 mb-0" style="color: var(--dark-color);">
-                    <i class="bi bi-star-fill me-2" style="color: var(--primary-orange);"></i> Featured Associations
-                </h2>
-                <span class="badge" style="background-color: var(--primary-orange); color: var(--light-color);">
-                    {{ featured_associations|length }} association(s) featured
+                <div>
+                    <span class="badge bg-orange-soft text-orange rounded-pill px-3 py-2 mb-2 d-inline-block">
+                        <i class="bi bi-star-fill me-1"></i> Featured
+                    </span>
+                    <h2 class="h3 mb-0 text-dark">Highlighted Organizations</h2>
+                </div>
+                <span class="badge bg-orange text-white rounded-pill px-3 py-2">
+                    {{ featured_associations|length }} Featured
                 </span>
             </div>
-            <div class="row">
+            
+            <div class="row g-4">
                 {% for association in featured_associations %}
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card h-100 shadow-sm hover-lift" style="border: 2px solid var(--primary-orange-light); border-radius: var(--border-radius-lg);">
+                <div class="col-xl-4 col-lg-6">
+                    <div class="card border-0 shadow-sm-hover h-100 rounded-4 overflow-hidden">
                         <div class="position-relative">
                             <img src="{{ association.get_cover_url }}" 
                                  class="card-img-top" 
                                  alt="{{ association.nom }}"
-                                 style="height: 200px; object-fit: cover; border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;">
-                            <div class="position-absolute top-0 end-0 m-2">
-                                <span class="badge" style="background-color: var(--primary-orange); color: var(--light-color);">
-                                    <i class="bi bi-star-fill"></i> Featured
+                                 style="height: 200px; object-fit: cover;">
+                            <div class="position-absolute top-0 end-0 m-3">
+                                <span class="badge bg-orange text-white rounded-pill px-3">
+                                    <i class="bi bi-star-fill me-1"></i> Featured
                                 </span>
                             </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-3">
-                                <img src="{{ association.get_logo_url }}" 
-                                     alt="{{ association.nom }}"
-                                     class="rounded-circle me-3"
-                                     style="width: 50px; height: 50px; object-fit: cover;">
-                                <h5 class="card-title mb-0" style="color: var(--dark-color);">{{ association.nom }}</h5>
-                            </div>
-                            
-                            <p class="card-text small mb-3" style="color: var(--gray-medium);">
-                                {{ association.description_courte|truncatewords:20 }}
-                            </p>
-                            
-                            <div class="mb-3">
-                                <span class="badge" style="background-color: var(--primary-blue); color: var(--light-color);">
-                                    {{ association.get_domaine_principal_display }}
-                                </span>
+                            <div class="position-absolute bottom-0 start-0 m-3">
                                 {% if association.transparent_finances %}
-                                <span class="badge ms-1" style="background-color: var(--secondary-green); color: var(--light-color);">
-                                    <i class="bi bi-shield-check"></i> Transparent
+                                <span class="badge bg-success text-white rounded-pill px-3">
+                                    <i class="bi bi-shield-check me-1"></i> Transparent
                                 </span>
                                 {% endif %}
                             </div>
-                            
-                            <div class="d-flex justify-content-between align-items-center text-muted small">
-                                <span><i class="bi bi-geo-alt"></i> {{ association.ville }}</span>
-                                <span><i class="bi bi-people"></i> {{ association.nombre_adherents }}</span>
-                                <span><i class="bi bi-heart"></i> {{ association.nombre_beneficiaires|intcomma }}</span>
-                            </div>
                         </div>
-                        <div class="card-footer bg-transparent border-0 pt-0">
-                            <a href="{% url 'detail_association' association.slug %}" 
-                               class="btn w-100" style="border: 1px solid var(--primary-blue); color: var(--primary-blue); border-radius: var(--border-radius-sm);">
-                                <i class="bi bi-eye me-1"></i> Discover
-                            </a>
+                        
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start mb-3">
+                                <img src="{{ association.get_logo_url }}" 
+                                     alt="{{ association.nom }}"
+                                     class="rounded-circle flex-shrink-0 me-3 border"
+                                     style="width: 60px; height: 60px; object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title mb-1 text-dark">{{ association.nom }}</h5>
+                                    <span class="badge bg-primary-soft text-primary rounded-pill">
+                                        {{ association.get_domaine_principal_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <p class="card-text text-muted mb-4 small">
+                                {{ association.description_courte|truncatewords:25 }}
+                            </p>
+                            
+                            <div class="row g-2 mb-4">
+                                <div class="col-4 text-center">
+                                    <div class="text-primary fw-bold fs-5">{{ association.nombre_adherents }}</div>
+                                    <small class="text-muted">Members</small>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <div class="text-primary fw-bold fs-5">{{ association.get_projets_actifs.count }}</div>
+                                    <small class="text-muted">Projects</small>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <div class="text-primary fw-bold fs-5">{{ association.nombre_beneficiaires|default:0 }}</div>
+                                    <small class="text-muted">Beneficiaries</small>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted small">
+                                    <i class="bi bi-geo-alt me-1"></i>{{ association.ville }}
+                                </span>
+                                <a href="{% url 'detail_association' association.slug %}" 
+                                   class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                    View Details <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
-    </div>
+    </section>
     {% endif %}
 
-    <!-- All associations - LIST VERSION -->
-    <div class="row">
+    <!-- All Associations -->
+    <section class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="h3 mb-0" style="color: var(--dark-color);">
-                    <i class="bi bi-list-ul me-2" style="color: var(--primary-blue);"></i> All Associations
-                </h2>
-                <span class="badge" style="background-color: var(--primary-blue); color: var(--light-color);">
-                    {{ autres_associations|length }} association(s)
+                <div>
+                    <span class="badge bg-primary-soft text-primary rounded-pill px-3 py-2 mb-2 d-inline-block">
+                        <i class="bi bi-list-ul me-1"></i> All Organizations
+                    </span>
+                    <h2 class="h3 mb-0 text-dark">Complete Directory</h2>
+                </div>
+                <span class="badge bg-primary text-white rounded-pill px-3 py-2">
+                    {{ autres_associations|length }} Total
                 </span>
             </div>
             
             {% if autres_associations %}
-            <div class="card shadow-sm border-0" style="border-radius: var(--border-radius-lg);">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
                         {% for association in autres_associations %}
-                        <div class="list-group-item border-0 p-4" style="background-color: var(--light-color);">
-                            <div class="row align-items-center">
-                                <!-- Logo and basic information -->
-                                <div class="col-md-2 text-center mb-3 mb-md-0">
+                        <div class="list-group-item border-0 p-4 association-item">
+                            <div class="row align-items-center g-3">
+                                <!-- Logo -->
+                                <div class="col-md-1 col-3 text-center">
                                     <img src="{{ association.get_logo_url }}" 
                                          alt="{{ association.nom }}"
                                          class="rounded-circle border"
-                                         style="width: 80px; height: 80px; object-fit: cover; border-color: var(--gray-light) !important;">
+                                         style="width: 60px; height: 60px; object-fit: cover;">
                                 </div>
                                 
-                                <!-- Main content -->
-                                <div class="col-md-6">
-                                    <h5 class="mb-1" style="color: var(--dark-color);">{{ association.nom }}</h5>
-                                    <p class="small mb-2" style="color: var(--gray-medium);">
-                                        {{ association.description_courte|truncatewords:25 }}
+                                <!-- Main Info -->
+                                <div class="col-md-5 col-9">
+                                    <h5 class="mb-1 text-dark">{{ association.nom }}</h5>
+                                    <p class="text-muted small mb-2">
+                                        {{ association.description_courte|truncatewords:20 }}
                                     </p>
-                                    
-                                    <div class="d-flex flex-wrap gap-2 mb-2">
-                                        <span class="badge" style="background-color: var(--primary-blue); color: var(--light-color);">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <span class="badge bg-primary-soft text-primary rounded-pill">
                                             {{ association.get_domaine_principal_display }}
                                         </span>
-                                        <span class="badge" style="background-color: var(--gray-medium); color: var(--light-color);">
-                                            <i class="bi bi-geo-alt"></i> {{ association.ville }}
+                                        <span class="badge bg-light text-muted rounded-pill">
+                                            <i class="bi bi-geo-alt me-1"></i>{{ association.ville }}
                                         </span>
-                                        {% if association.transparent_finances %}
-                                        <span class="badge" style="background-color: var(--secondary-green); color: var(--light-color);">
-                                            <i class="bi bi-shield-check"></i> Transparent
-                                        </span>
-                                        {% endif %}
-                                    </div>
-                                    
-                                    <div class="d-flex text-muted small">
-                                        <span class="me-3"><i class="bi bi-people"></i> {{ association.nombre_adherents }} members</span>
-                                        <span><i class="bi bi-heart"></i> {{ association.nombre_beneficiaires|intcomma }} beneficiaries</span>
                                     </div>
                                 </div>
                                 
-                                <!-- Statistics and action -->
-                                <div class="col-md-4 text-center">
-                                    <div class="mb-2">
-                                        <div class="fw-bold fs-5" style="color: var(--primary-blue);">
-                                            {{ association.get_projets_actifs.count }}
+                                <!-- Stats -->
+                                <div class="col-md-3 col-6">
+                                    <div class="row g-2 text-center">
+                                        <div class="col-4">
+                                            <div class="text-primary fw-bold">{{ association.nombre_adherents }}</div>
+                                            <small class="text-muted">Members</small>
                                         </div>
-                                        <small style="color: var(--gray-medium);">active projects</small>
+                                        <div class="col-4">
+                                            <div class="text-primary fw-bold">{{ association.get_projets_actifs.count }}</div>
+                                            <small class="text-muted">Projects</small>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="text-primary fw-bold">{{ association.nombre_beneficiaires|default:0 }}</div>
+                                            <small class="text-muted">Impact</small>
+                                        </div>
                                     </div>
-                                    
+                                </div>
+                                
+                                <!-- Action -->
+                                <div class="col-md-3 col-6 text-end">
                                     <a href="{% url 'detail_association' association.slug %}" 
-                                       class="btn btn-sm" style="border: 1px solid var(--primary-blue); color: var(--primary-blue); border-radius: var(--border-radius-sm);">
-                                        <i class="bi bi-eye me-1"></i> View Association
+                                       class="btn btn-primary rounded-pill px-4">
+                                        <i class="bi bi-eye me-1"></i> View
                                     </a>
                                 </div>
                             </div>
                         </div>
                         {% if not forloop.last %}
-                        <hr class="my-0" style="color: var(--gray-light);">
+                        <hr class="my-0 text-light">
                         {% endif %}
                         {% endfor %}
                     </div>
                 </div>
             </div>
             {% else %}
+            <!-- Empty State -->
             <div class="text-center py-5">
-                <i class="bi bi-people display-1" style="color: var(--gray-medium);"></i>
-                <h3 class="mt-3" style="color: var(--gray-medium);">No association found</h3>
-                <p style="color: var(--gray-medium);">No association matches your search criteria.</p>
-                <a href="{% url 'liste_associations' %}" class="btn" style="background-color: var(--primary-blue); color: var(--light-color); border-radius: var(--border-radius-sm);">
-                    <i class="bi bi-arrow-clockwise me-1"></i> Reset filters
+                <div class="mb-4">
+                    <i class="bi bi-people display-1 text-muted opacity-50"></i>
+                </div>
+                <h3 class="text-muted mb-3">No Associations Found</h3>
+                <p class="text-muted mb-4">Try adjusting your search criteria or browse all associations.</p>
+                <a href="{% url 'liste_associations' %}" class="btn btn-primary rounded-pill px-4">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Reset Filters
                 </a>
             </div>
             {% endif %}
         </div>
-    </div>
+    </section>
 
-    <!-- Call to Action for new associations -->
-<div class="row mt-5">
-    <div class="col-12">
-        <div class="card text-white border-0 shadow-heavy" style="background: var(--gradient-blue); border-radius: var(--border-radius);">
-            <div class="card-body p-5 text-center">
-                <h3 class="h2 mb-3">🚀 Ready to make a difference?</h3>
-                <p class="lead mb-4 opacity-90">
-                    Join the {{ featured_associations.count|add:autres_associations.count }} associations 
-                    making a change in Mali. Highlight your actions and mobilize the community 
-                    around your cause.
-                </p>
-                <div class="d-flex justify-content-center gap-3 flex-wrap">
-                    <a href="{% url 'inscription' %}" class="btn btn-primary btn-lg">
-                        <i class="bi bi-person-plus me-2"></i>Register my association
-                    </a>
-                    <a href="{% url 'contact' %}" class="btn btn-outline-light btn-lg">
-                        <i class="bi bi-question-circle me-2"></i>More information
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-    <!-- Statistics -->
-    <div class="row mt-5">
+    <!-- Final CTA -->
+    <section class="row mt-5">
         <div class="col-12">
-            <div class="rounded-3 p-5 text-center" style="background-color: var(--light-bg); border-radius: var(--border-radius-lg) !important;">
-                <h4 class="mb-4" style="color: var(--primary-blue);">Our impact in numbers</h4>
-                <div class="row">
-                    <div class="col-md-3 mb-4 mb-md-0">
-                        <div class="display-4 fw-bold" style="color: var(--primary-blue);">{{ featured_associations.count|add:autres_associations.count }}</div>
-                        <p class="mb-0" style="color: var(--gray-medium);">Active associations</p>
-                    </div>
-                    <div class="col-md-3 mb-4 mb-md-0">
-                        <div class="display-4 fw-bold" style="color: var(--primary-blue);">{{ total_adherents|default:0|intcomma }}</div>
-                        <p class="mb-0" style="color: var(--gray-medium);">Engaged members</p>
-                    </div>
-                    <div class="col-md-3 mb-4 mb-md-0">
-                        <div class="display-4 fw-bold" style="color: var(--primary-blue);">{{ total_projets|default:0|intcomma }}</div>
-                        <p class="mb-0" style="color: var(--gray-medium);">Completed projects</p>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="display-4 fw-bold" style="color: var(--primary-blue);">{{ total_villes|default:0 }}</div>
-                        <p class="mb-0" style="color: var(--gray-medium);">Cities covered</p>
+            <div class="card border-0 text-white rounded-4 overflow-hidden bg-gradient-primary shadow-heavy">
+                <div class="card-body p-5 text-center">
+                    <h3 class="h2 mb-3">Ready to Make a Difference?</h3>
+                    <p class="lead mb-4 opacity-90">
+                        Join {{ featured_associations.count|add:autres_associations.count }}+ trusted organizations 
+                        creating sustainable impact across Mali.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="{% url 'inscription' %}" class="btn btn-light btn-lg rounded-pill px-4 fw-semibold">
+                            <i class="bi bi-person-plus me-2"></i>Register Association
+                        </a>
+                        <a href="{% url 'contact' %}" class="btn btn-outline-light btn-lg rounded-pill px-4">
+                            <i class="bi bi-question-circle me-2"></i>Learn More
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 </div>
+{% endblock %}
 
+{% block extra_css %}
 <style>
-.hover-lift {
-    transition: var(--transition);
-}
-
-.hover-lift:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg);
-}
-
-.list-group-item {
-    transition: background-color 0.3s ease;
-}
-
-.list-group-item:hover {
-    background-color: var(--gray-light) !important;
-}
-
-.badge {
-    font-size: var(--font-size-xs);
-    border-radius: var(--border-radius-sm);
-}
-
-.card {
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-}
-
-.btn {
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition);
-    text-decoration: none;
-    display: inline-block;
-    font-weight: 500;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.display-4 {
-    font-size: var(--font-size-xxxl);
-}
-
-@media (max-width: 768px) {
-    .display-4 {
-        font-size: var(--font-size-xxl);
+    .bg-primary-soft {
+        background-color: rgba(26, 115, 232, 0.1) !important;
     }
     
-    .list-group-item .row {
-        text-align: center;
+    .bg-orange-soft {
+        background-color: rgba(255, 109, 0, 0.1) !important;
     }
     
-    .list-group-item .col-md-2,
-    .list-group-item .col-md-6,
-    .list-group-item .col-md-4 {
-        margin-bottom: var(--spacing-sm);
+    .bg-success-soft {
+        background-color: rgba(40, 167, 69, 0.1) !important;
     }
     
-    .card-body.p-0 .list-group-item {
-        padding: var(--spacing-md);
+    .bg-info-soft {
+        background-color: rgba(23, 162, 184, 0.1) !important;
     }
-}
-
-/* Additional hover effects */
-.btn[style*="border: 1px solid var(--primary-blue)"]:hover {
-    background-color: var(--primary-blue) !important;
-    color: var(--light-color) !important;
-}
-
-.btn[style*="background-color: var(--primary-blue)"]:hover {
-    background-color: var(--primary-blue-light) !important;
-}
+    
+    .text-orange {
+        color: var(--primary-orange) !important;
+    }
+    
+    .bg-orange {
+        background-color: var(--primary-orange) !important;
+    }
+    
+    .bg-gradient-primary {
+        background: var(--gradient-blue) !important;
+    }
+    
+    .shadow-sm-hover {
+        box-shadow: var(--shadow-light) !important;
+        transition: var(--transition);
+    }
+    
+    .shadow-sm-hover:hover {
+        box-shadow: var(--shadow-heavy) !important;
+        transform: translateY(-5px);
+    }
+    
+    .rounded-4 {
+        border-radius: var(--border-radius) !important;
+    }
+    
+    .association-item {
+        transition: var(--transition);
+    }
+    
+    .association-item:hover {
+        background-color: rgba(26, 115, 232, 0.05) !important;
+        transform: translateX(5px);
+    }
+    
+    .card {
+        border-radius: var(--border-radius) !important;
+        overflow: hidden;
+    }
+    
+    .btn {
+        border-radius: var(--border-radius) !important;
+        transition: var(--transition);
+        font-weight: 500;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-medium);
+    }
+    
+    .badge {
+        border-radius: var(--border-radius) !important;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .input-group-text {
+        border-radius: var(--border-radius) 0 0 var(--border-radius) !important;
+    }
+    
+    .form-control, .form-select {
+        border-radius: var(--border-radius) !important;
+    }
+    
+    .input-group .form-control {
+        border-radius: 0 var(--border-radius) var(--border-radius) 0 !important;
+    }
+    
+    @media (max-width: 768px) {
+        .display-4 {
+            font-size: 2rem;
+        }
+        
+        .association-item .row {
+            text-align: center;
+        }
+        
+        .association-item .col-md-1,
+        .association-item .col-md-5,
+        .association-item .col-md-3 {
+            margin-bottom: 1rem;
+        }
+        
+        .association-item .col-md-3.text-end {
+            text-align: center !important;
+        }
+        
+        .card-body.p-0 .list-group-item {
+            padding: 1.5rem 1rem;
+        }
+    }
+    
+    /* Enhanced hover effects */
+    .btn-outline-primary:hover {
+        background-color: var(--primary-blue) !important;
+        color: white !important;
+    }
+    
+    .bg-primary-soft:hover {
+        background-color: rgba(26, 115, 232, 0.15) !important;
+    }
 </style>
 {% endblock %}

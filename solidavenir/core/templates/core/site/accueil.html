@@ -8,12 +8,26 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
 <!-- Section Hero avec texte à gauche et image à droite -->
+
 <section class="hero-section">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-6 hero-content">
-                <h1 class="display-4 fw-bold mb-3">Radical Transparency for Every Donation</h1>
-                <p class="lead mb-4">Built on Hedera, we bring radical transparency to every donation, tracking contributions from donor to ground. We empower communities and entrepreneurs across West Africa, ensuring every contribution is verified and makes a real impact.</p>
+            <div class="col-lg-7 hero-content">
+                <!-- Titre principal -->
+                <h1 class="display-4 fw-bold ">Reinventing Trust in Crowdfunding in MALI</h1>
+                
+               
+                <!-- Paragraphe descriptif -->
+                <p class="lead ">
+
+                                    Solid'Avenir leverages Hedera technology 
+                                    to guarantee total transparency, tracking 
+                                    every contribution from donor to field 
+                                    implementation. We ensure genuine, verifiable 
+                                    impact for communities and entrepreneurs. 
+                                                        
+                </p>
+                
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-start">
                     <a href="{% url 'liste_projets' %}" class="btn btn-primary btn-lg px-4 gap-3">Discover Projects</a>
                     <a href="{% url 'creer_projet' %}" class="btn btn-outline-light btn-lg px-4">Launch a Project</a>
@@ -24,7 +38,7 @@
                     </a>
                 </div>
             </div>
-            <div class="col-lg-6 hero-image-container">
+            <div class="col-lg-5 hero-image-container">
                 <div class="tech-image-container">
                     <img src="{% static 'images/home/hero_section.webp' %}" alt="Finance Technology" class="hero-image">
                 </div>
