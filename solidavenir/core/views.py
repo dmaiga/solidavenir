@@ -453,9 +453,10 @@ def inscription(request):
     }
     
     return render(request, 'core/users/inscription.html', context)
+
 from django.contrib.auth import get_user_model
 
-@csrf_protect
+@csrf_exempt
 def connexion(request):
     """
     Handle user login page and authentication.

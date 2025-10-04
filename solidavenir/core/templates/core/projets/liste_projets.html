@@ -5,59 +5,19 @@
 
 {% block extra_css %}
 <style>
-    :root {
-        /* Palette de couleurs révisée */
-        --primary-blue: #0a4d87;           /* Bleu principal */
-        --primary-blue-light: #2e7dcc;     /* Bleu clair */
-        --primary-orange: #d96c49;         /* Orange principal */
-        --primary-orange-light: #e89a7f;   /* Orange clair */
-        --secondary-green: #10b981;        /* Vert pour succès/impact */
-        --light-bg: #f8fafc;               /* Fond très clair */
-        --light-color: #ffffff;            /* Blanc */
-        --dark-color: #1e293b;             /* Texte sombre */
-        --gray-light: #f1f5f9;             /* Gris très clair */
-        --gray-medium: #94a3b8;            /* Gris moyen */
-        
-        /* Tailles cohérentes */
-        --border-radius-sm: 8px;
-        --border-radius-md: 12px;
-        --border-radius-lg: 16px;
-        --spacing-xs: 0.5rem;
-        --spacing-sm: 1rem;
-        --spacing-md: 1.5rem;
-        --spacing-lg: 2rem;
-        --spacing-xl: 3rem;
-        --spacing-xxl: 4rem;
-        
-        /* Typographie */
-        --font-size-xs: 0.75rem;
-        --font-size-sm: 0.875rem;
-        --font-size-base: 1rem;
-        --font-size-lg: 1.125rem;
-        --font-size-xl: 1.25rem;
-        --font-size-xxl: 1.5rem;
-        --font-size-xxxl: 2rem;
-        
-        /* Effets */
-        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-        --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
-        --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
-        --transition: all 0.3s ease;
-    }
-
     .project-card {
         border: none;
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-        transition: var(--transition);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         height: 100%;
         overflow: hidden;
-        background: var(--light-color);
+        background: white;
     }
     
     .project-card:hover {
-        transform: translateY(-6px);
-        box-shadow: var(--shadow-lg);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px rgba(0,0,0,0.1);
     }
     
     .project-image-container {
@@ -79,276 +39,142 @@
     
     .category-badge {
         position: absolute;
-        top: var(--spacing-sm);
-        right: var(--spacing-sm);
-        background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-light) 100%);
-        color: var(--light-color);
-        padding: var(--spacing-xs) var(--spacing-sm);
+        top: 1rem;
+        right: 1rem;
+        background: linear-gradient(135deg, #ff6d00 0%, #e65100 100%);
+        color: white;
+        padding: 0.5rem 1rem;
         border-radius: 20px;
-        font-size: var(--font-size-xs);
+        font-size: 0.75rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         z-index: 2;
     }
     
     .progress-container {
-        background: var(--gray-light);
-        border-radius: var(--border-radius-sm);
+        background: #f1f5f9;
+        border-radius: 8px;
         height: 12px;
         overflow: hidden;
-        margin: var(--spacing-md) 0;
+        margin: 1.5rem 0;
     }
     
     .progress-bar {
-        background: linear-gradient(90deg, var(--secondary-green) 0%, var(--primary-blue-light) 100%);
+        background: linear-gradient(90deg, #28a745 0%, #1a73e8 100%);
         height: 100%;
-        border-radius: var(--border-radius-sm);
+        border-radius: 8px;
         transition: width 1.2s ease-in-out;
-        position: relative;
-    }
-    
-    .progress-bar::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        animation: shimmer 2s infinite;
-    }
-    
-    @keyframes shimmer {
-        0% { left: -100%; }
-        100% { left: 100%; }
     }
     
     .stats-info {
-        font-size: var(--font-size-sm);
-        color: var(--gray-medium);
+        font-size: 0.875rem;
+        color: #94a3b8;
         font-weight: 600;
     }
     
     .filter-section {
-        background: var(--light-bg);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-        margin-bottom: var(--spacing-xl);
-        border: 1px solid rgba(10, 77, 135, 0.1);
-        box-shadow: var(--shadow-sm);
-    }
-    
-    .pagination {
-        justify-content: center;
-        margin-top: var(--spacing-xl);
-    }
-    
-    .page-item.active .page-link {
-        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
-        border-color: transparent;
-        box-shadow: var(--shadow-md);
-    }
-    
-    .page-link {
-        color: var(--primary-blue);
-        border: 1px solid var(--gray-light);
-        padding: var(--spacing-sm) var(--spacing-md);
-        margin: 0 var(--spacing-xs);
-        border-radius: var(--border-radius-md);
-        transition: var(--transition);
-        font-weight: 600;
-    }
-    
-    .page-link:hover {
-        color: var(--light-color);
-        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
-        border-color: transparent;
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        border: 1px solid rgba(26, 115, 232, 0.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     
     .empty-state {
         text-align: center;
-        padding: var(--spacing-xxl) var(--spacing-lg);
-        background: var(--light-bg);
-        border-radius: var(--border-radius-lg);
-        margin: var(--spacing-xl) 0;
+        padding: 4rem 2rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin: 3rem 0;
     }
     
     .empty-state-icon {
         font-size: 4rem;
-        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%);
+        background: linear-gradient(135deg, #1a73e8 0%, #ff6d00 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: var(--spacing-lg);
+        margin-bottom: 1.5rem;
     }
     
     .default-image {
         height: 220px;
-        background: linear-gradient(135deg, var(--light-bg) 0%, var(--gray-light) 100%);
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .default-image::before {
-        content: '';
-        position: absolute;
-        width: 200%;
-        height: 200%;
-        background: conic-gradient(from 0deg, transparent 0%, rgba(10, 77, 135, 0.05) 10%, transparent 20%);
-        animation: rotate 8s linear infinite;
-    }
-    
-    @keyframes rotate {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
     }
     
     .default-image i {
         font-size: 3rem;
-        color: var(--gray-medium);
-        position: relative;
-        z-index: 1;
+        color: #94a3b8;
     }
     
     .card-body {
-        padding: var(--spacing-lg);
+        padding: 1.5rem;
     }
     
     .card-title {
-        font-size: var(--font-size-xl);
+        font-size: 1.25rem;
         font-weight: 700;
-        color: var(--dark-color);
-        margin-bottom: var(--spacing-sm);
+        color: #1e293b;
+        margin-bottom: 1rem;
         line-height: 1.4;
     }
     
     .card-text {
-        color: var(--gray-medium);
+        color: #94a3b8;
         line-height: 1.6;
-        margin-bottom: var(--spacing-md);
-        font-size: var(--font-size-base);
+        margin-bottom: 1.5rem;
+    }
+
+    /* Pagination styles cohérents avec base.html */
+    .pagination {
+        justify-content: center;
+        margin-top: 3rem;
     }
     
-    .btn-primary {
-        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
-        border: none;
-        border-radius: var(--border-radius-md);
-        padding: var(--spacing-sm) var(--spacing-lg);
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #1a73e8 0%, #083a63 100%);
+        border-color: transparent;
+    }
+    
+    .page-link {
+        color: #1a73e8;
+        border: 1px solid #f1f5f9;
+        padding: 0.75rem 1rem;
+        margin: 0 0.25rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
         font-weight: 600;
-        transition: var(--transition);
-        box-shadow: var(--shadow-sm);
-        color: var(--light-color);
     }
     
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
-        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
-        color: var(--light-color);
+    .page-link:hover {
+        color: white;
+        background: linear-gradient(135deg, #1a73e8 0%, #083a63 100%);
+        border-color: transparent;
     }
-    
-    .btn-outline-primary {
-        border: 2px solid var(--primary-blue);
-        color: var(--primary-blue);
-        border-radius: var(--border-radius-md);
-        padding: var(--spacing-sm) var(--spacing-lg);
-        font-weight: 600;
-        transition: var(--transition);
-    }
-    
-    .btn-outline-primary:hover {
-        background: var(--primary-blue);
-        color: var(--light-color);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
-    
-    .card-footer {
-        background: rgba(10, 77, 135, 0.03);
-        border-top: 1px solid var(--gray-light);
-        padding: var(--spacing-md) var(--spacing-lg);
-    }
-    
-    .text-primary {
-        color: var(--primary-blue) !important;
-    }
-    
-    .display-4 {
-        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
-    }
-    
-    .lead {
-        color: var(--dark-color);
-        font-weight: 500;
-    }
-    
-    .form-control, .form-select {
-        border-radius: var(--border-radius-md);
-        border: 1px solid var(--gray-light);
-        padding: var(--spacing-sm);
-        transition: var(--transition);
-    }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: var(--primary-blue-light);
-        box-shadow: 0 0 0 3px rgba(10, 77, 135, 0.1);
-    }
-    
+
     /* Responsive adjustments */
     @media (max-width: 768px) {
         .project-card {
-            margin-bottom: var(--spacing-lg);
+            margin-bottom: 1.5rem;
         }
         
         .filter-section {
-            padding: var(--spacing-md);
+            padding: 1.5rem;
         }
         
         .empty-state {
-            padding: var(--spacing-xl) var(--spacing-md);
+            padding: 3rem 1.5rem;
         }
         
         .card-body {
-            padding: var(--spacing-md);
-        }
-        
-        .display-4 {
-            font-size: var(--font-size-xxxl);
+            padding: 1.5rem;
         }
     }
-    
-    /* Animation pour l'apparition des cartes */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .project-card {
-        animation: fadeInUp 0.6s ease-out;
-    }
-    
-    /* Délai d'animation pour chaque carte */
-    .project-card:nth-child(1) { animation-delay: 0.1s; }
-    .project-card:nth-child(2) { animation-delay: 0.2s; }
-    .project-card:nth-child(3) { animation-delay: 0.3s; }
-    .project-card:nth-child(4) { animation-delay: 0.4s; }
-    .project-card:nth-child(5) { animation-delay: 0.5s; }
-    .project-card:nth-child(6) { animation-delay: 0.6s; }
 </style>
 {% endblock %}
 
@@ -364,7 +190,7 @@
                     <p class="lead fs-4">Discover inspiring initiatives and support those that matter to you</p>
                 </div>
                 <div class="text-center text-md-end">
-                    <a href="{% url 'creer_projet' %}" class="btn btn-primary btn-lg shadow-sm">
+                    <a href="{% url 'creer_projet' %}" class="btn btn-primary btn-lg">
                         <i class="bi bi-plus-circle me-2"></i>Start Your Project
                     </a>
                     <p class="text-muted mt-2 small">Share your vision with our community</p>
@@ -535,33 +361,4 @@
     {% endif %}
 </div>
 
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animation au scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-        
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-        
-        // Appliquer l'animation aux cartes
-        document.querySelectorAll('.project-card').forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            card.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-            observer.observe(card);
-        });
-    });
-</script>
 {% endblock %}
