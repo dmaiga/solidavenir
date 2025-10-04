@@ -2,6 +2,8 @@
 {% load static %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <div class="container py-5">
     <div class="row">
         <!-- Information Section -->
@@ -77,68 +79,128 @@
                     <p class="mb-0 opacity-75">Join us in 2 minutes</p>
                 </div>
                 
-                <div class="card-body p-4">
-                    <form method="post" novalidate class="needs-validation">
-                        {% csrf_token %}
-                        {{ form.username }}
-                        
+                <div class="card-body p-4 p-lg-5">
+                    <!-- Container pour les messages d'erreur -->
+                    <div id="form-errors-alert" class="alert alert-danger d-none" role="alert">
+                        <h6 class="alert-heading">Please correct the following errors:</h6>
+                        <ul id="errors-list" class="mb-0"></ul>
+                    </div>
+
+                    <form method="post" novalidate class="needs-validation" id="inscriptionForm">
+                        {% csrf_token %}                       
+                        <!-- Name Fields - Espace réduit -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">First Name</label>
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold text-dark mb-1">
+                                    First Name *
+                                </label>
                                 {{ form.first_name }}
+                                <div class="invalid-feedback" data-field="first_name"></div>
                             </div>
                             
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Last Name</label>
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold text-dark mb-1">
+                                    Last Name *
+                                </label>
                                 {{ form.last_name }}
+                                <div class="invalid-feedback" data-field="last_name"></div>
                             </div>
                         </div>
                         
+                        <!-- Email Field -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Email *</label>
+                            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold text-dark mb-1">
+                                Email Address *
+                            </label>
                             {{ form.email }}
-                            <div class="form-text">We will never share your email</div>
+                            <div class="invalid-feedback" data-field="email"></div>
                         </div>
                         
+                        <!-- User Type Field -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">I am a *</label>
+                            <label for="{{ form.user_type.id_for_label }}" class="form-label fw-semibold text-dark mb-1">
+                                I am a *
+                            </label>
                             {{ form.user_type }}
+                            <small class="form-text text-muted mt-1 d-block">
+                                Select your role in the community
+                            </small>
+                            <div class="invalid-feedback" data-field="user_type"></div>
                         </div>
                         
+                        <!-- Association Field (Conditional) -->
                         <div id="association-field" class="mb-3" style="display: none;">
-                            <label class="form-label fw-semibold">Your Association Name *</label>
+                            <label for="{{ form.nom_association.id_for_label }}" class="form-label fw-semibold text-dark mb-1">
+                                Association Name *
+                            </label>
                             {{ form.nom_association }}
+                            <small class="form-text text-muted mt-1 d-block">
+                                Official name of your association or organization
+                            </small>
+                            <div class="invalid-feedback" data-field="nom_association"></div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Password *</label>
-                            {{ form.password1 }}
-                            <div class="form-text">Minimum 8 characters with numbers and letters</div>
+                        <!-- Password Fields -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold text-dark mb-1">
+                                    Password *
+                                </label>
+                                <div class="position-relative">
+                                    {{ form.password1 }}
+                                    <button type="button" class="btn btn-outline-secondary btn-sm position-absolute end-0 top-50 translate-middle-y me-3 toggle-password" data-target="{{ form.password1.id_for_label }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted mt-1 d-block">
+                                    Minimum 8 characters with numbers and letters
+                                </small>
+                                <div class="invalid-feedback" data-field="password1"></div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold text-dark mb-1">
+                                    Confirm Password *
+                                </label>
+                                <div class="position-relative">
+                                    {{ form.password2 }}
+                                    <button type="button" class="btn btn-outline-secondary btn-sm position-absolute end-0 top-50 translate-middle-y me-3 toggle-password" data-target="{{ form.password2.id_for_label }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted mt-1 d-block">
+                                    Re-enter your password for confirmation
+                                </small>
+                                <div class="invalid-feedback" data-field="password2"></div>
+                            </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Confirm Password *</label>
-                            {{ form.password2 }}
-                        </div>
-                        
+                        <!-- GDPR Consent Toggle -->
                         <div class="mb-4">
                             <div class="form-check">
                                 {{ form.consentement_rgpd }}
-                                <label class="form-check-label" for="{{ form.consentement_rgpd.id_for_label }}">
-                                    I accept the <a href="#" target="_blank">Terms of Service</a> 
-                                    and <a href="" target="_blank">Privacy Policy</a> *
+                                <label class="form-check-label fw-semibold text-dark" for="{{ form.consentement_rgpd.id_for_label }}">
+                                    I accept the <a href="#" target="_blank" class="text-primary">Terms of Service</a> 
+                                    and <a href="#" target="_blank" class="text-primary">Privacy Policy</a> *
                                 </label>
+                                <small class="form-text text-muted mt-1 d-block">
+                                    You must agree to our terms to create an account
+                                </small>
+                                <div class="invalid-feedback d-block" data-field="consentement_rgpd"></div>
                             </div>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary w-100 btn-lg fw-semibold py-3">
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary w-100 btn-lg fw-semibold py-3 mb-3" id="submit-btn">
+                            <span class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
                             🚀 Join the Community
                         </button>
                     </form>
                     
+                    <!-- Login Link -->
                     <div class="text-center mt-4 pt-3 border-top">
-                        <p class="mb-0">Already a member? 
-                            <a href="{% url 'connexion' %}" class="fw-semibold text-decoration-none">
+                        <p class="mb-0 text-muted">Already a member? 
+                            <a href="{% url 'connexion' %}" class="fw-semibold text-primary text-decoration-none">
                                 Sign in here
                             </a>
                         </p>
@@ -148,22 +210,362 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- SweetAlert2 pour les messages smooth -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Gestion des messages de session (succès/erreurs)
+    {% if request.session.swal %}
+        Swal.fire({{ request.session.swal|safe }});
+        // Nettoyer la session
+        fetch('{% url "clear_session_messages" %}', {method: 'POST'});
+    {% endif %}
+
+    // Affichage des erreurs de formulaire depuis la session
+    {% if request.session.form_errors %}
+        const errors = {{ request.session.form_errors|safe }};
+        showFormErrors(errors);
+        fetch('{% url "clear_session_messages" %}', {method: 'POST'});
+    {% endif %}
+
+    // Style initial des champs de formulaire et rendre required
+    const styleFormFields = () => {
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.classList.add('form-control');
+            
+            // Rendre les champs requis
+            if (input.name === 'first_name' || input.name === 'last_name' || 
+                input.name === 'email' || input.name === 'user_type' ||
+                input.name === 'password1' || input.name === 'password2') {
+                input.required = true;
+            }
+            
+            // Style spécifique pour les checkboxes
+            if (input.type === 'checkbox') {
+                input.classList.remove('form-control');
+                input.classList.add('form-check-input');
+                input.required = true;
+            }
+        });
+    };
+    
+    styleFormFields();
+
+    // Affichage conditionnel du champ association
     const userTypeSelect = document.getElementById('{{ form.user_type.id_for_label }}');
     const associationField = document.getElementById('association-field');
     
     function toggleAssociationField() {
         if (userTypeSelect.value === 'association') {
             associationField.style.display = 'block';
+            // Animation smooth
+            associationField.style.opacity = '0';
+            associationField.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                associationField.style.transition = 'all 0.3s ease';
+                associationField.style.opacity = '1';
+                associationField.style.transform = 'translateY(0)';
+            }, 10);
+            
+            // Rendre le champ requis
+            const associationInput = document.getElementById('{{ form.nom_association.id_for_label }}');
+            if (associationInput) associationInput.required = true;
         } else {
-            associationField.style.display = 'none';
+            // Animation de disparition
+            associationField.style.transition = 'all 0.3s ease';
+            associationField.style.opacity = '0';
+            associationField.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                associationField.style.display = 'none';
+            }, 300);
+            
+            const associationInput = document.getElementById('{{ form.nom_association.id_for_label }}');
+            if (associationInput) associationInput.required = false;
         }
     }
     
     toggleAssociationField();
     userTypeSelect.addEventListener('change', toggleAssociationField);
+
+    // Gestion de la visibilité des mots de passe
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const passwordField = document.getElementById(targetId);
+            const icon = this.querySelector('i');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+
+    // Validation en temps réel - validation immédiate au focus
+    const form = document.getElementById('inscriptionForm');
+    const fields = form.querySelectorAll('input, select');
+    
+    fields.forEach(field => {
+        // Validation au blur (quand on quitte le champ)
+        field.addEventListener('blur', function() {
+            validateField(this);
+        });
+        
+        // Validation en temps réel pendant la saisie
+        field.addEventListener('input', function() {
+            // Si le champ a déjà été touché, valider en temps réel
+            if (this.classList.contains('is-invalid') || this.classList.contains('is-valid')) {
+                validateField(this);
+            }
+        });
+        
+        // Validation immédiate au focus pour donner un feedback rapide
+        field.addEventListener('focus', function() {
+            this.classList.remove('is-invalid', 'is-valid');
+        });
+    });
+
+    function validateField(field) {
+        const errorElement = form.querySelector(`[data-field="${field.name}"]`);
+        
+        // Validation spéciale pour les champs requis
+        if (field.required && !field.value.trim()) {
+            field.classList.add('is-invalid');
+            field.classList.remove('is-valid');
+            if (errorElement) {
+                errorElement.textContent = 'This field is required.';
+            }
+            return false;
+        }
+        
+        if (!field.checkValidity()) {
+            field.classList.add('is-invalid');
+            field.classList.remove('is-valid');
+            if (errorElement) {
+                errorElement.textContent = getFieldErrorMessage(field);
+            }
+            return false;
+        } else {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+            if (errorElement) {
+                errorElement.textContent = '';
+            }
+            return true;
+        }
+    }
+
+    function getFieldErrorMessage(field) {
+        if (field.validity.valueMissing) {
+            return 'This field is required.';
+        }
+        if (field.validity.typeMismatch) {
+            return 'Please enter a valid email address.';
+        }
+        if (field.validity.tooShort) {
+            return `Password must be at least ${field.minLength} characters.`;
+        }
+        if (field.validity.patternMismatch) {
+            return 'Please check the format.';
+        }
+        return 'Please correct this field.';
+    }
+
+    // Fonction pour afficher les erreurs de formulaire
+    function showFormErrors(errors) {
+        const alertDiv = document.getElementById('form-errors-alert');
+        const errorsList = document.getElementById('errors-list');
+        
+        if (errors.length > 0) {
+            // Afficher l'alerte
+            alertDiv.classList.remove('d-none');
+            errorsList.innerHTML = '';
+            
+            // Ajouter chaque erreur à la liste
+            errors.forEach(error => {
+                const li = document.createElement('li');
+                li.textContent = error;
+                errorsList.appendChild(li);
+            });
+
+            // Scroll vers les erreurs
+            alertDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Cacher l'alerte après 10 secondes
+            setTimeout(() => {
+                alertDiv.classList.add('d-none');
+            }, 10000);
+        }
+    }
+
+    // Validation avant soumission
+    form.addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submit-btn');
+        const spinner = submitBtn.querySelector('.spinner-border');
+        
+        // Cacher les erreurs précédentes
+        document.getElementById('form-errors-alert').classList.add('d-none');
+        
+        // Validation de tous les champs
+        let isValid = true;
+        const errors = [];
+        
+        fields.forEach(field => {
+            if (!validateField(field)) {
+                isValid = false;
+                const fieldLabel = form.querySelector(`label[for="${field.id}"]`)?.textContent || field.name;
+                errors.push(`${fieldLabel}: ${getFieldErrorMessage(field)}`);
+            }
+        });
+
+        // Validation spécifique pour les associations
+        if (userTypeSelect.value === 'association') {
+            const associationInput = document.getElementById('{{ form.nom_association.id_for_label }}');
+            if (!associationInput || !associationInput.value.trim()) {
+                isValid = false;
+                errors.push('Association name is required for association accounts.');
+            }
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            showFormErrors(errors);
+            
+            // Message smooth avec SweetAlert
+            Swal.fire({
+                icon: 'warning',
+                title: 'Form incomplete',
+                text: 'Please correct the errors highlighted in red.',
+                timer: 4000,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        // Animation de chargement
+        submitBtn.disabled = true;
+        spinner.classList.remove('d-none');
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Creating your account...';
+    });
 });
 </script>
+
+<style>
+.is-valid {
+    border-color: #198754 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 3.6.4.4.4-.4'/%3e%3cpath d='M6 7v1.5'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+}
+
+.form-label {
+    font-size: 0.9rem;
+    letter-spacing: 0.3px;
+    margin-bottom: 0.4rem !important;
+}
+
+.form-text {
+    font-size: 0.8rem;
+    margin-top: 0.3rem !important;
+}
+
+.card {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+}
+
+#form-errors-alert {
+    border-left: 4px solid #dc3545;
+    animation: slideIn 0.4s ease-out;
+    border-radius: 0.5rem;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-primary {
+    border: none;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1.5rem rgba(26, 115, 232, 1);
+}
+
+.toggle-password {
+    border: none;
+    background: transparent;
+    z-index: 5;
+    padding: 0.25rem 0.5rem;
+}
+
+.toggle-password:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Style pour les champs password avec le bouton toggle */
+.position-relative .form-control {
+    padding-right: 3rem;
+}
+
+/* Animation pour l'apparition du champ association */
+#association-field {
+    transition: all 0.3s ease;
+}
+
+/* Réduction d'espace général pour le formulaire */
+.mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+</style>
 {% endblock %}

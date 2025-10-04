@@ -17,6 +17,24 @@
                     <p class="mb-0 opacity-75">Launch your crowdfunding campaign</p>
                 </div>
                 <div class="card-body">
+                    <!-- Information Alert -->
+                    <div class="alert alert-info border-0 mb-4">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle fa-2x text-info"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="alert-heading">Important Information</h5>
+                                <p class="mb-2">Your project will be submitted to the <strong>Solid'Avenir Verification Committee</strong> for validation before being published on the platform.</p>
+                                <ul class="small mb-0">
+                                    <li><strong>Review process:</strong> 1-3 business days</li>
+                                    <li><strong>Criteria:</strong> Project feasibility, alignment with Solid'Avenir values, completeness of information</li>
+                                    <li><strong>You will receive</strong> an email notification once your project is approved</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
                     <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                         {% csrf_token %}
                         
@@ -36,6 +54,7 @@
                                     <i class="fas fa-lightbulb text-warning me-1"></i>
                                     <strong>Tip:</strong> A short, clear, and catchy title. Ex: "Planting 1000 trees to green our neighborhood"
                                 </div>
+                                <div class="invalid-feedback" data-field="titre"></div>
                             </div>
                             
                             <!-- Short description -->
@@ -54,6 +73,7 @@
                                     </div>
                                     <small>Ex: "We plant fruit trees in schools to educate children about ecology while improving their nutrition."</small>
                                 </div>
+                                <div class="invalid-feedback" data-field="description_courte"></div>
                             </div>
                             
                             <!-- Category -->
@@ -63,12 +83,14 @@
                                         Category *
                                     </label>
                                     {{ form.categorie }}
+                                    <div class="invalid-feedback" data-field="categorie"></div>
                                 </div>
                                 <div class="col-md-6 mb-3" id="autre-categorie-container" style="display: none;">
                                     <label for="{{ form.autre_categorie.id_for_label }}" class="form-label fw-semibold">
                                         Specify category *
                                     </label>
                                     {{ form.autre_categorie }}
+                                    <div class="invalid-feedback" data-field="autre_categorie"></div>
                                 </div>
                             </div>
                             
@@ -82,6 +104,7 @@
                                     <i class="fas fa-lightbulb text-warning me-1"></i>
                                     Separate with commas. Ex: ecology, education, sustainable development
                                 </div>
+                                <div class="invalid-feedback" data-field="tags"></div>
                             </div>
                         </div>
                         
@@ -107,6 +130,7 @@
                                         <li><strong>Your team:</strong> Briefly introduce yourself</li>
                                     </ul>
                                 </div>
+                                <div class="invalid-feedback" data-field="description"></div>
                             </div>
                         </div>
                         
@@ -126,6 +150,7 @@
                                         <i class="fas fa-lightbulb text-warning me-1"></i>
                                         Be realistic: calculate the exact budget needed
                                     </div>
+                                    <div class="invalid-feedback" data-field="montant_demande"></div>
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
@@ -133,6 +158,7 @@
                                         Funding Type *
                                     </label>
                                     {{ form.type_financement }}
+                                    <div class="invalid-feedback" data-field="type_financement"></div>
                                 </div>
                             </div>
                             
@@ -145,6 +171,7 @@
                                     <i class="fas fa-lightbulb text-warning me-1"></i>
                                     30-45 days recommended to maintain engagement
                                 </div>
+                                <div class="invalid-feedback" data-field="duree_campagne"></div>
                             </div>
                         </div>
                         
@@ -165,9 +192,10 @@
                                     <i class="fas fa-lightbulb text-warning me-1"></i>
                                     Rewards significantly increase engagement!
                                 </div>
+                                <div class="invalid-feedback" data-field="offre_recompenses"></div>
                             </div>
                             
-                            <div id="recompenses-section" >
+                            <div id="recompenses-section" style="display: none;">
                                 <div class="mb-3">
                                     <label for="{{ form.description_recompenses.id_for_label }}" class="form-label fw-semibold">
                                         Rewards Description *
@@ -183,6 +211,7 @@
                                             <li><strong>Clearly specify</strong> what contributors will receive at each level</li>
                                         </ul>
                                     </div>
+                                    <div class="invalid-feedback" data-field="description_recompenses"></div>
                                 </div>
                             </div>
                         </div>
@@ -202,6 +231,7 @@
                                     <i class="fas fa-lightbulb text-warning me-1"></i>
                                     A picture is worth a thousand words! Choose a high-quality photo that represents your project (1200×600px recommended)
                                 </div>
+                                <div class="invalid-feedback" data-field="cover_image"></div>
                             </div>
                          
                             <div class="mb-3">
@@ -213,6 +243,25 @@
                                     <i class="fas fa-lightbulb text-warning me-1"></i>
                                     Projects with videos have 2x more chances of success! (YouTube/Vimeo link)
                                 </div>
+                                <div class="invalid-feedback" data-field="video_presentation"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Final Information -->
+                        <div class="alert alert-warning border-0 mt-4">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-clock fa-2x text-warning"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="alert-heading mb-2">What happens next?</h6>
+                                    <ol class="mb-0 small">
+                                        <li><strong>Submission:</strong> Your project will be submitted to the Solid'Avenir Verification Committee</li>
+                                        <li><strong>Review:</strong> Our team will review your project within 1-3 business days</li>
+                                        <li><strong>Validation:</strong> Once approved, your project will be published on the platform</li>
+                                        <li><strong>Notification:</strong> You will receive an email confirmation when your project goes live</li>
+                                    </ol>
+                                </div>
                             </div>
                         </div>
                         
@@ -221,8 +270,8 @@
                             <a href="{% url 'mes_projets' %}" class="btn btn-outline-secondary me-md-2">
                                 <i class="fas fa-times me-1"></i>Cancel
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane me-1"></i>Create Project
+                            <button type="submit" class="btn btn-primary" id="submit-btn">
+                                <i class="fas fa-paper-plane me-1"></i>Submit for Review
                             </button>
                         </div>
                     </form>
@@ -263,11 +312,54 @@
                     </div>
                 </div>
                 
+                <!-- Validation Requirements -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clipboard-check me-2"></i>Validation Requirements
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="small mb-3">Your project must meet these criteria to be approved:</p>
+                        
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="req1">
+                            <label class="form-check-label small" for="req1">
+                                Clear and realistic objectives
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="req2">
+                            <label class="form-check-label small" for="req2">
+                                Detailed budget justification
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="req3">
+                            <label class="form-check-label small" for="req3">
+                                Positive social/environmental impact
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="req4">
+                            <label class="form-check-label small" for="req4">
+                                Compliance with Solid'Avenir values
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="req5">
+                            <label class="form-check-label small" for="req5">
+                                Complete and accurate information
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Checklist -->
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-success text-white">
                         <h5 class="mb-0">
-                            <i class="fas fa-check-circle me-2"></i>Validation Checklist
+                            <i class="fas fa-check-circle me-2"></i>Quality Checklist
                         </h5>
                     </div>
                     <div class="card-body">
@@ -321,8 +413,8 @@
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.25);
 }
 
 .card {
@@ -343,8 +435,32 @@
     font-weight: 500;
     color: #6c757d;
 }
+
+.is-valid {
+    border-color: #28a745 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='M2.3 6.73.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 3.6.4.4.4-.4'/%3e%3cpath d='M6 7v1.5'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.invalid-feedback {
+    display: block;
+    font-size: 0.875rem;
+    color: #dc3545;
+    margin-top: 0.25rem;
+}
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Character counter for short description
@@ -403,138 +519,142 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleRecompenses(); // Initialization
     }
     
-    // Form validation
+    // Real-time validation
     const form = document.querySelector('.needs-validation');
+    const fields = form.querySelectorAll('input, select, textarea');
     
-    if (form) {
-        form.addEventListener('submit', function(event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-                
-                // Scroll to first invalid field
-                const invalidFields = form.querySelectorAll(':invalid');
-                if (invalidFields.length > 0) {
-                    invalidFields[0].scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                }
-            }
-            
-            form.classList.add('was-validated');
+    fields.forEach(field => {
+        field.addEventListener('blur', function() {
+            validateField(this);
         });
-    }
-});
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Gestion de l'affichage des récompenses
-    const recompensesCheckbox = document.getElementById('{{ form.offre_recompenses.id_for_label }}');
-    const recompensesSection = document.getElementById('recompenses-section');
+        
+        field.addEventListener('input', function() {
+            clearFieldError(this);
+        });
+    });
     
-    function toggleRecompensesSection() {
-        if (recompensesCheckbox.checked) {
-            recompensesSection.style.display = 'block';
+    function validateField(field) {
+        const errorElement = form.querySelector(`[data-field="${field.name}"]`);
+        
+        if (!field.checkValidity()) {
+            field.classList.add('is-invalid');
+            if (errorElement) {
+                errorElement.textContent = getFieldErrorMessage(field);
+            }
+            return false;
         } else {
-            recompensesSection.style.display = 'none';
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+            if (errorElement) {
+                errorElement.textContent = '';
+            }
+            return true;
         }
     }
     
-    if (recompensesCheckbox) {
-        recompensesCheckbox.addEventListener('change', toggleRecompensesSection);
-        toggleRecompensesSection(); // Initial state
+    function clearFieldError(field) {
+        field.classList.remove('is-invalid');
+        const errorElement = form.querySelector(`[data-field="${field.name}"]`);
+        if (errorElement) {
+            errorElement.textContent = '';
+        }
     }
     
-    // Compteur de caractères pour la description courte
-    const descriptionCourte = document.getElementById('{{ form.description_courte.id_for_label }}');
-    const charCount = document.getElementById('char-count');
+    function getFieldErrorMessage(field) {
+        if (field.validity.valueMissing) {
+            return 'This field is required.';
+        }
+        if (field.validity.typeMismatch) {
+            return 'Please enter a valid format.';
+        }
+        if (field.validity.tooShort) {
+            return `Minimum ${field.minLength} characters required.`;
+        }
+        return 'Please correct this field.';
+    }
     
-    if (descriptionCourte && charCount) {
-        function updateCharCount() {
-            const length = descriptionCourte.value.length;
-            charCount.textContent = `${length}/300 characters`;
+    // Form submission with confirmation
+    form.addEventListener('submit', function(event) {
+        const submitBtn = document.getElementById('submit-btn');
+        const spinner = submit.createElement('span');
+        
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
             
-            if (length > 300) {
-                charCount.style.color = 'red';
-            } else if (length > 250) {
-                charCount.style.color = 'orange';
-            } else {
-                charCount.style.color = 'green';
+            // Scroll to first invalid field
+            const invalidFields = form.querySelectorAll('.is-invalid');
+            if (invalidFields.length > 0) {
+                invalidFields[0].scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
             }
+            
+            // Show error message
+            Swal.fire({
+                icon: 'warning',
+                title: 'Form Incomplete',
+                text: 'Please correct the errors highlighted in red before submitting.',
+                timer: 4000,
+                showConfirmButton: false
+            });
+        } else {
+            // Show confirmation dialog
+            event.preventDefault();
+            
+            Swal.fire({
+                title: 'Submit Project for Review?',
+                html: `
+                    <p>Your project will be submitted to the <strong>Solid'Avenir Verification Committee</strong>.</p>
+                    <div class="text-start small">
+                        <p><strong>Next steps:</strong></p>
+                        <ul>
+                            <li>Review by our team (1-3 business days)</li>
+                            <li>Email notification upon approval</li>
+                            <li>Project publication on the platform</li>
+                        </ul>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Submit for Review',
+                cancelButtonText: 'Continue Editing',
+                confirmButtonColor: '#1a73e8',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Add loading state
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Submitting...';
+                    
+                    // Submit the form
+                    form.submit();
+                }
+            });
         }
         
-        descriptionCourte.addEventListener('input', updateCharCount);
-        updateCharCount(); // Initial count
+        form.classList.add('was-validated');
+    });
+    
+    // Auto-check validation requirements as user fills the form
+    const checkboxes = document.querySelectorAll('#req1, #req2, #req3, #req4, #req5');
+    
+    function updateValidationChecklist() {
+        // This is a simplified version - in a real scenario, you'd have more complex validation
+        const title = document.getElementById('{{ form.titre.id_for_label }}').value.length > 5;
+        const description = document.getElementById('{{ form.description.id_for_label }}').value.length > 50;
+        const budget = document.getElementById('{{ form.montant_demande.id_for_label }}').value > 0;
+        
+        if (title) document.getElementById('req1').checked = true;
+        if (description && budget) document.getElementById('req2').checked = true;
+        // Add more complex validations as needed
     }
     
-    // Gestion de la catégorie "autre"
-    const categorieSelect = document.getElementById('{{ form.categorie.id_for_label }}');
-    const autreCategorieContainer = document.getElementById('autre-categorie-container');
-    
-    function toggleAutreCategorie() {
-        if (categorieSelect.value === 'autre') {
-            autreCategorieContainer.style.display = 'block';
-        } else {
-            autreCategorieContainer.style.display = 'none';
-        }
-    }
-    
-    if (categorieSelect) {
-        categorieSelect.addEventListener('change', toggleAutreCategorie);
-        toggleAutreCategorie(); // Initial state
-    }
-    
-    // Amélioration de l'affichage des fichiers sélectionnés pour les images multiples
-    const imagesSecondairesInput = document.querySelector('input[name="images_secondaires"]');
-    
-    if (imagesSecondairesInput) {
-        imagesSecondairesInput.addEventListener('change', function(e) {
-            const files = e.target.files;
-            const fileListContainer = document.getElementById('file-list');
-            
-            // Créer ou mettre à jour le conteneur de liste de fichiers
-            if (!fileListContainer) {
-                const newFileListContainer = document.createElement('div');
-                newFileListContainer.id = 'file-list';
-                newFileListContainer.className = 'mt-2 small';
-                imagesSecondairesInput.parentNode.appendChild(newFileListContainer);
-            }
-            
-            const container = document.getElementById('file-list');
-            
-            if (files.length > 0) {
-                let fileListHTML = '<strong>Selected files:</strong><ul class="mb-0">';
-                for (let i = 0; i < files.length; i++) {
-                    fileListHTML += `<li>${files[i].name} (${(files[i].size / 1024 / 1024).toFixed(2)} MB)</li>`;
-                }
-                fileListHTML += '</ul>';
-                container.innerHTML = fileListHTML;
-            } else {
-                container.innerHTML = '';
-            }
-            
-            // Validation du nombre de fichiers
-            if (files.length > 10) {
-                alert('You can select maximum 10 files.');
-                e.target.value = '';
-                container.innerHTML = '';
-            }
-        });
-    }
-    
-    // Validation du formulaire
-    const form = document.querySelector('form.needs-validation');
-    
-    if (form) {
-        form.addEventListener('submit', function(event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            form.classList.add('was-validated');
-        }, false);
-    }
+    // Update checklist on input
+    fields.forEach(field => {
+        field.addEventListener('input', updateValidationChecklist);
+    });
 });
 </script>
 {% endblock %}

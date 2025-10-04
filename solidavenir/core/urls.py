@@ -68,4 +68,7 @@ urlpatterns = [
     path('palier/<int:palier_id>/modifier/', views.modifier_palier, name='modifier_palier'),
     path('palier/<int:palier_id>/supprimer/', views.supprimer_palier, name='supprimer_palier'),
 
+path('clear-session-messages/', views.clear_session_messages, name='clear_session_messages'),
+    
+
 ]

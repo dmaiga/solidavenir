@@ -54,6 +54,19 @@ from .utils import safe_float, safe_int, safe_decimal
 
 logger = logging.getLogger(__name__)
 
+# views.py
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+
+@csrf_exempt
+def clear_session_messages(request):
+    """Nettoyer les messages de session après affichage"""
+    if 'swal' in request.session:
+        del request.session['swal']
+    if 'form_errors' in request.session:
+        del request.session['form_errors']
+    request.session.modified = True
+    return JsonResponse({'status': 'cleared'})
 #
 #   SITE
 #
@@ -96,6 +109,7 @@ def savoir_plus(request):
     """Learn more page"""
     """Page En savoir plus"""
     return render(request, 'core/site/savoir_plus.html')
+
 
 def contact(request):
     """Contact page"""
@@ -367,36 +381,16 @@ def mes_dons(request):
 
 def inscription(request):
     """
-    Handle simplified user registration for the MVP with a lightweight form.
-
-    Functionality:
-        - Redirects already authenticated users to the homepage with an info message.
-        - Processes POST requests with the simplified registration form.
-        - Creates a new user and logs them in automatically if the form is valid.
-        - Displays personalized welcome messages based on the user's type.
-        - Redirects users according to their type (e.g., associations to their dashboard).
-        - Handles form validation errors and unexpected exceptions gracefully, logging errors for debugging.
-
-    Template used:
-        'core/users/inscription.html'
-
-    Context provided to the template:
-        - form: Instance of InscriptionFormSimplifiee
-        - user_types: List of user types excluding 'admin'
-        - title: Page title
-        - description: Page description
-
-    Args:
-        request (HttpRequest): The HTTP request object.
-
-    Returns:
-        HttpResponse: Rendered registration page or redirect to appropriate dashboard/homepage.
+    Handle simplified user registration with smooth error display
     """
-
-    """Inscription simplifiée pour le MVP avec formulaire allégé"""
     # Rediriger les utilisateurs déjà connectés
     if request.user.is_authenticated:
-        messages.info(request, "Vous êtes déjà connecté.")
+        request.session['swal'] = {
+            'icon': 'info',
+            'title': 'Déjà connecté',
+            'text': 'Vous êtes déjà connecté à votre compte.',
+            'timer': 3000
+        }
         return redirect('accueil')
     
     if request.method == 'POST':
@@ -408,9 +402,16 @@ def inscription(request):
                 # Connexion automatique
                 login(request, user)
                 
-                # Message de bienvenue personnalisé selon le type d'utilisateur
+                # Message de bienvenue smooth
                 user_type_display = dict(User.USER_TYPES).get(user.user_type, 'utilisateur')
-                        
+                request.session['swal'] = {
+                    'icon': 'success',
+                    'title': f'Bienvenue {user.first_name or user.username}!',
+                    'text': f'Votre compte {user_type_display} a été créé avec succès.',
+                    'timer': 4000,
+                    'showConfirmButton': False
+                }
+                
                 # Redirection selon le type d'utilisateur
                 if user.user_type == 'association':
                     return redirect('espace_association')
@@ -418,23 +419,30 @@ def inscription(request):
                     return redirect('accueil')
                 
             except Exception as e:
-                messages.error(
-                    request, 
-                    "Une erreur s'est produite lors de la création du compte. "
-                    "Veuillez réessayer ou nous contacter si le problème persiste."
-                )
+                # Erreur smooth pour les problèmes techniques
+                request.session['swal'] = {
+                    'icon': 'error',
+                    'title': 'Erreur technique',
+                    'text': 'Une erreur est survenue lors de la création du compte. Veuillez réessayer.',
+                    'timer': 5000
+                }
                 logger.error(f"Erreur inscription: {str(e)}")
                 logger.exception("Détails de l'erreur d'inscription:")
         else:
-            # Afficher les erreurs de manière conviviale
+            # Stocker les erreurs pour l'affichage smooth
+            errors_list = []
             for field, errors in form.errors.items():
                 field_label = form.fields[field].label if field in form.fields else field.replace('_', ' ').title()
                 for error in errors:
-                    messages.error(request, f"{field_label}: {error}")
+                    errors_list.append(f"{field_label}: {error}")
+            
+            # Message d'erreur consolidé
+            if errors_list:
+                request.session['form_errors'] = errors_list
+    
     else:
         form = InscriptionFormSimplifiee()
     
-    # Types d'utilisateurs sans admin
     user_types_without_admin = [choice for choice in User.USER_TYPES if choice[0] != 'admin']
     
     context = {
@@ -445,7 +453,6 @@ def inscription(request):
     }
     
     return render(request, 'core/users/inscription.html', context)
-
 from django.contrib.auth import get_user_model
 
 @csrf_protect
@@ -471,7 +478,6 @@ def connexion(request):
     Returns:
         HttpResponse: Rendered login page or redirect to appropriate URL.
     """
-    """Page de connexion"""
     if request.user.is_authenticated:
         if request.user.user_type == 'admin':
             return redirect('tableau_de_bord')
@@ -526,7 +532,8 @@ def connexion(request):
             
             return redirect('accueil')
         else:
-            messages.error(request, "Identifiant ou mot de passe incorrect.")
+            # Message d'erreur amélioré
+            messages.error(request, "Invalid username/email or password. Please check your credentials and try again.")
     
     return render(request, 'core/users/connexion.html')
 

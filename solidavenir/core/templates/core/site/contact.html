@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Contact - Crowdfunding Platform{% endblock %}
+{% block title %}Contact - SolidAvenir{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <div class="container py-5">
     <div class="row">
         <!-- Platform Information Column -->
@@ -48,7 +50,7 @@
                     </div>
                 </div>
 
-                <div class="p-4 rounded" style="background-color: var(--gray-light);">
+                <div class="p-4 rounded" style="background-color: #f8f9fa;">
                     <h3 class="h4 mb-3">Frequently Asked Questions</h3>
                     <div class="accordion" id="faqAccordion">
                         <div class="accordion-item">
@@ -82,132 +84,131 @@
 
         <!-- Contact Form Column -->
         <div class="col-lg-5">
-            <div class="card shadow-lg">
-                <div class="card-header text-white" style="background-color: var(--primary-blue);">
-                    <h2 class="h4 mb-0">Contact Us</h2>
+            <div class="card shadow-lg border-0">
+                <div class="card-header text-white py-3" style="background-color: var(--primary-blue);">
+                    <h2 class="h4 mb-0">
+                        <i class="fas fa-envelope me-2"></i>Contact Us
+                    </h2>
                 </div>
                 <div class="card-body p-4">
                     <p class="text-muted mb-4">
                         Have a question, suggestion, or need assistance? Our team is here to help. Fill out this form and we'll respond promptly.
                     </p>
 
+                    <!-- Messages d'erreur globaux -->
                     {% if messages %}
                         {% for message in messages %}
                             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {% if message.tags == 'success' %}
+                                    <i class="fas fa-check-circle me-2"></i>
+                                {% else %}
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                {% endif %}
                                 {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         {% endfor %}
                     {% endif %}
 
-                    <form method="post" novalidate>
+                    <!-- Container pour les erreurs de validation -->
+                    <div id="form-errors-alert" class="alert alert-danger d-none" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span id="error-message"></span>
+                    </div>
+
+                    <form method="post" novalidate id="contactForm">
                         {% csrf_token %}
                         
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-
                         <!-- Subject Field -->
                         <div class="mb-3">
-                            <label for="{{ form.sujet.id_for_label }}" class="form-label">
-                                {{ form.sujet.label }}
-                                {% if form.sujet.field.required %}<span class="text-danger">*</span>{% endif %}
+                            <label for="{{ form.sujet.id_for_label }}" class="form-label fw-semibold text-dark mb-1">
+                                Subject *
                             </label>
                             <input 
                                 type="text" 
-                                class="form-control {% if form.sujet.errors %}is-invalid{% endif %}" 
+                                class="form-control" 
                                 id="{{ form.sujet.id_for_label }}" 
                                 name="{{ form.sujet.name }}" 
                                 value="{{ form.sujet.value|default_if_none:'' }}"
-                                placeholder="e.g., Blockchain explanation"
+                                placeholder="e.g., Project submission question"
+                                required
                             >
-                            {% if form.sujet.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.sujet.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
+                            <div class="form-text">
+                                Briefly describe the purpose of your message
+                            </div>
+                            <div class="invalid-feedback" data-field="sujet"></div>
                         </div>
 
                         <!-- Email Field -->
                         <div class="mb-3">
-                            <label for="{{ form.email.id_for_label }}" class="form-label">
-                                {{ form.email.label }}
-                                {% if form.email.field.required %}<span class="text-danger">*</span>{% endif %}
+                            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold text-dark mb-1">
+                                Your Email *
                             </label>
                             <input 
                                 type="email" 
-                                class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                                class="form-control" 
                                 id="{{ form.email.id_for_label }}" 
                                 name="{{ form.email.name }}" 
                                 value="{{ form.email.value|default_if_none:'' }}"
                                 placeholder="your@email.com"
+                                required
                             >
-                            {% if form.email.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.email.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
+                            <div class="form-text">
+                                We'll send our response to this address
+                            </div>
+                            <div class="invalid-feedback" data-field="email"></div>
                         </div>
 
                         <!-- Message Field -->
                         <div class="mb-3">
-                            <label for="{{ form.message.id_for_label }}" class="form-label">
-                                {{ form.message.label }}
-                                {% if form.message.field.required %}<span class="text-danger">*</span>{% endif %}
+                            <label for="{{ form.message.id_for_label }}" class="form-label fw-semibold text-dark mb-1">
+                                Message *
                             </label>
                             <textarea 
-                                class="form-control {% if form.message.errors %}is-invalid{% endif %}" 
+                                class="form-control" 
                                 id="{{ form.message.id_for_label }}" 
                                 name="{{ form.message.name }}" 
                                 rows="5"
                                 placeholder="Please describe your request in detail..."
+                                required
                             >{{ form.message.value|default_if_none:'' }}</textarea>
-                            {% if form.message.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.message.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
+                            <div class="form-text">
+                                Provide as much detail as possible so we can help you better
+                            </div>
+                            <div class="invalid-feedback" data-field="message"></div>
                         </div>
 
                         <!-- CAPTCHA Field -->
                         <div class="mb-4">
-                            <label for="{{ form.captcha_answer.id_for_label }}" class="form-label">
-                                {{ form.captcha_answer.label }}
-                                {% if form.captcha_answer.field.required %}<span class="text-danger">*</span>{% endif %}
+                            <label for="{{ form.captcha_answer.id_for_label }}" class="form-label fw-semibold text-dark mb-1">
+                                Security Question *
                             </label>
-                            <small class="form-text text-muted d-block mb-2">
-                                How much is <strong>{{ form.captcha_display_question }}</strong>?
-                            </small>
+                            <div class="card bg-light border-0 mb-2">
+                                <div class="card-body py-3">
+                                    <p class="mb-0 text-center">
+                                        <strong>How much is {{ form.captcha_display_question }}?</strong>
+                                    </p>
+                                </div>
+                            </div>
                             <input 
                                 type="text" 
-                                class="form-control {% if form.captcha_answer.errors %}is-invalid{% endif %}" 
+                                class="form-control" 
                                 id="{{ form.captcha_answer.id_for_label }}" 
                                 name="{{ form.captcha_answer.name }}" 
                                 value="{{ form.captcha_answer.value|default_if_none:'' }}"
-                                placeholder="Your answer"
+                                placeholder="Enter the result"
+                                required
                             >
+                            <div class="form-text">
+                                Simple math question to verify you're human
+                            </div>
                             {{ form.captcha_question }}
-                            {% if form.captcha_answer.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.captcha_answer.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
+                            <div class="invalid-feedback" data-field="captcha_answer"></div>
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-lg text-white" style="background-color: var(--primary-orange);">
+                            <button type="submit" class="btn btn-lg text-white py-3" id="submit-btn" style="background-color: var(--primary-orange);">
+                                <span class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
                                 <i class="fas fa-paper-plane me-2"></i>Send Message
                             </button>
                         </div>
@@ -225,7 +226,7 @@
                                     <i class="fas fa-envelope fa-2x text-white"></i>
                                 </div>
                                 <h5 class="card-title">Email</h5>
-                                <p class="card-text">support@solidavenir.org</p>
+                                <p class="card-text mb-0">support@solidavenir.org</p>
                             </div>
                         </div>
                     </div>
@@ -236,7 +237,7 @@
                                     <i class="fas fa-clock fa-2x text-white"></i>
                                 </div>
                                 <h5 class="card-title">Response Time</h5>
-                                <p class="card-text">Within 24-48 hours</p>
+                                <p class="card-text mb-0">Within 24-48 hours</p>
                             </div>
                         </div>
                     </div>
@@ -246,16 +247,259 @@
     </div>
     
     <!-- Additional Commitment Section -->
-    <div class="mt-5 p-4 rounded" style="background-color: var(--gray-light);">
+    <div class="mt-5 p-4 rounded" style="background-color: #f8f9fa;">
         <h3 class="h4 mb-3">Our Commitment to You</h3>
         <p>We are committed to:</p>
         <ul class="list-unstyled">
-            <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: var(--secondary-green);"></i>Responding to all inquiries promptly</li>
-            <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: var(--secondary-green);"></i>Considering all suggestions to improve our platform</li>
-            <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: var(--secondary-green);"></i>Providing personalized service tailored to your needs</li>
-            <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: var(--secondary-green);"></i>Ensuring the confidentiality of your personal data</li>
+            <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: #28a745;"></i>Responding to all inquiries promptly</li>
+            <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: #28a745;"></i>Considering all suggestions to improve our platform</li>
+            <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: #28a745;"></i>Providing personalized service tailored to your needs</li>
+            <li class="mb-2"><i class="fas fa-check-circle me-2" style="color: #28a745;"></i>Ensuring the confidentiality of your personal data</li>
         </ul>
         <p class="mb-0">We're proud to serve an engaged community open to dialogue. Your feedback helps us evolve our platform for collective benefit.</p>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- SweetAlert2 pour les messages smooth -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Style initial des champs
+    const styleFormFields = () => {
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.classList.add('form-control');
+        });
+    };
+    
+    styleFormFields();
+
+    // Validation en temps réel
+    const form = document.getElementById('contactForm');
+    const fields = form.querySelectorAll('input[required], textarea[required]');
+    
+    fields.forEach(field => {
+        field.addEventListener('blur', function() {
+            validateField(this);
+        });
+        
+        field.addEventListener('input', function() {
+            clearFieldError(this);
+        });
+    });
+
+    function validateField(field) {
+        const errorElement = form.querySelector(`[data-field="${field.name}"]`);
+        
+        if (!field.checkValidity()) {
+            field.classList.add('is-invalid');
+            if (errorElement) {
+                errorElement.textContent = getFieldErrorMessage(field);
+            }
+            return false;
+        } else {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+            if (errorElement) {
+                errorElement.textContent = '';
+            }
+            return true;
+        }
+    }
+
+    function clearFieldError(field) {
+        field.classList.remove('is-invalid');
+        const errorElement = form.querySelector(`[data-field="${field.name}"]`);
+        if (errorElement) {
+            errorElement.textContent = '';
+        }
+    }
+
+    function getFieldErrorMessage(field) {
+        if (field.validity.valueMissing) {
+            return 'This field is required.';
+        }
+        if (field.validity.typeMismatch) {
+            return 'Please enter a valid email address.';
+        }
+        if (field.validity.tooShort) {
+            return `Minimum ${field.minLength} characters required.`;
+        }
+        return 'Please correct this field.';
+    }
+
+    // Fonction pour afficher les erreurs de formulaire
+    function showFormError(message) {
+        const alertDiv = document.getElementById('form-errors-alert');
+        const errorMessage = document.getElementById('error-message');
+        
+        if (message) {
+            errorMessage.textContent = message;
+            alertDiv.classList.remove('d-none');
+            
+            // Scroll vers l'erreur
+            alertDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Cacher l'alerte après 8 secondes
+            setTimeout(() => {
+                alertDiv.classList.add('d-none');
+            }, 8000);
+        }
+    }
+
+    // Validation avant soumission
+    form.addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submit-btn');
+        const spinner = submitBtn.querySelector('.spinner-border');
+        
+        // Cacher les erreurs précédentes
+        document.getElementById('form-errors-alert').classList.add('d-none');
+        
+        // Validation de tous les champs
+        let isValid = true;
+        const errors = [];
+        
+        fields.forEach(field => {
+            if (!validateField(field)) {
+                isValid = false;
+                const fieldLabel = form.querySelector(`label[for="${field.id}"]`)?.textContent || field.name;
+                errors.push(`${fieldLabel}: ${getFieldErrorMessage(field)}`);
+            }
+        });
+
+        // Validation spécifique pour le CAPTCHA
+        const captchaAnswer = document.getElementById('{{ form.captcha_answer.id_for_label }}');
+        if (captchaAnswer && captchaAnswer.value.trim()) {
+            try {
+                const answer = parseInt(captchaAnswer.value.trim());
+                if (isNaN(answer)) {
+                    isValid = false;
+                    errors.push('Security Question: Please enter a valid number.');
+                }
+            } catch (e) {
+                isValid = false;
+                errors.push('Security Question: Please enter a valid number.');
+            }
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            showFormError('Please correct the errors highlighted in red.');
+            
+            // Message smooth avec SweetAlert
+            Swal.fire({
+                icon: 'warning',
+                title: 'Form Incomplete',
+                text: 'Please fill in all required fields correctly.',
+                timer: 4000,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        // Animation de chargement
+        submitBtn.disabled = true;
+        spinner.classList.remove('d-none');
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Sending message...';
+    });
+
+    // Gestion des messages Django avec SweetAlert
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Message Sent!',
+                    text: '{{ message }}',
+                    timer: 5000,
+                    showConfirmButton: true,
+                    confirmButtonColor: '#1a73e8'
+                });
+            {% elif message.tags == 'error' %}
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: '{{ message }}',
+                    timer: 5000,
+                    showConfirmButton: true
+                });
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    // Auto-focus sur le premier champ
+    const firstInput = document.getElementById('{{ form.sujet.id_for_label }}');
+    if (firstInput) firstInput.focus();
+});
+</script>
+
+<style>
+.is-valid {
+    border-color: #28a745 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='M2.3 6.73.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 3.6.4.4.4-.4'/%3e%3cpath d='M6 7v1.5'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.15);
+}
+
+.form-label {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.alert {
+    border-radius: 8px;
+    border: none;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+</style>
 {% endblock %}
