@@ -263,19 +263,19 @@
             <!-- Quick Actions -->
             <div class="card mb-4 shadow-sm">
                 <div class="card-body text-center">
-                    <h5 class="card-title text-primary mb-3">Actions Rapides</h5>
+                    <h5 class="card-title text-primary mb-3">Quick Actions</h5>
                     <div class="d-grid gap-2 mb-3">
                         <a href="#contact" class="btn btn-primary btn-lg">
-                            <i class="bi bi-envelope me-2"></i>Nous Contacter
+                            <i class="bi bi-envelope me-2"></i>Contact us
                         </a>
                         {% if association.site_web %}
                         <a href="{{ association.site_web }}" target="_blank" class="btn btn-outline-primary">
-                            <i class="bi bi-globe me-2"></i>Site Web
+                            <i class="bi bi-globe me-2"></i>Website
                         </a>
                         {% endif %}
                         {% if user.is_authenticated and est_membre %}
                         <a href="{% url 'modifier_profil_association' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-pencil me-2"></i>Modifier le Profil
+                            <i class="bi bi-pencil me-2"></i>Edit Profil
                         </a>
                         {% endif %}
                     </div>
@@ -286,31 +286,31 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title text-primary mb-3">
-                        <i class="bi bi-graph-up me-2"></i>Statistiques Clés
+                        <i class="bi bi-graph-up me-2"></i>Key Statistics
                     </h5>
                     
                     {% if association.nombre_adherents %}
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <span class="text-muted">Membres</span>
+                        <span class="text-muted">Members</span>
                         <strong class="text-primary">{{ association.nombre_adherents|intcomma }}</strong>
                     </div>
                     {% endif %}
                     
                     {% if association.nombre_beneficiaires %}
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <span class="text-muted">Bénéficiaires</span>
+                        <span class="text-muted">Beneficiaries</span>
                         <strong class="text-primary">{{ association.nombre_beneficiaires|intcomma }}</strong>
                     </div>
                     {% endif %}
                     
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <span class="text-muted">Projets Actifs</span>
+                        <span class="text-muted">Active Projects</span>
                         <strong class="text-primary">{{ association.get_projets_actifs.count }}</strong>
                     </div>
                     
                     {% if association.get_total_collecte %}
                     <div class="d-flex justify-content-between align-items-center py-2">
-                        <span class="text-muted">Total Collecté</span>
+                        <span class="text-muted">Total Raised</span>
                         <strong class="text-success">{{ association.get_total_collecte|intcomma }} FCFA</strong>
                     </div>
                     {% endif %}
@@ -322,19 +322,19 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title text-primary mb-3">
-                        <i class="bi bi-shield-check me-2"></i>Transparence
+                        <i class="bi bi-shield-check me-2"></i>Transparency
                     </h5>
                     <div class="small">
                         {% if association.transparent_finances %}
                         <div class="d-flex align-items-center mb-2">
                             <i class="bi bi-check-circle-fill text-success me-2"></i>
-                            <span>Transparence Financière</span>
+                            <span>Financial Transparency</span>
                         </div>
                         {% endif %}
                         {% if association.transparent_actions %}
                         <div class="d-flex align-items-center">
                             <i class="bi bi-check-circle-fill text-success me-2"></i>
-                            <span>Transparence des Actions</span>
+                            <span>Action Transparency</span>
                         </div>
                         {% endif %}
                     </div>
@@ -346,7 +346,7 @@
             {% if association.facebook or association.twitter or association.linkedin or association.instagram %}
             <div class="card shadow-sm">
                 <div class="card-body text-center">
-                    <h5 class="card-title text-primary mb-3">Nous Suivre</h5>
+                    <h5 class="card-title text-primary mb-3">Follow us</h5>
                     <div class="d-flex justify-content-center gap-3">
                         {% if association.facebook %}
                         <a href="{{ association.facebook }}" target="_blank" class="social-btn bg-primary text-white">
@@ -385,7 +385,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-body">
                     <h3 class="card-title text-primary mb-3">
-                        <i class="bi bi-bullseye me-2"></i>Domaine d'Action
+                        <i class="bi bi-bullseye me-2"></i>Field of Action
                     </h3>
                     <div class="mb-3">
                         <span class="badge-domain">{{ association.get_domaine_principal_display }}</span>
@@ -396,7 +396,7 @@
                     
                     {% if association.domaines_secondaires %}
                     <div class="mt-3">
-                        <h6 class="text-primary">Domaines Secondaires :</h6>
+                        <h6 class="text-primary">Secondary Domains :</h6>
                         <div class="d-flex flex-wrap gap-2">
                             {% for domaine in association.domaines_secondaires.split %}
                             <span class="badge bg-light text-dark">{{ domaine.strip }}</span>
@@ -412,7 +412,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-body">
                     <h3 class="card-title text-primary mb-3">
-                        <i class="bi bi-flag me-2"></i>Notre Mission
+                        <i class="bi bi-flag me-2"></i>Our Mission
                     </h3>
                     <div class="text-muted fs-6">
                         {{ association.description_longue|linebreaks }}
@@ -427,7 +427,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h3 class="card-title text-primary mb-0">
-                            <i class="bi bi-rocket-takeoff me-2"></i>Projets Actifs
+                            <i class="bi bi-rocket-takeoff me-2"></i>Active Projects 
                         </h3>
                         <span class="badge bg-primary fs-6">{{ association.get_projets_actifs.count }} projets</span>
                     </div>
@@ -461,8 +461,8 @@
                                     </div>
                                     
                                     <div class="d-flex justify-content-between small text-muted mb-3">
-                                        <span>{{ projet.pourcentage_financement }}% financé</span>
-                                        <span>{{ projet.jours_restants }} jours restants</span>
+                                        <span>{{ projet.pourcentage_financement }}% funded</span>
+                                        <span>{{ projet.jours_restants }} days left </span>
                                     </div>
                                     
                                     <div class="d-flex justify-content-between align-items-center mt-auto">
@@ -471,7 +471,7 @@
                                         </strong>
                                         <a href="{% url 'detail_projet' projet.audit_uuid %}" 
                                            class="btn btn-primary btn-sm">
-                                            <i class="bi bi-heart me-1"></i>Soutenir
+                                            <i class="bi bi-heart me-1"></i>Support
                                         </a>
                                     </div>
                                 </div>
@@ -488,7 +488,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-body">
                     <h3 class="card-title text-primary mb-3">
-                        <i class="bi bi-star-fill text-warning me-2"></i>Projets Phares
+                        <i class="bi bi-star-fill text-warning me-2"></i>Flagship Projects
                     </h3>
                     <div class="text-muted fs-6">
                         {{ association.projets_phares|linebreaks }}
@@ -502,7 +502,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-body">
                     <h3 class="card-title text-primary mb-3">
-                        <i class="bi bi-list-task text-info me-2"></i>Initiatives en Cours
+                        <i class="bi bi-list-task text-info me-2"></i>Current Initiatives 
                     </h3>
                     <div class="text-muted fs-6">
                         {{ association.actions_en_cours|linebreaks }}
@@ -516,7 +516,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-body">
                     <h3 class="card-title text-primary mb-3">
-                        <i class="bi bi-handshake text-success me-2"></i>Partenariats
+                        <i class="bi bi-handshake text-success me-2"></i>Partnership
                     </h3>
                     <div class="text-muted fs-6">
                         {{ association.partenariats|linebreaks }}
@@ -529,7 +529,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-body">
                     <h3 class="card-title text-primary mb-3">
-                        <i class="bi bi-images text-info me-2"></i>Galerie Photos
+                        <i class="bi bi-images text-info me-2"></i>Photo Galery
                     </h3>
                     
                     {% if association.images.exists %}
@@ -554,12 +554,12 @@
                     
                     <div class="mt-4 d-flex flex-wrap gap-2">
                         <a href="{% url 'association_images_list' association.slug %}" class="btn btn-outline-primary">
-                            <i class="bi bi-eye me-1"></i>Voir toutes les photos ({{ association.images.count }})
+                            <i class="bi bi-eye me-1"></i>View all photos ({{ association.images.count }})
                         </a>
                         
                         {% if user.is_authenticated and est_membre %}
                         <a href="{% url 'upload_association_image' association.slug %}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle me-1"></i>Ajouter une photo
+                            <i class="bi bi-plus-circle me-1"></i>Add a photo
                         </a>
                         {% endif %}
                     </div>
@@ -567,11 +567,11 @@
                     {% else %}
                     <div class="text-center py-5">
                         <i class="bi bi-images text-muted" style="font-size: 4rem;"></i>
-                        <p class="text-muted mt-3 fs-6">Aucune photo disponible pour le moment.</p>
+                        <p class="text-muted mt-3 fs-6"> No photos available at the moment.</p>
                         
                         {% if user.is_authenticated and est_membre %}
                         <a href="{% url 'upload_association_image' association.slug %}" class="btn btn-primary mt-2">
-                            <i class="bi bi-plus-circle me-1"></i>Ajouter la première photo
+                            <i class="bi bi-plus-circle me-1"></i>Add the first photo
                         </a>
                         {% endif %}
                     </div>
@@ -583,7 +583,7 @@
             <div class="card shadow-sm" id="contact">
                 <div class="card-body">
                     <h3 class="card-title text-primary mb-4">
-                        <i class="bi bi-envelope me-2"></i>Informations de Contact
+                        <i class="bi bi-envelope me-2"></i>Contact Information 
                     </h3>
                     
                     <div class="row">
@@ -591,7 +591,7 @@
                         <div class="col-md-6 mb-4">
                             <div class="contact-info">
                                 <h5 class="text-primary mb-3">
-                                    <i class="bi bi-geo-alt me-2"></i>Adresse
+                                    <i class="bi bi-geo-alt me-2"></i>Address
                                 </h5>
                                 <p class="mb-0 text-muted fs-6">
                                     {{ association.adresse_siege }}<br>
@@ -606,7 +606,7 @@
                         <div class="col-md-6 mb-4">
                             <div class="contact-info">
                                 <h5 class="text-primary mb-3">
-                                    <i class="bi bi-person me-2"></i>Coordonnées
+                                    <i class="bi bi-person me-2"></i>Contact Details
                                 </h5>
                                 <p class="mb-2 text-muted fs-6">
                                     {% if association.telephone %}
@@ -629,15 +629,15 @@
                         <div class="col-md-6">
                             <div class="contact-info">
                                 <h5 class="text-primary mb-3">
-                                    <i class="bi bi-file-text me-2"></i>Informations Juridiques
+                                    <i class="bi bi-file-text me-2"></i>Legal Information
                                 </h5>
                                 <p class="mb-2 text-muted fs-6">
-                                    <strong>Numéro d'agrément :</strong> {{ association.numero_agrement }}<br>
+                                    <strong>Accreditation number :</strong> {{ association.numero_agrement }}<br>
                                     {% if association.date_creation_association %}
-                                    <strong>Créée le :</strong> {{ association.date_creation_association|date:"d/m/Y" }}<br>
+                                    <strong>Created on :</strong> {{ association.date_creation_association|date:"d/m/Y" }}<br>
                                     {% endif %}
                                     {% if association.date_agrement %}
-                                    <strong>Agrément le :</strong> {{ association.date_agrement|date:"d/m/Y" }}
+                                    <strong>Accredited on :</strong> {{ association.date_agrement|date:"d/m/Y" }}
                                     {% endif %}
                                 </p>
                             </div>
