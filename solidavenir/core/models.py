@@ -1259,9 +1259,6 @@ class Association(models.Model):
             self.slug = slug
         super().save(*args, **kwargs)
 
-
-
-
 class AssociationImage(models.Model):
     """
     Model representing gallery images linked to an Association.
