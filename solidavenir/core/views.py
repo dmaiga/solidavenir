@@ -3541,14 +3541,15 @@ def creer_topic_pour_projet(projet, utilisateur):
     Raises:
         Exception: If the microservice is unavailable, times out, or returns an error.
     """
-    """
-    Crée un topic HCS pour un projet via le microservice Node.js
-    et journalise l'action avec l'utilisateur à l'origine.
-    """
     url = "http://localhost:3001/create-topic"
+    
+    # Créer un mémo tronqué à 100 caractères maximum
+    memo_base = f"Project {projet.titre}"
+    memo = memo_base[:100]  # Tronquer à 100 caractères
+    
     try:
         response = requests.post(url, json={
-            "memo": f"Projet {projet.titre} - {projet.audit_uuid}"
+            "memo": memo
         }, timeout=30)  
         response.raise_for_status() 
         data = response.json()
@@ -3576,7 +3577,8 @@ def creer_topic_pour_projet(projet, utilisateur):
                     'projet': projet.titre,
                     'projet_uuid': str(projet.audit_uuid),
                     'transaction_hash': data.get("transactionId", ""),
-                    'hashscan_url': data.get("hashscanUrl", "")
+                    'hashscan_url': data.get("hashscanUrl", ""),
+                    'memo_utilise': memo  # Ajouter le mémo utilisé pour traçabilité
                 },
                 adresse_ip=getattr(utilisateur, "last_login_ip", "127.0.0.1")
             )
@@ -3597,7 +3599,6 @@ def creer_topic_pour_projet(projet, utilisateur):
     except Exception as e:
         logger.error(f"Erreur création topic pour projet {projet.id}: {e}")
         raise e
-
 
 def envoyer_don_hcs(topic_id, utilisateur_email, montant, transaction_hash, type_message="distribution_palier"):
     """
