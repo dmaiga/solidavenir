@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Ajouter un Palier - {{ projet.titre }}{% endblock %}
+{% block title %}Add a Milestone - {{ projet.titre }}{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -10,44 +10,44 @@
             <div class="card">
                 <div class="card-header">
                     <h4 class="card-title mb-0">
-                        <i class="fas fa-plus me-2"></i>Ajouter un Palier
+                        <i class="fas fa-plus me-2"></i>Add a Milestone
                     </h4>
                 </div>
                 <div class="card-body">
                     <p class="text-muted mb-4">
-                        Projet : <strong>{{ projet.titre }}</strong><br>
-                        Montant restant à assigner : <strong>{{ montant_restant|floatformat:0 }} FCFA</strong>
+                        Project: <strong>{{ projet.titre }}</strong><br>
+                        Remaining amount to assign: <strong>{{ montant_restant|floatformat:0 }} FCFA</strong>
                     </p>
 
                     <form method="post">
                         {% csrf_token %}
                         
                         <div class="mb-3">
-                            <label for="{{ form.titre.id_for_label }}" class="form-label">Titre du palier *</label>
+                            <label for="{{ form.titre.id_for_label }}" class="form-label">Milestone Title *</label>
                             {{ form.titre }}
-                            <div class="form-text">Ex: "Achat des matériaux", "Construction phase 1"</div>
+                            <div class="form-text">Ex: "Purchase materials", "Construction phase 1"</div>
                         </div>
                         
                         <div class="mb-3">
                             <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
                             {{ form.description }}
-                            <div class="form-text">Décrivez comment ces fonds seront utilisés</div>
+                            <div class="form-text">Describe how these funds will be used</div>
                         </div>
                         
                         <div class="mb-4">
-                            <label for="{{ form.montant.id_for_label }}" class="form-label">Montant (FCFA) *</label>
+                            <label for="{{ form.montant.id_for_label }}" class="form-label">Amount (FCFA) *</label>
                             {{ form.montant }}
                             <div class="form-text">
-                                Maximum possible : <strong>{{ montant_restant|floatformat:0 }} FCFA</strong>
+                                Maximum allowed: <strong>{{ montant_restant|floatformat:0 }} FCFA</strong>
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'gerer_paliers' projet.id %}" class="btn btn-outline-secondary">
-                                Annuler
+                                Cancel
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>Ajouter le palier
+                                <i class="fas fa-save me-2"></i>Add Milestone
                             </button>
                         </div>
                     </form>

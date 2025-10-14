@@ -7,23 +7,23 @@
 <div class="container py-5">
     <div class="row mb-4">
         <div class="col">
-            <h1 class="h2">Mes Projets</h1>
-            <p class="text-muted">Gérez tous vos projets de financement participatif</p>
+            <h1 class="h2">My Projects</h1>
+            <p class="text-muted">Manage all your crowdfunding projects</p>
         </div>
         <div class="col-auto">
             <a href="{% url 'creer_projet' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Nouveau Projet
+                <i class="fas fa-plus"></i> New Project
             </a>
         </div>
     </div>
 
-    <!-- Statistiques -->
+    <!-- Statistics -->
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="card bg-light">
                 <div class="card-body text-center">
                     <h3>{{ stats.total_projets }}</h3>
-                    <p class="text-muted mb-0">Projets total</p>
+                    <p class="text-muted mb-0">Total Projects</p>
                 </div>
             </div>
         </div>
@@ -31,7 +31,7 @@
             <div class="card bg-light">
                 <div class="card-body text-center">
                     <h3>{{ stats.projets_actifs }}</h3>
-                    <p class="text-muted mb-0">Projets actifs</p>
+                    <p class="text-muted mb-0">Active Projects</p>
                 </div>
             </div>
         </div>
@@ -39,7 +39,7 @@
             <div class="card bg-light">
                 <div class="card-body text-center">
                     <h3>{{ stats.total_collecte|intcomma }} FCFA</h3>
-                    <p class="text-muted mb-0">Total collecté</p>
+                    <p class="text-muted mb-0">Total Collected</p>
                 </div>
             </div>
         </div>
@@ -47,13 +47,13 @@
             <div class="card bg-light">
                 <div class="card-body text-center">
                     <h3>{{ stats.pourcentage_global }}%</h3>
-                    <p class="text-muted mb-0">Objectif global</p>
+                    <p class="text-muted mb-0">Global Goal</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Liste des projets -->
+    <!-- Projects list -->
     <div class="card">
         <div class="card-body">
             {% if projets %}
@@ -61,14 +61,14 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Projet</th>
-                            <th>Statut</th>
-                            <th>Montant</th>
-                            <th>Collecté</th>
-                            <th>Paliers</th>
-                            <th>Gestion Paliers</th>
-                            <th>Contributeurs</th>
-                            <th>Date création</th>
+                            <th>Project</th>
+                            <th>Status</th>
+                            <th>Amount</th>
+                            <th>Collected</th>
+                            <th>Tiers</th>
+                            <th>Tier Management</th>
+                            <th>Contributors</th>
+                            <th>Creation Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -100,7 +100,7 @@
                                 <small>{{ projet.montant_collecte|intcomma }} FCFA</small>
                             </td>
                             <td>
-                                <!-- Affichage des paliers -->
+                                <!-- Tiers display -->
                                 <div class="paliers-container">
                                     {% for palier in projet.paliers.all %}
                                     <div class="palier-item mb-2 p-2 border rounded">
@@ -111,24 +111,24 @@
                                             </small>
                                             <div>
                                                 {% if palier.transfere %}
-                                                    <span class="badge bg-success" title="Transféré le {{ palier.date_transfert|date:'d/m/Y' }}">
-                                                        <i class="fas fa-check"></i> Payé
+                                                    <span class="badge bg-success" title="Transferred on {{ palier.date_transfert|date:'d/m/Y' }}">
+                                                        <i class="fas fa-check"></i> Paid
                                                     </span>
                                                 {% elif palier.montant_minimum <= projet.montant_engage %}
-                                                    <!-- Vérifier si des preuves existent -->
+                                                    <!-- Check if proofs exist -->
                                                     {% with palier.preuves.first as preuve %}
                                                         {% if preuve %}
                                                             {% if preuve.statut == 'approuve' %}
                                                                 <span class="badge bg-info">
-                                                                    <i class="fas fa-check-double"></i> Approuvé
+                                                                    <i class="fas fa-check-double"></i> Approved
                                                                 </span>
                                                             {% elif preuve.statut == 'en_attente' %}
                                                                 <span class="badge bg-warning">
-                                                                    <i class="fas fa-clock"></i> En vérification
+                                                                    <i class="fas fa-clock"></i> Under Review
                                                                 </span>
                                                             {% elif preuve.statut == 'rejete' %}
                                                                 <span class="badge bg-danger">
-                                                                    <i class="fas fa-times"></i> Rejeté
+                                                                    <i class="fas fa-times"></i> Rejected
                                                                 </span>
                                                             {% elif preuve.statut == 'modification' %}
                                                                 <span class="badge bg-warning">
@@ -138,19 +138,19 @@
                                                         {% else %}
                                                             <a href="{% url 'soumettre_preuves_palier' palier.id %}" 
                                                                class="btn btn-warning btn-sm">
-                                                               <i class="fas fa-file-upload"></i> Preuves
+                                                               <i class="fas fa-file-upload"></i> Proofs
                                                             </a>
                                                         {% endif %}
                                                     {% endwith %}
                                                 {% else %}
                                                     <span class="badge bg-secondary">
-                                                        Seuil: {{ palier.montant_minimum|intcomma }} FCFA
+                                                        Threshold: {{ palier.montant_minimum|intcomma }} FCFA
                                                     </span>
                                                 {% endif %}
                                             </div>
                                         </div>
                                         
-                                        <!-- Barre de progression du palier -->
+                                        <!-- Tier progress bar -->
                                         <div class="progress mt-1" style="height: 5px;">
                                             {% if palier.montant_minimum <= projet.montant_engage %}
                                                 <div class="progress-bar bg-success" style="width: 100%"></div>
@@ -163,45 +163,45 @@
                                     </div>
                                     {% empty %}
                                     <div class="text-center text-muted py-2">
-                                        <small>Aucun palier défini</small>
+                                        <small>No tiers defined</small>
                                     </div>
                                     {% endfor %}
                                 </div>
                             </td>
                             <td>
-                                <!-- NOUVELLE COLONNE : Gestion des paliers -->
+                                <!-- NEW COLUMN: Tiers management -->
                                 <div class="btn-group-vertical btn-group-sm">
                                     {% if projet.statut in 'brouillon en_attente actif' %}
                                         <a href="{% url 'gerer_paliers' projet.id %}" 
                                            class="btn btn-outline-primary mb-1"
-                                           title="Gérer les paliers de financement">
-                                            <i class="fas fa-chart-line"></i> Gérer
+                                           title="Manage funding tiers">
+                                            <i class="fas fa-chart-line"></i> Manage
                                         </a>
                                         
                                         {% if projet.paliers.count == 0 %}
                                             <a href="{% url 'ajouter_palier' projet.id %}" 
                                                class="btn btn-success btn-sm"
-                                               title="Ajouter le premier palier">
-                                                <i class="fas fa-plus"></i> Premier palier
+                                               title="Add first tier">
+                                                <i class="fas fa-plus"></i> First Tier
                                             </a>
                                         {% else %}
                                             <a href="{% url 'ajouter_palier' projet.id %}" 
                                                class="btn btn-outline-success btn-sm"
-                                               title="Ajouter un nouveau palier">
-                                                <i class="fas fa-plus"></i> Ajouter
+                                               title="Add new tier">
+                                                <i class="fas fa-plus"></i> Add
                                             </a>
                                         {% endif %}
                                     {% else %}
-                                        <span class="badge bg-secondary">Non modifiable</span>
+                                        <span class="badge bg-secondary">Not modifiable</span>
                                     {% endif %}
                                 </div>
                                 
-                                <!-- Résumé des paliers -->
+                                <!-- Tiers summary -->
                                 {% if projet.paliers.count > 0 %}
                                 <div class="mt-2 small text-center">
                                     <div class="text-success">
                                         <i class="fas fa-check-circle"></i>
-                                        {{ projet.paliers.count }} palier(s)
+                                        {{ projet.paliers.count }} tier(s)
                                     </div>
                                     <div class="text-muted">
                                         Total: {{ projet.paliers_total|intcomma }} FCFA
@@ -214,21 +214,24 @@
                             <td>
                                 <div class="btn-group-vertical">
                                     <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-sm btn-outline-primary mb-1">
-                                        <i class="fas fa-eye"></i> Voir
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <a href="{% url 'ajouter_images_projet' projet.audit_uuid %}" class="btn btn-sm btn-outline-primary mb-1">
+                                        <i class="fas fa-images"></i> Add Images
                                     </a>
                                     
                                     <a href="{% url 'modifier_projet' projet.audit_uuid %}" class="btn btn-sm btn-outline-secondary mb-1">
-                                        <i class="fas fa-edit"></i> Modifier
+                                        <i class="fas fa-edit"></i> Edit
                                     </a>
                                     
-                                    <!-- Actions spécifiques selon le statut -->
+                                    <!-- Specific actions based on status -->
                                     {% if projet.statut == 'brouillon' %}
                                     <form method="post" action="{% url 'mes_projets' %}" class="mb-1">
                                         {% csrf_token %}
                                         <input type="hidden" name="projet_id" value="{{ projet.id }}">
                                         <input type="hidden" name="action" value="soumettre">
                                         <button type="submit" class="btn btn-sm btn-success w-100">
-                                            <i class="fas fa-paper-plane"></i> Soumettre
+                                            <i class="fas fa-paper-plane"></i> Submit
                                         </button>
                                     </form>
                                     {% elif projet.statut == 'en_attente' %}
@@ -237,33 +240,33 @@
                                         <input type="hidden" name="projet_id" value="{{ projet.id }}">
                                         <input type="hidden" name="action" value="annuler">
                                         <button type="submit" class="btn btn-sm btn-warning w-100">
-                                            <i class="fas fa-times"></i> Annuler
+                                            <i class="fas fa-times"></i> Cancel
                                         </button>
                                     </form>
                                     {% endif %}
                                     
                                     {% if projet.statut in 'brouillon rejete' %}
                                     <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ projet.id }}">
-                                        <i class="fas fa-trash"></i> Supprimer
+                                        <i class="fas fa-trash"></i> Delete
                                     </button>
                                     {% endif %}
                                 </div>
 
-                                <!-- Modal de suppression -->
+                                <!-- Delete Modal -->
                                 <div class="modal fade" id="deleteModal{{ projet.id }}" tabindex="-1">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title">Confirmer la suppression</h5>
+                                                <h5 class="modal-title">Confirm Deletion</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <p>Êtes-vous sûr de vouloir supprimer le projet "{{ projet.titre }}" ?</p>
-                                                <p class="text-danger"><strong>Cette action est irréversible.</strong></p>
+                                                <p>Are you sure you want to delete the project "{{ projet.titre }}" ?</p>
+                                                <p class="text-danger"><strong>This action is irreversible.</strong></p>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                <a href="{% url 'supprimer_projet' projet.audit_uuid %}" class="btn btn-danger">Supprimer</a>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <a href="{% url 'supprimer_projet' projet.audit_uuid %}" class="btn btn-danger">Delete</a>
                                             </div>
                                         </div>
                                     </div>
@@ -277,10 +280,10 @@
             {% else %}
             <div class="text-center py-5">
                 <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
-                <h4>Aucun projet créé</h4>
-                <p class="text-muted">Commencez par créer votre premier projet de financement participatif</p>
+                <h4>No Projects Created</h4>
+                <p class="text-muted">Start by creating your first crowdfunding project</p>
                 <a href="{% url 'creer_projet' %}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Créer un projet
+                    <i class="fas fa-plus"></i> Create a Project
                 </a>
             </div>
             {% endif %}
@@ -311,7 +314,7 @@
     margin-bottom: 2px;
 }
 
-/* Style pour la nouvelle colonne */
+/* Style for new column */
 .table td:nth-child(6) {
     min-width: 150px;
 }

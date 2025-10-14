@@ -431,6 +431,7 @@ class AssociationForm(forms.ModelForm):
             'transparent_finances', 'transparent_actions'
         ])
 
+
 class AssociationImageForm(forms.ModelForm):
     """
        

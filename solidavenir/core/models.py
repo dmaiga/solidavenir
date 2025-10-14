@@ -739,11 +739,11 @@ class Projet(models.Model):
         """
         Returns the number of days remaining until the campaign ends.
         """
-        if self.date_fin:
-            delta = self.date_fin - timezone.now()
-            return max(0, delta.days)
-        return 0
-
+        base_date = self.date_fin or (
+            (self.date_debut or self.date_creation) + timedelta(days=self.duree_campagne)
+        )
+        delta = base_date - timezone.now()
+        return max(0, delta.days)
     @property
     def jours_ecoules(self):
         """
@@ -1487,6 +1487,7 @@ class PreuvePalier(models.Model):
         if self.statut in ['approuve', 'rejete', 'modification'] and not self.date_verification:
             self.date_verification = timezone.now()
         super().save(*args, **kwargs)
+        
         
 class FichierPreuve(models.Model):
     """

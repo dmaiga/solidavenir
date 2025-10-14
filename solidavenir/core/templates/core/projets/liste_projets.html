@@ -271,12 +271,12 @@
                     
                     <div class="d-flex justify-content-between stats-info mb-2">
                         <span>{{ projet.pourcentage_financement|default:0 }}% funded</span>
-                        <span>{{ projet.duree_restante }} days remaining</span>
+                        <span>{{ projet.jours_restants }} days remaining</span>
                     </div>
                     
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <strong class="text-primary">{{ projet.montant_collectes|default:0|floatformat:0 }} FCFA</strong>
-                        <span class="text-muted">of {{ projet.montant_demande|floatformat:0 }} FCFA</span>
+                        <strong class="text-primary">{{ projet.montant_collectes|default:0|floatformat:0 }} HBAR</strong>
+                        <span class="text-muted">of {{ projet.montant_demande|floatformat:0 }} HBAR</span>
                     </div>
                     
                     <div class="d-flex justify-content-between align-items-center">

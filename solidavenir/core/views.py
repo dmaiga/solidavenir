@@ -1883,7 +1883,7 @@ def soumettre_preuves_palier(request, palier_id):
                     objet_id=str(palier.id),
                     details={
                         'projet': projet.titre,
-                        'palier': f"{palier.pourcentage}%",
+                        'palier': f"{palier.titre}%",
                         'fichiers': len(fichiers_uploades),
                         'types_fichiers': [f.type_fichier for f in fichiers_uploades],
                         'statut': 'en_attente'
@@ -1970,38 +1970,13 @@ def detail_membre(request, user_id):
     
     return render(request, 'core/admin/detail_membre.html', context)
 
+
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
 def gerer_distributions(request):
-
     """
     Admin interface to manage milestone-based fund distributions for projects.
-
-    This view provides a comprehensive dashboard for administrators to:
-    - Review all eligible projects with committed and distributed amounts.
-    - Monitor each milestone (palier) including submission status, proof approval, 
-      and whether funds can be released.
-    - Calculate and display metrics such as total committed, distributed, and available funds.
-    - Trigger fund transfers for approved milestones, including HBAR transfers 
-      via Hedera and notifications to project owners.
-    - Log all actions in the AuditLog for traceability and compliance.
-
-    POST requests allow administrators to:
-    - Distribute funds for a specific milestone after verifying proofs and availability.
-    - Redirect to proof verification pages if necessary.
-
-    Context variables for template rendering:
-    - distributions: List of projects with detailed milestone info.
-    - total_engage: Sum of all committed amounts across projects.
-    - total_distribue: Sum of all distributed amounts across projects.
-    - total_disponible: Sum of available funds for distribution.
-    - total_paliers_attente: Total number of milestones pending distribution.
-    - total_paliers_distribuables: Total number of milestones ready for distribution.
     """
-
-    """Interface admin pour libérer les fonds selon les paliers avec vérification des preuves"""
-    
-
     
     # Récupérer les projets éligibles
     projets = Projet.objects.filter(
@@ -2033,7 +2008,6 @@ def gerer_distributions(request):
         for palier in projet.paliers.order_by('montant_minimum'):
             # Gestion des valeurs None pour les montants des paliers
             palier_montant = float(palier.montant or 0)
-            palier_pourcentage = float(palier.pourcentage or 0)
             
             # Vérifier le statut des preuves
             try:
@@ -2055,7 +2029,7 @@ def gerer_distributions(request):
             
             palier_data = {
                 'id': palier.id,
-                'pourcentage': palier_pourcentage,
+                'titre': palier.titre,  # Utiliser le titre au lieu du pourcentage
                 'montant': palier_montant,
                 'transfere': palier.transfere,
                 'date_transfert': palier.date_transfert,
@@ -2064,7 +2038,8 @@ def gerer_distributions(request):
                 'preuve_id': preuve_id,
                 'distributable': distributable,
                 'montant_suffisant': montant_disponible >= palier_montant,
-                'preuve_requise': not palier.transfere and statut_preuve != 'approuve'
+                'preuve_requise': not palier.transfere and statut_preuve != 'approuve',
+                'description': palier.description  # Ajouter la description pour l'affichage
             }
             
             paliers_avec_statut.append(palier_data)
@@ -2134,7 +2109,7 @@ def gerer_distributions(request):
                 resultat = transfer_from_admin_to_doer(
                     projet=projet,
                     porteur=projet.porteur,
-                    montant_brut=palier_montant,  # Utiliser la valeur convertie
+                    montant_brut=palier_montant,
                     palier=palier,
                     initiateur=request.user 
                 )
@@ -2240,7 +2215,6 @@ def gerer_distributions(request):
     }
     
     return render(request, 'core/admin/gerer_distributions.html', context)
-
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
 def liste_associations_admin(request):
@@ -3154,7 +3128,7 @@ def verifier_preuves_palier(request, palier_id):
                     objet_id=str(preuve.id),
                     details={
                         'projet': projet.titre,
-                        'palier': f"{palier.pourcentage}%",
+                        'palier': f"{palier.titre}%",
                         'montant': float(palier.montant),
                         'fichiers': len(fichiers),
                         'statut': 'approuve'
@@ -3180,7 +3154,7 @@ def verifier_preuves_palier(request, palier_id):
                     objet_id=str(preuve.id),
                     details={
                         'projet': projet.titre,
-                        'palier': f"{palier.pourcentage}%",
+                        'palier': f"{palier.titre}%",
                         'commentaires': commentaires,
                         'statut': 'rejete'
                     },
@@ -3203,7 +3177,7 @@ def verifier_preuves_palier(request, palier_id):
                     objet_id=str(preuve.id),
                     details={
                         'projet': projet.titre,
-                        'palier': f"{palier.pourcentage}%",
+                        'palier': f"{palier.titre}%",
                         'commentaires': commentaires,
                         'statut': 'modification'
                     },
@@ -4146,7 +4120,7 @@ def notifier_soumission_preuve_hcs(projet, palier, nb_fichiers):
     """Notifier dans HCS la soumission de preuves d'un palier"""
     details = {
         "projet": projet.titre,
-        "palier": f"{palier.pourcentage}%",
+        "palier": f"{palier.titre}%",
         "fichiers": nb_fichiers,
         "statut": "en_attente"
     }
@@ -4184,67 +4158,80 @@ def envoyer_notification_porteur(porteur, palier, action, commentaires=""):
     message = ""
 
     if action == 'approuve':
-        sujet = f"✅ Palier {palier.pourcentage}% approuvé - {projet.titre}"
+        sujet = f"✅ Palier {palier.titre} approuvé - {projet.titre}"
         message = f"""
         Bonjour {porteur.get_full_name()},
 
-        Félicitations ! Les preuves que vous avez soumises pour le palier {palier.pourcentage}% 
+        Félicitations ! Les preuves que vous avez soumises pour le palier "{palier.titre}" 
         de votre projet "{projet.titre}" ont été approuvées.
 
-        Montant du palier : {palier.montant} HBAR
-        Prochaines étapes : Le transfert des fonds sera effectué sous peu.
+        📊 DÉTAILS DU PALIER :
+        • Titre : {palier.titre}
+        • Montant du palier : {palier.montant} HBAR
+        • Description : {palier.description}
+
+        🎯 Prochaines étapes : Le transfert des fonds sera effectué sous peu.
 
         Cordialement,
-        L'équipe SolidChain
+        L'équipe SolidAvenir
         """
         type_email = "project_approved"
 
     elif action == 'rejete':
-        sujet = f"❌ Palier {palier.pourcentage}% nécessite des modifications - {projet.titre}"
+        sujet = f"❌ Palier {palier.titre} nécessite des modifications - {projet.titre}"
         message = f"""
         Bonjour {porteur.get_full_name()},
 
-        Les preuves soumises pour le palier {palier.pourcentage}% de votre projet 
+        Les preuves soumises pour le palier "{palier.titre}" de votre projet 
         "{projet.titre}" nécessitent des modifications.
 
-        Commentaires de l'administrateur :
+        📋 DÉTAILS DU PALIER :
+        • Titre : {palier.titre}
+        • Montant : {palier.montant} HBAR
+
+        💬 Commentaires de l'administrateur :
         {commentaires}
 
         Veuillez soumettre de nouvelles preuves en vous connectant à votre espace.
 
         Cordialement,
-        L'équipe SolidChain
+        L'équipe SolidAvenir
         """
         type_email = "project_rejected"
 
     elif action == 'modification':
-        sujet = f"📝 Modifications requises - Palier {palier.pourcentage}% - {projet.titre}"
+        sujet = f"📝 Modifications requises - Palier {palier.titre} - {projet.titre}"
         message = f"""
         Bonjour {porteur.get_full_name()},
 
-        Des modifications sont requises pour les preuves du palier {palier.pourcentage}% 
+        Des modifications sont requises pour les preuves du palier "{palier.titre}" 
         de votre projet "{projet.titre}".
 
-        Retour de l'administrateur :
+        📋 DÉTAILS DU PALIER :
+        • Titre : {palier.titre}
+        • Montant : {palier.montant} HBAR
+
+        🔍 Retour de l'administrateur :
         {commentaires}
 
         Veuillez apporter les modifications demandées et resoumettre vos preuves.
 
         Cordialement,
-        L'équipe SolidChain
+        L'équipe SolidAvenir
         """
         type_email = "notification"
 
     elif action == 'distribution':
         transaction_url = f"https://hashscan.io/testnet/transaction/{palier.transaction_hash}"
-        sujet = f"💰 Transfert effectué - Palier {palier.pourcentage}% - {projet.titre}"
+        sujet = f"💰 Transfert effectué - Palier {palier.titre} - {projet.titre}"
         message = f"""
         Bonjour {porteur.get_full_name()},
 
-        Le transfert du palier {palier.pourcentage}% de votre projet "{projet.titre}" 
+        Le transfert du palier "{palier.titre}" de votre projet "{projet.titre}" 
         a été effectué avec succès.
 
         📊 DÉTAILS DU TRANSFERT :
+        • Titre du palier : {palier.titre}
         • Montant transféré : {palier.montant} HBAR
         • Date du transfert : {timezone.now().strftime('%d/%m/%Y à %H:%M')}
         • Hash de transaction : {palier.transaction_hash}
@@ -4253,10 +4240,13 @@ def envoyer_notification_porteur(porteur, palier, action, commentaires=""):
         🔍 Vous pouvez vérifier la transaction sur HashScan :
         {transaction_url}
 
+        📝 Description de l'utilisation prévue :
+        {palier.description}
+
         Le montant a été crédité sur votre compte Hedera associé au projet.
 
         Cordialement,
-        L'équipe SolidChain
+        L'équipe SolidAvenir
         """
         type_email = "don_received"
 
@@ -4289,7 +4279,6 @@ def envoyer_notification_porteur(porteur, palier, action, commentaires=""):
         )
     except Exception as e:
         logger.error(f"Erreur notification HCS: {str(e)}")
-
 
 logger = logging.getLogger(__name__)
 def handle_contribution(request, projet, user_has_wallet):

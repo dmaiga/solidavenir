@@ -7,76 +7,118 @@
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-12">
-            <!-- Header -->
-            <div class="card mb-4">
-                <div class="card-header bg-warning text-dark">
+            <!-- Header Card -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-gradient-warning text-dark py-3">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">
-                            <i class="fas fa-search me-2"></i>
-                            Verify Proofs - Step {{ palier.pourcentage }}%
-                        </h4>
-                        <a href="{% url 'gerer_distributions' %}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-arrow-left me-1"></i>Back
+                        <div>
+                            <h4 class="mb-0 fw-bold">
+                                <i class="fas fa-search me-2"></i>
+                                Verify Proofs - Step {{ palier.titre }}
+                            </h4>
+                            <p class="mb-0 mt-1 opacity-75">Review and validate submitted documentation</p>
+                        </div>
+                        <a href="{% url 'gerer_distributions' %}" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
                         </a>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
+                <div class="card-body bg-light">
+                    <div class="row align-items-center">
                         <div class="col-md-8">
-                            <h5>{{ projet.titre }}</h5>
-                            <p class="text-muted">{{ projet.description }}</p>
+                            <h5 class="text-primary fw-bold mb-2">{{ projet.titre }}</h5>
+                            <p class="text-muted mb-3">{{ projet.description|truncatewords:30 }}</p>
                             <div class="row">
-                                <div class="col-md-4">
-                                    <strong>Owner:</strong> {{ projet.porteur.get_full_name }}<br>
-                                    <strong>Email:</strong> {{ projet.porteur.email }}
+                                <div class="col-md-4 mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-user text-primary me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Owner</small>
+                                            <div class="fw-semibold">{{ projet.porteur.get_full_name }}</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <strong>Step Amount:</strong> {{ palier.montant }} HBAR<br>
-                                    <strong>Percentage:</strong> {{ palier.pourcentage }}%
+                                <div class="col-md-4 mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-coins text-warning me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Step Amount</small>
+                                            <div class="fw-semibold">{{ palier.montant }} HBAR</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <strong>Submission Date:</strong> {{ preuve.date_soumission|date:"d/m/Y H:i" }}<br>
-                                    <strong>Status:</strong> 
-                                    <span class="badge bg-{% if preuve.statut == 'en_attente' %}warning{% elif preuve.statut == 'approuve' %}success{% else %}danger{% endif %}">
-                                        {{ preuve.get_statut_display }}
-                                    </span>
+                                <div class="col-md-4 mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-clock text-info me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Submitted</small>
+                                            <div class="fw-semibold">{{ preuve.date_soumission|date:"d/m/Y H:i" }}</div>
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="status-badge">
+                                <span class="badge bg-{% if preuve.statut == 'en_attente' %}warning{% elif preuve.statut == 'approuve' %}success{% else %}danger{% endif %} px-3 py-2 fs-6">
+                                    <i class="fas fa-{% if preuve.statut == 'en_attente' %}clock{% elif preuve.statut == 'approuve' %}check{% else %}times{% endif %} me-1"></i>
+                                    {{ preuve.get_statut_display }}
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Submitted files -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-files me-2"></i>Submitted Files ({{ fichiers|length }})</h5>
+            <!-- Submitted Files Section -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-primary">
+                        <i class="fas fa-files me-2"></i>Submitted Files 
+                        <span class="badge bg-primary ms-2">{{ fichiers|length }}</span>
+                    </h5>
                 </div>
                 <div class="card-body">
                     {% if fichiers %}
-                    <div class="row">
+                    <div class="row g-3">
                         {% for fichier in fichiers %}
-                        <div class="col-md-4 mb-3">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
+                        <div class="col-xl-3 col-lg-4 col-md-6">
+                            <div class="card h-100 border file-card">
+                                <div class="card-body text-center p-3">
                                     {% if fichier.type_fichier == 'photo' %}
-                                        <i class="fas fa-image fa-3x text-primary mb-2"></i>
+                                        <div class="file-icon photo-icon mb-3">
+                                            <i class="fas fa-image fa-3x text-primary"></i>
+                                        </div>
                                     {% elif fichier.type_fichier == 'video' %}
-                                        <i class="fas fa-video fa-3x text-success mb-2"></i>
+                                        <div class="file-icon video-icon mb-3">
+                                            <i class="fas fa-video fa-3x text-success"></i>
+                                        </div>
                                     {% elif fichier.type_fichier == 'document' %}
-                                        <i class="fas fa-file-pdf fa-3x text-danger mb-2"></i>
+                                        <div class="file-icon document-icon mb-3">
+                                            <i class="fas fa-file-pdf fa-3x text-danger"></i>
+                                        </div>
                                     {% else %}
-                                        <i class="fas fa-file fa-3x text-secondary mb-2"></i>
+                                        <div class="file-icon other-icon mb-3">
+                                            <i class="fas fa-file fa-3x text-secondary"></i>
+                                        </div>
                                     {% endif %}
                                     
-                                    <h6 class="card-title">{{ fichier.fichier.name|slice:"20:" }}</h6>
-                                    <p class="card-text small text-muted">
-                                        Type: {{ fichier.get_type_fichier_display }}<br>
-                                        Size: {{ fichier.fichier.size|filesizeformat }}
-                                    </p>
+                                    <h6 class="card-title fw-semibold text-truncate" title="{{ fichier.fichier.name }}">
+                                        {{ fichier.fichier.name|slice:"20:" }}
+                                    </h6>
+                                    <div class="file-meta small text-muted">
+                                        <div class="mb-1">
+                                            <i class="fas fa-tag me-1"></i>
+                                            {{ fichier.get_type_fichier_display }}
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-hdd me-1"></i>
+                                            {{ fichier.fichier.size|filesizeformat }}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="card-footer">
-                                    <a href="{{ fichier.fichier.url }}" target="_blank" class="btn btn-primary btn-sm w-100">
+                                <div class="card-footer bg-transparent border-top-0 pt-0">
+                                    <a href="{{ fichier.fichier.url }}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
                                         <i class="fas fa-download me-1"></i>Download
                                     </a>
                                 </div>
@@ -85,39 +127,66 @@
                         {% endfor %}
                     </div>
                     {% else %}
-                    <div class="alert alert-warning text-center">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        No files found for this proof.
+                    <div class="text-center py-5">
+                        <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Files Submitted</h5>
+                        <p class="text-muted">No proof files have been uploaded for this step.</p>
                     </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Verification form -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Verification Decision</h5>
+            <!-- Verification Form -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-primary">
+                        <i class="fas fa-check-circle me-2"></i>Verification Decision
+                    </h5>
                 </div>
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
                         
+                        <!-- Action Selection -->
                         <div class="mb-4">
-                            <label class="form-label"><strong>Action *</strong></label>
-                            <div class="row">
+                            <label class="form-label fw-semibold text-dark mb-3">Decision Action *</label>
+                            <div class="row g-3">
                                 {% for choice in form.action %}
-                                <div class="col-md-4 mb-2">
-                                    <div class="form-check">
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="form-check card-option">
                                         {{ choice.tag }}
-                                        <label class="form-check-label" for="{{ choice.id_for_label }}">
-                                            {{ choice.choice_label }}
+                                        <label class="form-check-label w-100 p-3 border rounded bg-light" for="{{ choice.id_for_label }}">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    {% if choice.choice_label == 'Approve' %}
+                                                        <i class="fas fa-check-circle text-success fa-lg"></i>
+                                                    {% elif choice.choice_label == 'Reject' %}
+                                                        <i class="fas fa-times-circle text-danger fa-lg"></i>
+                                                    {% elif choice.choice_label == 'Request Modification' %}
+                                                        <i class="fas fa-edit text-warning fa-lg"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold">{{ choice.choice_label }}</div>
+                                                    <small class="text-muted">
+                                                        {% if choice.choice_label == 'Approve' %}
+                                                            Release funds to project owner
+                                                        {% elif choice.choice_label == 'Reject' %}
+                                                            Decline proof submission
+                                                        {% elif choice.choice_label == 'Request Modification' %}
+                                                            Request additional documentation
+                                                        {% endif %}
+                                                    </small>
+                                                </div>
+                                            </div>
                                         </label>
                                     </div>
                                 </div>
                                 {% endfor %}
                             </div>
                             {% if form.action.errors %}
-                                <div class="text-danger small mt-1">
+                                <div class="alert alert-danger mt-2">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
                                     {% for error in form.action.errors %}
                                         {{ error }}
                                     {% endfor %}
@@ -125,28 +194,32 @@
                             {% endif %}
                         </div>
 
+                        <!-- Comments -->
                         <div class="mb-4">
-                            <label for="{{ form.commentaires.id_for_label }}" class="form-label">
-                                <strong>Comments</strong>
+                            <label for="{{ form.commentaires.id_for_label }}" class="form-label fw-semibold text-dark">
+                                Review Comments
                             </label>
                             {{ form.commentaires }}
                             {% if form.commentaires.errors %}
-                                <div class="text-danger small mt-1">
+                                <div class="alert alert-danger mt-2">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
                                     {% for error in form.commentaires.errors %}
                                         {{ error }}
                                     {% endfor %}
                                 </div>
                             {% endif %}
-                            <div class="form-text">
-                                These comments will be visible to the project owner
+                            <div class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                These comments will be visible to the project owner and should provide clear feedback
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'gerer_distributions' %}" class="btn btn-secondary">
-                                <i class="fas fa-times me-2"></i>Cancel
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a href="{% url 'gerer_distributions' %}" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-times me-2"></i>Cancel Review
                             </a>
-                            <button type="submit" class="btn btn-success">
+                            <button type="submit" class="btn btn-success px-4 py-2 fw-semibold">
                                 <i class="fas fa-check me-2"></i>Submit Decision
                             </button>
                         </div>
@@ -156,4 +229,69 @@
         </div>
     </div>
 </div>
+
+<style>
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+}
+
+.file-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #e9ecef;
+}
+
+.file-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.file-icon {
+    padding: 15px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    display: inline-block;
+}
+
+.card-option .form-check-input {
+    display: none;
+}
+
+.card-option .form-check-label {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid #e9ecef;
+}
+
+.card-option .form-check-input:checked + .form-check-label {
+    border-color: #0d6efd;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2);
+}
+
+.status-badge .badge {
+    font-size: 0.9rem;
+    border-radius: 20px;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #198754 0%, #157347 100%);
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(25, 135, 84, 0.3);
+}
+
+.alert {
+    border: none;
+    border-radius: 8px;
+}
+</style>
 {% endblock %}

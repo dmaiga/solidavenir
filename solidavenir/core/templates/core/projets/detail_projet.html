@@ -4,16 +4,6 @@
 {% block title %}{{ projet.titre }} - Crowdfunding Platform{% endblock %}
 
 {% block content %}
-{% if messages %}
-  <div class="mt-3">
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-    {% endfor %}
-  </div>
-{% endif %}
 
 <div class="container py-5">
     <!-- Status Alerts -->
@@ -43,6 +33,9 @@
             <a href="{% url 'mes_projets' %}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-2"></i>Back
             </a>
+            <a href="{% url 'ajouter_images_projet' projet.audit_uuid %}" class="btn btn-outline-primary">
+    <i class="fas fa-images"></i> Add  Images
+</a>
             
             {% if can_edit %}
             <a href="{% url 'modifier_projet' projet.audit_uuid %}" class="btn btn-primary">
@@ -496,7 +489,7 @@
                                         {% if transaction.hedera_transaction_hash %}
                                         <a href="https://hashscan.io/testnet/transaction/{{ transaction.hedera_transaction_hash }}" 
                                            target="_blank" class="text-decoration-none btn btn-sm btn-outline-secondary me-2">
-                                            <i class="bi bi-currency-bitcoin me-1"></i>Transaction
+                                            Voir Transaction
                                         </a>
                                         {% endif %}
                                         {% if transaction.hedera_message_id %}

@@ -173,7 +173,7 @@
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                                     <strong class="text-success">
                                                         <i class="fas fa-check-circle me-1"></i>
-                                                        Milestone {{ palier.pourcentage }}%
+                                                        Milestone {{ palier.titre }}
                                                     </strong>
                                                     <span class="badge bg-success">{{ palier.montant|intcomma }} HBAR</span>
                                                 </div>
@@ -195,7 +195,7 @@
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                                     <strong class="{% if palier.statut_preuve == 'non_soumis' %}text-danger{% else %}text-warning{% endif %}">
                                                         <i class="fas fa-{% if palier.statut_preuve == 'non_soumis' %}exclamation-triangle{% else %}clock{% endif %} me-1"></i>
-                                                        Milestone {{ palier.pourcentage }}%
+                                                        Milestone {{ palier.titre }}
                                                     </strong>
                                                     <span class="badge bg-secondary">{{ palier.montant|intcomma }} HBAR</span>
                                                 </div>
@@ -232,7 +232,7 @@
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <small class="text-info">
                                                         <i class="fas fa-check-double me-1"></i>
-                                                        Milestone {{ palier.pourcentage }}% distributed
+                                                        Milestone {{ palier.titre }} distributed
                                                     </small>
                                                     <small class="text-muted">{{ palier.date_transfert|date:"m/d/Y" }}</small>
                                                 </div>
@@ -253,7 +253,7 @@
                                                 <input type="hidden" name="action" value="distribuer">
                                                 <button type="submit" class="btn btn-success btn-sm w-100">
                                                     <i class="fas fa-paper-plane me-1"></i>
-                                                    Distribute {{ palier.pourcentage }}%
+                                                    Distribute {{ palier.titre }}
                                                 </button>
                                             </form>
                                             {% endfor %}

@@ -125,7 +125,7 @@
                             <span>✅ Audited Project</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
-                            <strong>{{ projet.total_collecte|default:0|floatformat:0 }} FCFA / {{ projet.montant_demande|floatformat:0 }} FCFA</strong>
+                            <strong>{{ projet.total_collecte|default:0|floatformat:0 }} HBAR / {{ projet.montant_demande|floatformat:0 }} HBAR</strong>
                             <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-primary btn-sm">Contribute</a>
                         </div>
                     </div>

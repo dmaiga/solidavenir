@@ -194,10 +194,10 @@ EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465))
 EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+DEFAULT_FROM_EMAIL ="SolidAvenir <contact@solidavenir.com>"
 
-LOGIN_URL = 'connexion'   # correspond au name de ton url
-LOGIN_REDIRECT_URL = 'accueil'  # après connexion, on redirige vers accueil (ou autre)
+LOGIN_URL = 'connexion'  
+LOGIN_REDIRECT_URL = 'accueil'  
 LOGOUT_REDIRECT_URL = 'accueil'
 
 import os
