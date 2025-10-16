@@ -215,21 +215,25 @@ class ProjetAdmin(admin.ModelAdmin):
             'all': ('css/admin_paliers.css',)
         }
 
-
 @admin.register(Palier)
 class PalierAdmin(admin.ModelAdmin):
     list_display = ('projet', 'pourcentage', 'montant', 'montant_minimum', 'transfere', 'date_transfert')
     list_filter = ('transfere', 'projet__statut')
     search_fields = ('projet__titre',)
     readonly_fields = ('montant_minimum', 'date_transfert', 'transaction_hash')
-    
+
     def has_add_permission(self, request):
-        # Les paliers sont créés automatiquement, pas manuellement
         return False
-    
+
+    # Autoriser la suppression uniquement par cascade via Projet
     def has_delete_permission(self, request, obj=None):
-        # Empêcher la suppression des paliers
+        # Autoriser seulement si la suppression vient d'une cascade Projet
+        if request.user.is_superuser:
+            return True
         return False
+
+
+
 from django.contrib import admin
 from .models import Transaction, TransactionAdmin
 

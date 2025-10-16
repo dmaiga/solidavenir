@@ -75,12 +75,17 @@ class MultipleFileField(forms.FileField):
         # Si data est None, retourner une liste vide
         if not data:
             return []
-        
+
         # Si c'est déjà une liste (cas de MultipleFileInput), traiter chaque fichier
+        cleaned_files = []
         if isinstance(data, (list, tuple)):
-            return [super().clean(d, initial) for d in data]
+            for d in data:
+                cleaned_files.append(super().clean(d, initial))
+            return cleaned_files
+        
         # Sinon, retourner une liste avec un seul élément
         return [super().clean(data, initial)]
+
 
 class MultiFileInput(forms.ClearableFileInput):
     def render(self, name, value, attrs=None, renderer=None):

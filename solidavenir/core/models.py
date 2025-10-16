@@ -1322,13 +1322,13 @@ class AuditLog(models.Model):
                                     on_delete=models.CASCADE,
                                    
                                     )
-    action = models.CharField(max_length=10, choices=ACTION_TYPES)
+    action = models.CharField(max_length=50, choices=ACTION_TYPES)
     modele = models.CharField(max_length=50)  # Nom du modèle affecté
     objet_id = models.CharField(max_length=100)  # ID de l'objet affecté
     details = models.JSONField()  # Détails de l'action en JSON
     date_action = models.DateTimeField(auto_now_add=True)
     adresse_ip = models.GenericIPAddressField(null=True, blank=True)
-    statut = models.CharField(max_length=10, choices=STATUT_CHOICES, default='SUCCESS')  # Champ ajouté
+    statut = models.CharField(max_length=50, choices=STATUT_CHOICES, default='SUCCESS')  # Champ ajouté
     
     class Meta:
         indexes = [
@@ -1459,7 +1459,7 @@ class PreuvePalier(models.Model):
         ('en_attente', 'Pending verification'),
         ('approuve', 'Approved'),
         ('rejete', 'Rejected'),
-        ('modification', 'Modification required'),
+        ('modif', 'Modification required'),
     ]
     
     palier = models.ForeignKey('Palier', on_delete=models.CASCADE, related_name='preuves')
@@ -1503,7 +1503,7 @@ class FichierPreuve(models.Model):
     
     preuve = models.ForeignKey(PreuvePalier, on_delete=models.CASCADE, related_name='fichiers')
     fichier = models.FileField(upload_to='preuves/%Y/%m/%d/')
-    type_fichier = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    type_fichier = models.CharField(max_length=50, choices=TYPE_CHOICES)
     date_upload = models.DateTimeField(auto_now_add=True)
     description = models.CharField(max_length=255, blank=True)
     

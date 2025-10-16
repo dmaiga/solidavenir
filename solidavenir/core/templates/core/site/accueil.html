@@ -6,49 +6,66 @@
 
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/home.css' %}">
-<!-- Section Hero avec texte à gauche et image à droite -->
-
+<link rel="stylesheet" href="{% static 'css/home.css' %}"> 
 <section class="hero-section">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-7 hero-content">
-                <!-- Titre principal -->
-                <h1 class="display-4 fw-bold ">Reinventing Trust in Crowdfunding in MALI</h1>
-                
-               
-                <!-- Paragraphe descriptif -->
-                <p class="lead ">
+            <div class="col-lg-6 hero-content">
+                <!-- Badges de confiance -->
+                <div class="hero-badges">
+                    <span class="hero-badge">
+                        <i class="bi bi-shield-check"></i> Blockchain Secured
+                    </span>
+                    <span class="hero-badge">
+                        <i class="bi bi-graph-up"></i> Transparent Tracking
+                    </span>
+                    <span class="hero-badge">
+                        <i class="bi bi-phone"></i> Mobile Money Ready
+                    </span>
+                </div>
 
-                                    Solid'Avenir leverages Hedera technology 
-                                    to guarantee total transparency, tracking 
-                                    every contribution from donor to field 
-                                    implementation. We ensure genuine, verifiable 
-                                    impact for communities and entrepreneurs. 
-                                                        
+                <!-- Titre principal -->
+                <h1 class="hero-title">
+                    Reinventing Trust in<br>
+                    <span style="background: linear-gradient(135deg, var(--primary-orange) 0%, #e65100 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        Crowdfunding
+                    </span>
+                </h1>
+                
+                <!-- Sous-titre -->
+                <p class="hero-subtitle">
+                    Solid'Avenir leverages Hedera Hashgraph technology to guarantee total transparency, 
+                    tracking every contribution from donor to field implementation. We ensure genuine, 
+                    verifiable impact for communities and entrepreneurs across Mali.
                 </p>
                 
-                <div class="d-grid gap-2 d-sm-flex justify-content-sm-start">
-                    <a href="{% url 'liste_projets' %}" class="btn btn-primary btn-lg px-4 gap-3">Discover Projects</a>
-                    <a href="{% url 'creer_projet' %}" class="btn btn-outline-light btn-lg px-4">Launch a Project</a>
-                </div>
-                <div class="mt-4">
-                    <a href="{% url 'savoir_plus' %}" class="btn btn-link text-white">
-                        Learn More <i class="bi bi-arrow-right ms-1"></i>
+                <!-- Call-to-Action -->
+                <div class="hero-cta">
+                    <a href="{% url 'liste_projets' %}" class="btn-hero-primary">
+                        <i class="bi bi-rocket-takeoff"></i>
+                        Discover Projects
+                    </a>
+                    <a href="{% url 'creer_projet' %}" class="btn-hero-secondary">
+                        <i class="bi bi-lightbulb"></i>
+                        Launch Your Project
                     </a>
                 </div>
+
+
             </div>
-            <div class="col-lg-5 hero-image-container">
-                <div class="tech-image-container">
-                    <img src="{% static 'images/home/hero_section.webp' %}" alt="Finance Technology" class="hero-image">
+            
+            <div class="col-lg-6 hero-image-container">
+                <div class="hero-image-wrapper">
+                    <img src="{% static 'images/home/hero_section.webp' %}" alt="Solid'Avenir Platform - Transparent Crowdfunding" class="hero-image">
                 </div>
             </div>
         </div>
     </div>
 </section>
 
+
 <!-- Section Comment nous garantissons -->
-<section class="content-section bg-light">
+<section class="content-section">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6 fade-in">
@@ -125,7 +142,7 @@
                             <span>✅ Audited Project</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
-                            <strong>{{ projet.total_collecte|default:0|floatformat:0 }} HBAR / {{ projet.montant_demande|floatformat:0 }} HBAR</strong>
+                            <strong>{{ projet.total_collecte|default:0|floatformat:0 }} FCFA / {{ projet.montant_demande|floatformat:0 }} FCFA</strong>
                             <a href="{% url 'detail_projet' projet.audit_uuid %}" class="btn btn-primary btn-sm">Contribute</a>
                         </div>
                     </div>

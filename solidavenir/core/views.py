@@ -1110,35 +1110,13 @@ def creer_projet(request):
 
 @login_required
 def modifier_projet(request, uuid):
-    """
-    Edit an existing project including its reward descriptions.
-
-    Functionality:
-        - Retrieves the project by its audit UUID and ensures the logged-in user is the owner.
-        - Checks if the project is editable by the user using 'peut_etre_modifie_par'.
-            - If not editable, displays an error message and redirects to project detail.
-        - Handles form submission for project updates, including file uploads.
-        - Saves changes within an atomic transaction.
-        - Logs all modifications in the AuditLog, including reward status and description.
-        - Displays success or error messages and redirects appropriately.
-
-    Args:
-        request (HttpRequest): The HTTP request object.
-        uuid (UUID): The unique audit UUID of the project to modify.
-
-    Returns:
-        HttpResponse: Renders 'core/projets/creer_projet.html' with form and project context
-                      for GET requests or invalid forms.
-                      Redirects to project detail or project list on success or errors.
-    """
-
-    """Modification d'un projet existant avec description des récompenses"""
     try:
         projet = Projet.objects.get(audit_uuid=uuid, porteur=request.user)
         
         if not projet.peut_etre_modifie_par(request.user):
             messages.error(request, "Ce projet ne peut plus être modifié.")
-            return redirect('detail_projet', uuid=uuid)
+            # CORRECTION : utiliser audit_uuid au lieu de uuid
+            return redirect('detail_projet', audit_uuid=uuid)
         
         if request.method == 'POST':
             form = CreationProjetForm(request.POST, request.FILES, instance=projet, porteur=request.user)
@@ -1163,7 +1141,8 @@ def modifier_projet(request, uuid):
                         )
 
                     messages.success(request, "Your project has been successfully updated.")
-                    return redirect('detail_projet', uuid=uuid)
+                    # CORRECTION : utiliser audit_uuid au lieu de uuid
+                    return redirect('detail_projet', audit_uuid=uuid)
 
                 except Exception as e:
                     logger.error(f"Erreur modification projet: {str(e)}", exc_info=True)
@@ -1183,6 +1162,7 @@ def modifier_projet(request, uuid):
     except Projet.DoesNotExist:
         messages.error(request, "Projet non trouvé.")
         return redirect('mes_projets')
+
 @login_required
 def ajouter_images_projet(request, uuid):
     try:
@@ -1190,7 +1170,8 @@ def ajouter_images_projet(request, uuid):
         
         if not projet.peut_etre_modifie_par(request.user):
             messages.error(request, "Vous n'avez pas la permission de modifier ce projet.")
-            return redirect('detail_projet', uuid=uuid)
+            # CORRECTION : utiliser audit_uuid au lieu de uuid
+            return redirect('detail_projet', audit_uuid=uuid)
         
         images_existantes = projet.images.all()
         images_restantes = 10 - images_existantes.count()
@@ -1215,8 +1196,8 @@ def ajouter_images_projet(request, uuid):
                         adresse_ip=request.META.get('REMOTE_ADDR')
                     )
                     
-
-                    return redirect('detail_projet', uuid=uuid)
+                    # CORRECTION : utiliser audit_uuid au lieu de uuid
+                    return redirect('detail_projet', audit_uuid=uuid)
                     
                 except Exception as e:
                     logger.error(f"Erreur ajout images: {str(e)}", exc_info=True)
@@ -1237,7 +1218,8 @@ def ajouter_images_projet(request, uuid):
     except Projet.DoesNotExist:
         messages.error(request, "Projet non trouvé.")
         return redirect('mes_projets')
-    
+
+
 @login_required
 def supprimer_projet(request, uuid):
     """
@@ -1272,7 +1254,8 @@ def supprimer_projet(request, uuid):
                 request, 
                 "Seuls les projets en brouillon ou rejetés peuvent être supprimés."
             )
-            return redirect('detail_projet', uuid=uuid)
+            # CORRECTION : utiliser audit_uuid au lieu de uuid
+            return redirect('detail_projet', audit_uuid=uuid)
         
         if request.method == 'POST':
             try:
@@ -1297,7 +1280,8 @@ def supprimer_projet(request, uuid):
             except Exception as e:
                 logger.error(f"Erreur suppression projet: {str(e)}", exc_info=True)
                 messages.error(request, "Une erreur est survenue lors de la suppression.")
-                return redirect('detail_projet', uuid=uuid)
+                # CORRECTION : utiliser audit_uuid au lieu de uuid
+                return redirect('detail_projet', audit_uuid=uuid)
         
         # GET request - afficher la confirmation
         return render(request, 'core/projets/supprimer_projet.html', {'projet': projet})
@@ -1305,7 +1289,7 @@ def supprimer_projet(request, uuid):
     except Projet.DoesNotExist:
         messages.error(request, "Projet non trouvé.")
         return redirect('mes_projets')
-
+    
 
 def detail_projet(request, audit_uuid):
     """

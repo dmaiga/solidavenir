@@ -144,36 +144,36 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" id="verificationForm">
                         {% csrf_token %}
                         
                         <!-- Action Selection -->
                         <div class="mb-4">
                             <label class="form-label fw-semibold text-dark mb-3">Decision Action *</label>
-                            <div class="row g-3">
+                            <div class="row g-3" id="actionSelection">
                                 {% for choice in form.action %}
                                 <div class="col-lg-4 col-md-6">
                                     <div class="form-check card-option">
                                         {{ choice.tag }}
-                                        <label class="form-check-label w-100 p-3 border rounded bg-light" for="{{ choice.id_for_label }}">
+                                        <label class="form-check-label w-100 p-3 border rounded bg-light action-option" for="{{ choice.id_for_label }}" data-action="{{ choice.choice_value }}">
                                             <div class="d-flex align-items-center">
                                                 <div class="me-3">
-                                                    {% if choice.choice_label == 'Approve' %}
-                                                        <i class="fas fa-check-circle text-success fa-lg"></i>
-                                                    {% elif choice.choice_label == 'Reject' %}
-                                                        <i class="fas fa-times-circle text-danger fa-lg"></i>
-                                                    {% elif choice.choice_label == 'Request Modification' %}
-                                                        <i class="fas fa-edit text-warning fa-lg"></i>
+                                                    {% if choice.choice_value == 'approuver' %}
+                                                        <i class="fas fa-check-circle text-success fa-2x"></i>
+                                                    {% elif choice.choice_value == 'rejeter' %}
+                                                        <i class="fas fa-times-circle text-danger fa-2x"></i>
+                                                    {% elif choice.choice_value == 'modification' %}
+                                                        <i class="fas fa-edit text-warning fa-2x"></i>
                                                     {% endif %}
                                                 </div>
                                                 <div>
-                                                    <div class="fw-semibold">{{ choice.choice_label }}</div>
-                                                    <small class="text-muted">
-                                                        {% if choice.choice_label == 'Approve' %}
+                                                    <div class="fw-bold fs-5">{{ choice.choice_label }}</div>
+                                                    <small class="text-muted action-description">
+                                                        {% if choice.choice_value == 'approuver' %}
                                                             Release funds to project owner
-                                                        {% elif choice.choice_label == 'Reject' %}
+                                                        {% elif choice.choice_value == 'rejeter' %}
                                                             Decline proof submission
-                                                        {% elif choice.choice_label == 'Request Modification' %}
+                                                        {% elif choice.choice_value == 'modification' %}
                                                             Request additional documentation
                                                         {% endif %}
                                                     </small>
@@ -194,10 +194,10 @@
                             {% endif %}
                         </div>
 
-                        <!-- Comments -->
-                        <div class="mb-4">
+                        <!-- Comments Section - Hidden by default for Approve -->
+                        <div class="mb-4" id="commentsSection">
                             <label for="{{ form.commentaires.id_for_label }}" class="form-label fw-semibold text-dark">
-                                Review Comments
+                                Review Comments <span class="text-danger">*</span>
                             </label>
                             {{ form.commentaires }}
                             {% if form.commentaires.errors %}
@@ -210,7 +210,7 @@
                             {% endif %}
                             <div class="form-text text-muted">
                                 <i class="fas fa-info-circle me-1"></i>
-                                These comments will be visible to the project owner and should provide clear feedback
+                                <span id="commentsHelpText">These comments will be visible to the project owner</span>
                             </div>
                         </div>
 
@@ -219,7 +219,7 @@
                             <a href="{% url 'gerer_distributions' %}" class="btn btn-outline-secondary px-4">
                                 <i class="fas fa-times me-2"></i>Cancel Review
                             </a>
-                            <button type="submit" class="btn btn-success px-4 py-2 fw-semibold">
+                            <button type="submit" class="btn btn-success px-4 py-2 fw-semibold" id="submitButton">
                                 <i class="fas fa-check me-2"></i>Submit Decision
                             </button>
                         </div>
@@ -258,14 +258,37 @@
 
 .card-option .form-check-label {
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+    border: 3px solid #e9ecef;
+    border-radius: 12px;
+}
+
+.card-option .form-check-label:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 }
 
 .card-option .form-check-input:checked + .form-check-label {
     border-color: #0d6efd;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2);
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Specific colors for each action when selected */
+.card-option .form-check-input[value="approuver"]:checked + .form-check-label {
+    border-color: #198754;
+    box-shadow: 0 4px 15px rgba(25, 135, 84, 0.2);
+}
+
+.card-option .form-check-input[value="rejeter"]:checked + .form-check-label {
+    border-color: #dc3545;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+}
+
+.card-option .form-check-input[value="modification"]:checked + .form-check-label {
+    border-color: #ffc107;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
 }
 
 .status-badge .badge {
@@ -293,5 +316,127 @@
     border: none;
     border-radius: 8px;
 }
+
+/* Animation for showing/hiding comments */
+#commentsSection {
+    transition: all 0.3s ease;
+}
+
+.hidden-section {
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.visible-section {
+    opacity: 1;
+    height: auto;
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const actionRadios = document.querySelectorAll('input[name="action"]');
+    const commentsSection = document.getElementById('commentsSection');
+    const commentsHelpText = document.getElementById('commentsHelpText');
+    const commentField = document.getElementById('{{ form.commentaires.id_for_label }}');
+    const submitButton = document.getElementById('submitButton');
+    
+    // Initialize - hide comments section by default
+    commentsSection.classList.add('hidden-section');
+    
+    // Action selection handler
+    actionRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const selectedAction = this.value;
+            
+            // Update comments section based on action
+            if (selectedAction === 'approuver') {
+                // Hide comments for approval
+                commentsSection.classList.add('hidden-section');
+                commentsSection.classList.remove('visible-section');
+                commentField.required = false;
+                commentsHelpText.textContent = "Optional: Add positive feedback or notes";
+            } else {
+                // Show comments for reject/modification
+                commentsSection.classList.remove('hidden-section');
+                commentsSection.classList.add('visible-section');
+                commentField.required = true;
+                
+                if (selectedAction === 'rejeter') {
+                    commentsHelpText.textContent = "Required: Explain why the proofs are being rejected and what requirements were not met.";
+                } else if (selectedAction === 'modification') {
+                    commentsHelpText.textContent = "Required: Specify exactly what modifications or additional information is needed.";
+                }
+            }
+            
+            // Update submit button text and style
+            updateSubmitButton(selectedAction);
+            
+            // Validate form
+            validateForm();
+        });
+    });
+    
+    // Form validation
+    commentField.addEventListener('input', validateForm);
+    
+    function validateForm() {
+        const selectedAction = document.querySelector('input[name="action"]:checked');
+        const hasComments = commentField.value.trim().length > 0;
+        
+        if (selectedAction) {
+            if ((selectedAction.value === 'rejeter' || selectedAction.value === 'modification') && !hasComments) {
+                submitButton.disabled = true;
+                submitButton.title = "Comments are required for this action";
+            } else {
+                submitButton.disabled = false;
+                submitButton.title = "";
+            }
+        } else {
+            submitButton.disabled = true;
+            submitButton.title = "Please select an action";
+        }
+    }
+    
+    function updateSubmitButton(action) {
+        let buttonText = 'Submit Decision';
+        let buttonClass = 'btn-success';
+        
+        switch(action) {
+            case 'approuver':
+                buttonText = 'Approve Proofs';
+                buttonClass = 'btn-success';
+                break;
+            case 'rejeter':
+                buttonText = 'Reject Proofs';
+                buttonClass = 'btn-danger';
+                break;
+            case 'modification':
+                buttonText = 'Request Modifications';
+                buttonClass = 'btn-warning';
+                break;
+        }
+        
+        submitButton.className = `btn ${buttonClass} px-4 py-2 fw-semibold`;
+        submitButton.innerHTML = `<i class="fas fa-check me-2"></i>${buttonText}`;
+    }
+    
+    // Add confirmation for reject action
+    document.getElementById('verificationForm').addEventListener('submit', function(e) {
+        const selectedAction = document.querySelector('input[name="action"]:checked');
+        
+        if (selectedAction && selectedAction.value === 'rejeter') {
+            if (!confirm('Are you sure you want to reject these proofs? This action cannot be undone and the project owner will need to submit completely new proofs.')) {
+                e.preventDefault();
+            }
+        }
+    });
+    
+    // Initial validation
+    validateForm();
+});
+</script>
 {% endblock %}
