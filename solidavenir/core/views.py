@@ -2199,6 +2199,7 @@ def gerer_distributions(request):
     }
     
     return render(request, 'core/admin/gerer_distributions.html', context)
+
 @login_required
 @permission_required('core.manage_users', raise_exception=True)
 def liste_associations_admin(request):

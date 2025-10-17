@@ -30,17 +30,19 @@
     {% if user.is_porteur_projet or user.is_association %}
     <div class="mb-4">
         <div class="btn-group">
-            <a href="{% url 'mes_projets' %}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Back
-            </a>
-            <a href="{% url 'ajouter_images_projet' projet.audit_uuid %}" class="btn btn-outline-primary">
-    <i class="fas fa-images"></i> Add  Images
-</a>
+
+
             
             {% if can_edit %}
+                        <a href="{% url 'mes_projets' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back
+            </a>
             <a href="{% url 'modifier_projet' projet.audit_uuid %}" class="btn btn-primary">
                 <i class="fas fa-edit me-2"></i>Edit
             </a>
+<a href="{% url 'ajouter_images_projet' projet.audit_uuid %}" class="btn btn-outline-primary">
+    <i class="fas fa-images"></i> Add  Images
+</a>
             {% endif %}
             
             {% if projet.statut in 'brouillon rejete' %}

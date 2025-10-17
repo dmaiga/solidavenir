@@ -152,10 +152,17 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <a href="{% url 'detail_association' association.slug %}" 
-                                               target="_blank" class="btn btn-info" title="View">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
+                                            {% if association.valide %}
+  <a href="{% url 'detail_association' association.slug %}" 
+     target="_blank" class="btn btn-info" title="Voir">
+     <i class="bi bi-eye"></i>
+  </a>
+{% else %}
+  <a href="{% url 'preview_association_admin' association.id %}" 
+     target="_blank" class="btn btn-warning" title="Prévisualiser">
+     <i class="bi bi-eye"></i>
+  </a>
+{% endif %}
                                             {% if not association.valide %}
                                             <a href="{% url 'valider_association' association.id %}" 
                                                class="btn btn-success" title="Validate">

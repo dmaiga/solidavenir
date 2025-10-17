@@ -141,7 +141,7 @@ body {
     overflow: hidden;
     box-shadow: var(--shadow-heavy);
     background: white;
-    padding: 1rem;
+    padding: 0.5rem;
 }
 
 .hero-image {
@@ -571,4 +571,21 @@ body {
     color: var(--primary-blue);
     text-decoration: underline;
     transform: translateX(5px);
+}
+
+/* 🔍 CORRECTION SIMPLE POUR ZOOM 125%-150% */
+@media screen and (min-resolution: 120dpi) {
+    .hero-image {
+        max-width: 50vw !important; /* 30% de la largeur de la vue */
+        max-height: 70vh !important; /* 50% de la hauteur de la vue */
+    }
+    
+    .hero-badges {
+        gap: 0.8rem !important; /* Réduction des espaces entre badges */
+    }
+    
+    .hero-badge {
+        font-size: 1rem !important; /* Légère réduction du texte */
+        padding: 0.5rem 0.5rem !important; /* Légère réduction du padding */
+    }
 }
