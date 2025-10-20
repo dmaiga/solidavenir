@@ -290,26 +290,47 @@
         <!-- Sidebar -->
         <div class="col-lg-4 mb-4">
             <!-- Quick Actions -->
-            <div class="card mb-4 shadow-sm">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-primary mb-3">Quick Actions</h5>
-                    <div class="d-grid gap-2 mb-3">
-                        <a href="#contact" class="btn btn-primary btn-lg">
-                            <i class="bi bi-envelope me-2"></i>Contact Us
-                        </a>
-                        {% if association.site_web %}
-                        <a href="{{ association.site_web }}" target="_blank" class="btn btn-outline-primary">
-                            <i class="bi bi-globe me-2"></i>Website
-                        </a>
-                        {% endif %}
-                        {% if user.is_authenticated and est_membre %}
-                        <a href="{% url 'modifier_profil_association' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-pencil me-2"></i>Edit Profile
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+<div class="card mb-4 shadow-sm">
+    <div class="card-body text-center">
+        <h5 class="card-title text-primary mb-3">Quick Actions</h5>
+
+        <div class="d-grid gap-2 mb-3">
+            <a href="#contact" class="btn btn-primary btn-lg">
+                <i class="bi bi-envelope me-2"></i>Contact Us
+            </a>
+
+            {% if association.site_web %}
+            <a href="{{ association.site_web }}" target="_blank" class="btn btn-outline-primary">
+                <i class="bi bi-globe me-2"></i>Website
+            </a>
+            {% endif %}
+
+            {% if user.is_authenticated and est_membre %}
+            <a href="{% url 'modifier_profil_association' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-pencil me-2"></i>Edit Profile
+            </a>
+            {% endif %}
+
+            {% if user.is_authenticated %}
+                {% if user.has_active_wallet %}
+                <a href="{% url 'transfer_direct' %}?association={{ association.id }}" 
+                   class="btn btn-success btn-lg">
+                  Support {{ association.nom }}
+                </a>
+                {% else %}
+                <button class="btn btn-secondary btn-lg" disabled>
+                    <i class="bi bi-wallet2 me-2"></i>Wallet inactif
+                </button>
+                {% endif %}
+            {% else %}
+            <a href="{% url 'connexion' %}" class="btn btn-outline-success btn-lg">
+                <i class="bi bi-person me-2"></i>Support {{ association.nom }}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 
             <!-- Key Statistics -->
             <div class="card mb-4 shadow-sm">

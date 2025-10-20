@@ -10,9 +10,14 @@
             <!-- En-tête -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h2 mb-0">Mes Contributions</h1>
-                <a href="{% url 'profil' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Retour au profil
-                </a>
+                <div>
+                    <a href="{% url 'transfer_direct' %}" class="btn btn-primary me-2">
+                        <i class="fas fa-exchange-alt me-2"></i>Transfert Direct
+                    </a>
+                    <a href="{% url 'profil' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Retour au profil
+                    </a>
+                </div>
             </div>
 
             {% if messages %}
@@ -26,27 +31,35 @@
 
             <!-- Résumé des contributions -->
             <div class="row mb-4">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card bg-primary text-white text-center">
                         <div class="card-body">
                             <h5 class="card-title">{{ total_contributions|intcomma }} FCFA</h5>
-                            <p class="card-text">Total des contributions</p>
+                            <p class="card-text">Total contributions</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card bg-success text-white text-center">
                         <div class="card-body">
                             <h5 class="card-title">{{ contributions.count }}</h5>
-                            <p class="card-text">Nombre de contributions</p>
+                            <p class="card-text">Nombre de transactions</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card bg-info text-white text-center">
                         <div class="card-body">
                             <h5 class="card-title">{{ projets_count }}</h5>
                             <p class="card-text">Projets soutenus</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ associations_count }}</h5>
+                            <p class="card-text">Associations aidées</p>
                         </div>
                     </div>
                 </div>
@@ -55,7 +68,7 @@
             <!-- Liste des contributions -->
             <div class="card">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0">Historique des contributions</h5>
+                    <h5 class="mb-0">Historique des transactions</h5>
                 </div>
                 <div class="card-body p-0">
                     {% if contributions %}
@@ -64,11 +77,11 @@
                             <thead class="table-light">
                                 <tr>
                                     <th scope="col">Date</th>
-                                    <th scope="col">Projet</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Destinataire</th>
                                     <th scope="col" class="text-end">Montant</th>
                                     <th scope="col">Statut</th>
                                     <th scope="col">Transaction</th>
-                                  
                                 </tr>
                             </thead>
                             <tbody>
@@ -76,11 +89,45 @@
                                 <tr>
                                     <td>{{ contribution.date_transaction|date:"d/m/Y H:i" }}</td>
                                     <td>
-                                        <a href="{% url 'detail_projet' contribution.projet.audit_uuid %}" class="text-decoration-none">
-                                            {{ contribution.projet.titre }}
-                                        </a>
+                                        <span class="badge 
+                                            {% if contribution.destination == 'association' %}bg-warning
+                                            {% elif contribution.destination == 'project' %}bg-success
+                                            {% else %}bg-primary{% endif %}">
+                                            {{ contribution.get_destination_display }}
+                                        </span>
                                     </td>
-                                    <td class="text-end">{{ contribution.montant|intcomma }} FCFA</td>
+                                    <td>
+                                        {% if contribution.association %}
+                                            <!-- Transfert direct vers association -->
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-hands-helping text-warning me-2"></i>
+                                                <div>
+                                                    <strong>{{ contribution.association.nom }}</strong>
+                                                    {% if contribution.notes_verification %}
+                                                        <br><small class="text-muted">{{ contribution.notes_verification|truncatechars:50 }}</small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% elif contribution.projet %}
+                                            <!-- Don à un projet -->
+                                            <a href="{% url 'detail_projet' contribution.projet.audit_uuid %}" class="text-decoration-none">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-project-diagram text-success me-2"></i>
+                                                    <span>{{ contribution.projet.titre }}</span>
+                                                </div>
+                                            </a>
+                                        {% else %}
+                                            <!-- Autre type de transaction -->
+                                            <span class="text-muted">Opérateur</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <strong>{{ contribution.montant|intcomma }}</strong>
+                                        <small class="text-muted d-block">
+                                            {% if contribution.destination == 'association' %}HBAR
+                                            {% else %}FCFA{% endif %}
+                                        </small>
+                                    </td>
                                     <td>
                                         <span class="badge bg-{% if contribution.statut == 'confirme' %}success{% elif contribution.statut == 'en_attente' %}warning{% elif contribution.statut == 'erreur' %}danger{% else %}secondary{% endif %}">
                                             {{ contribution.get_statut_display }}
@@ -88,14 +135,13 @@
                                     </td>
                                     <td class="text-truncate" style="max-width: 120px;" title="{{ contribution.hedera_transaction_hash }}">
                                         {% if contribution.hedera_transaction_hash %}
-                                        <a href="https://hashscan.io/testnet/transaction/{{ contribution.hedera_transaction_hash }}" target="_blank" rel="noopener" class="text-decoration-none">
+                                        <a href="{{ contribution.hedera_link }}" target="_blank" rel="noopener" class="text-decoration-none">
                                             {{ contribution.hedera_transaction_hash|truncatechars:15 }}
                                         </a>
                                         {% else %}
                                         <span class="text-muted">N/A</span>
                                         {% endif %}
                                     </td>
-                                    
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -106,11 +152,16 @@
                         <div class="mb-4">
                             <i class="fas fa-hand-holding-heart fa-3x text-muted"></i>
                         </div>
-                        <h4 class="text-muted">Aucune contribution pour le moment</h4>
-                        <p class="text-muted">Vous n'avez pas encore effectué de contributions.</p>
-                        <a href="{% url 'liste_projets' %}" class="btn btn-primary mt-3">
-                            <i class="fas fa-heart me-2"></i>Découvrir les projets
-                        </a>
+                        <h4 class="text-muted">Aucune transaction pour le moment</h4>
+                        <p class="text-muted">Vous n'avez pas encore effectué de contributions ou transferts.</p>
+                        <div class="mt-3">
+                            <a href="{% url 'transfer_direct' %}" class="btn btn-warning me-2">
+                                <i class="fas fa-exchange-alt me-2"></i>Transfert Direct
+                            </a>
+                            <a href="{% url 'liste_projets' %}" class="btn btn-primary">
+                                <i class="fas fa-heart me-2"></i>Découvrir les projets
+                            </a>
+                        </div>
                     </div>
                     {% endif %}
                 </div>
@@ -119,36 +170,86 @@
             <!-- Statistiques avancées -->
             {% if contributions %}
             <div class="row mt-4">
+                <!-- Répartition par projet -->
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header bg-light">
-                            <h5 class="mb-0">Répartition par projet</h5>
+                            <h5 class="mb-0">
+                                <i class="fas fa-project-diagram me-2 text-success"></i>
+                                Répartition par projet
+                            </h5>
                         </div>
                         <div class="card-body">
+                            {% if projets_stats %}
                             <div class="list-group list-group-flush">
                                 {% for projet in projets_stats %}
                                 <div class="list-group-item d-flex justify-content-between align-items-center">
                                     <span class="text-truncate" style="max-width: 70%;" title="{{ projet.projet__titre }}">
                                         {{ projet.projet__titre }}
                                     </span>
-                                    <span class="badge bg-primary rounded-pill">{{ projet.total|intcomma }} FCFA</span>
+                                    <span class="badge bg-success rounded-pill">{{ projet.total|intcomma }} FCFA</span>
                                 </div>
                                 {% endfor %}
                             </div>
+                            {% else %}
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Aucun projet soutenu
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
+
+                <!-- Répartition par association -->
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header bg-light">
-                            <h5 class="mb-0">Évolution mensuelle</h5>
+                            <h5 class="mb-0">
+                                <i class="fas fa-hands-helping me-2 text-warning"></i>
+                                Transferts directs aux associations
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if associations_stats %}
+                            <div class="list-group list-group-flush">
+                                {% for association in associations_stats %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="text-truncate" style="max-width: 70%;" title="{{ association.association__nom }}">
+                                        {{ association.association__nom }}
+                                    </span>
+                                    <span class="badge bg-warning rounded-pill">{{ association.total|intcomma }} HBAR</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Aucun transfert direct
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Évolution mensuelle -->
+            {% if contributions_mensuelles %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2 text-info"></i>
+                                Évolution mensuelle (6 derniers mois)
+                            </h5>
                         </div>
                         <div class="card-body">
                             <div class="list-group list-group-flush">
                                 {% for mois in contributions_mensuelles %}
                                 <div class="list-group-item d-flex justify-content-between align-items-center">
                                     <span>{{ mois.mois|date:"F Y" }}</span>
-                                    <span class="badge bg-success rounded-pill">{{ mois.total|intcomma }} FCFA</span>
+                                    <span class="badge bg-info rounded-pill">{{ mois.total|intcomma }} FCFA</span>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -156,6 +257,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
             {% endif %}
         </div>
     </div>
@@ -191,5 +293,10 @@
         padding: 0.25rem 0.5rem;
         font-size: 0.875rem;
     }
+    
+    /* Style pour les icônes de type de transaction */
+    .fa-project-diagram { color: #28a745; }
+    .fa-hands-helping { color: #ffc107; }
+    .fa-exchange-alt { color: #007bff; }
 </style>
 {% endblock %}

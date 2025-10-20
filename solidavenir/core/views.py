@@ -48,9 +48,16 @@ from .forms import (
     InscriptionFormSimplifiee, CreationProjetForm,AjoutImagesProjetForm, ValidationProjetForm,
     ProfilUtilisateurForm, ContactForm, Transfer_fond, AssociationForm,
     FiltreMembresForm, FiltreTransactionsForm, FiltreAuditForm,
-    EmailFormSimple, PreuveForm, VerificationPreuveForm,PalierForm
+    EmailFormSimple, PreuveForm, VerificationPreuveForm,PalierForm,TransferDirectForm
 )
 from .utils import safe_float, safe_int, safe_decimal
+
+# associations/views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import Association, AssociationImage
+from .forms import AssociationImageForm
 
 logger = logging.getLogger(__name__)
 
@@ -128,73 +135,26 @@ def contact(request):
     
     return render(request, 'core/site/contact.html', {'form': form})
 
-
-
 def transparence(request):
     """
     Render the transparency dashboard for donations and administrative transactions.
-
-    This view collects, filters, and aggregates transaction data for display in the
-    transparency page. It handles both user donations (Transaction) and administrative
-    records (TransactionAdmin), including distributions and platform commissions.
-
-    Filtering:
-        - By project: using 'projet' GET parameter.
-        - By date range: using 'date_debut' and 'date_fin' GET parameters.
-
-    Statistics calculated:
-        - Total donations
-        - Total distributions
-        - Total platform commissions
-        - Average donation amount
-        - Number of financed projects
-        - Number of unique donors
-
-    Additional data provided to the template:
-        - Top 5 projects by total collected amount
-        - Top 5 donors by total donated amount
-        - Monthly donations for the past 12 months
-        - List of active projects for filtering
-        - Paginated list of donations
-        - Full list of administrative transactions (most recent first)
-
-    Template used:
-        'core/site/transparence.html'
-
-    Context:
-        - transactions: Paginated donations
-        - transactions_admin: List of admin transactions
-        - stats: Dictionary of aggregated statistics
-        - top_projets: Top 5 projects by donations
-        - top_donateurs: Top 5 donors by donations
-        - donations_mensuelles: Monthly donation aggregates
-        - projets_actifs: Active projects for filters
-        - filters: Dictionary containing applied filters
-
-    Args:
-        request (HttpRequest): The HTTP request object containing GET parameters.
-
-    Returns:
-        HttpResponse: Rendered transparency dashboard page.
     """
-
     projet_filter = request.GET.get('projet')
     date_debut = request.GET.get('date_debut')
     date_fin = request.GET.get('date_fin')
 
     # Transactions (dons) ordered by date only, newest date first
-
     transactions = (
         Transaction.objects.filter(statut='confirme')
         .select_related('projet', 'contributeur', 'verifie_par')
-        .order_by('-date_transaction')  # full datetime, newest first
+        .order_by('-date_transaction')
     )
 
     # Transactions admin – most recent first
     transactions_admin = (
         TransactionAdmin.objects
         .select_related('projet', 'beneficiaire', 'initiateur')
-        .order_by('-date_creation')  # full datetime, newest first
+        .order_by('-date_creation')
     )
 
     # --- Filtres ---
@@ -219,7 +179,6 @@ def transparence(request):
             pass
 
     # --- Statistiques ---
-    # --- Statistiques ---
     total_dons = transactions.aggregate(total=Sum('montant'))['total'] or 0
     total_distributions = transactions_admin.aggregate(total=Sum('montant_net'))['total'] or 0
     total_commissions = transactions_admin.filter(type_transaction__in=['distribution', 'commission']).aggregate(total=Sum('commission'))['total'] or 0
@@ -234,15 +193,18 @@ def transparence(request):
         'donateurs_uniques': transactions.values('contributeur').distinct().count(),
         'moyenne_don': f"{moyenne_don:.2f}",
     }
-    # --- Top projets et donateurs ---
+
+    # --- CORRECTION: Top projets et donateurs ---
+    # Utilisez 'transaction' (au singulier) comme indiqué dans l'erreur
     top_projets = Projet.objects.filter(transaction__statut='confirme').annotate(
         total_collecte=Sum('transaction__montant'),
         nombre_dons=Count('transaction')
     ).order_by('-total_collecte')[:5]
 
-    top_donateurs = User.objects.filter(transaction__statut='confirme').annotate(
-        total_dons=Sum('transaction__montant'),
-        nombre_dons=Count('transaction')
+    # Utilisez 'contributions' (le related_name que vous avez défini)
+    top_donateurs = User.objects.filter(contributions__statut='confirme').annotate(
+        total_dons=Sum('contributions__montant'),
+        nombre_dons=Count('contributions')
     ).order_by('-total_dons')[:5]
 
     # --- Évolution mensuelle des dons ---
@@ -259,21 +221,6 @@ def transparence(request):
     # --- Projets actifs pour filtres ---
     projets_actifs = Projet.objects.filter(statut='actif').values('audit_uuid', 'titre')
 
-    # --- Transactions classiques (dons) ---
-    transactions = (
-        Transaction.objects.filter(statut='confirme')
-        .select_related('projet', 'contributeur', 'verifie_par')
-        .order_by('-date_transaction')  
-    )
-
-    # --- Transactions administratives ---
-    transactions_admin = (
-        TransactionAdmin.objects
-        .select_related('projet', 'beneficiaire', 'initiateur')
-        .order_by('-date_creation')  
-    )
-
-
     # --- Pagination (dons uniquement) ---
     paginator = Paginator(transactions, 25)
     page_number = request.GET.get('page')
@@ -283,7 +230,6 @@ def transparence(request):
         page_obj = paginator.page(1)
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
-    
     
     context = {
         'transactions': page_obj,
@@ -302,55 +248,41 @@ def transparence(request):
 
     return render(request, 'core/site/transparence.html', context)
 
-
 @login_required
 def mes_dons(request):
     """
-    Display the donation history for the currently logged-in user.
-
-    This view collects all contributions made by the user, calculates total contributions,
-    and provides project-specific and monthly donation statistics.
-
-    Data collected:
-        - List of all user contributions, ordered by newest first.
-        - Total amount contributed by the user.
-        - Aggregated donations per project (confirmed transactions only), ordered by total descending.
-        - Monthly donation totals for the last 6 months (confirmed transactions only).
-
-    Template used:
-        'core/site/mes_dons.html'
-
-    Context provided to the template:
-        - contributions: QuerySet of user's contributions
-        - total_contributions: Sum of all contribution amounts
-        - projets_count: Number of distinct projects contributed to
-        - projets_stats: Aggregated donation totals per project
-        - contributions_mensuelles: Monthly donation totals for last 6 months
-
-    Args:
-        request (HttpRequest): The HTTP request object containing the logged-in user.
-
-    Returns:
-        HttpResponse: Rendered page showing user's donation history and statistics.
+    Historique des contributions et transferts de l'utilisateur connecté
     """
-
-    """Historique des contributions de l'utilisateur connecté"""
+    # Récupère toutes les transactions où l'utilisateur est contributeur
+    contributions = Transaction.objects.filter(
+        contributeur=request.user
+    ).select_related('projet', 'association').order_by('-date_transaction')
     
-    # Contributions de l'utilisateur
-    contributions = Transaction.objects.filter(contributeur=request.user).select_related('projet').order_by('-date_transaction')
     total_contributions = sum(contrib.montant for contrib in contributions)
     
-    # Statistiques par projet
+    # Statistiques par projet (uniquement les dons aux projets)
     projets_stats = Transaction.objects.filter(
         contributeur=request.user, 
-        statut='confirme'
+        statut='confirme',
+        projet__isnull=False
     ).values(
         'projet__titre'
     ).annotate(
         total=Sum('montant')
     ).order_by('-total')
     
-    # Contributions mensuelles (6 derniers mois) - Compatible SQLite
+    # Statistiques par association (transferts directs)
+    associations_stats = Transaction.objects.filter(
+        contributeur=request.user,
+        statut='confirme', 
+        association__isnull=False
+    ).values(
+        'association__nom'
+    ).annotate(
+        total=Sum('montant')
+    ).order_by('-total')
+    
+    # Contributions mensuelles (6 derniers mois)
     six_mois = timezone.now() - timedelta(days=180)
     contributions_mensuelles = Transaction.objects.filter(
         contributeur=request.user,
@@ -367,11 +299,12 @@ def mes_dons(request):
         'total_contributions': total_contributions,
         'projets_count': projets_stats.count(),
         'projets_stats': projets_stats,
-        'contributions_mensuelles': contributions_mensuelles
+        'associations_count': associations_stats.count(),
+        'associations_stats': associations_stats,
+        'contributions_mensuelles': contributions_mensuelles,
     }
     
     return render(request, 'core/site/mes_dons.html', context)
-
 #===========
 # END SITE
 #===========
@@ -950,12 +883,34 @@ def espace_association(request):
     }
     return render(request, 'core/associations/espace_association.html', context)
 
-# associations/views.py
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import Association, AssociationImage
-from .forms import AssociationImageForm
+@login_required
+def dons_recus(request):
+    """
+    Affiche les dons reçus pour l'association connectée.
+    Accessible uniquement si l'utilisateur connecté est une association.
+    """
+    if not request.user.is_association():
+        messages.error(request, "Accès réservé aux associations.")
+        return redirect('accueil')
+
+    try:
+        association = request.user.association_profile
+    except Association.DoesNotExist:
+        messages.warning(request, "Profil d'association introuvable.")
+        return redirect('accueil')
+
+    # On récupère uniquement les transactions confirmées destinées à cette association
+    transactions = Transaction.objects.filter(
+        association=association,
+        statut='confirme'
+    ).order_by('-date_transaction')
+
+    context = {
+        'association': association,
+        'transactions': transactions,
+    }
+
+    return render(request, 'core/associations/dons_recus.html', context)
 
 @login_required
 def upload_association_image(request, slug):
@@ -1000,6 +955,124 @@ def association_images_list(request, slug):
         'association': association,
         'images': images
     })
+
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils.html import strip_tags
+
+@login_required
+@csrf_exempt
+def transfer_direct_association(request):
+    """
+    Traite le transfert direct d'HBAR vers une association (MVP)
+    Envoie aussi un e-mail de notification à l'association.
+    """
+    association_id = request.GET.get('association')  # pour préremplir le form
+
+    if request.method == 'POST':
+        form = TransferDirectForm(request.POST, user=request.user)
+
+        if form.is_valid():
+            try:
+                association = form.cleaned_data['association']
+                montant = form.cleaned_data['montant']
+                message_perso = form.cleaned_data['message']
+                user = request.user
+
+                # Vérification des wallets
+                if not user.has_active_wallet or not association.user.has_active_wallet:
+                    messages.error(request, "Wallet non disponible pour le transfert")
+                    return render(request, 'core/associations/transfer_direct.html', {'form': form})
+
+                # Transfert HBAR via API locale
+                transfer_data = {
+                    'fromAccountId': user.hedera_account_id,
+                    'fromPrivateKey': user.hedera_private_key,
+                    'toAccountId': association.user.hedera_account_id,  # ✅ Compte réel de l’association
+                    'amount': float(montant)
+                }
+
+                response = requests.post('http://localhost:3001/transfer', json=transfer_data, timeout=30)
+
+                if response.status_code != 200:
+                    messages.error(request, "Erreur de connexion avec le service de transfert")
+                    return render(request, 'core/associations/transfer_direct.html', {'form': form})
+
+                result = response.json()
+                if not result.get('success'):
+                    messages.error(request, f"Échec du transfert: {result.get('error', 'Erreur inconnue')}")
+                    return render(request, 'core/associations/transfer_direct.html', {'form': form})
+
+                # Enregistrement en base
+                transaction = None
+                with db_transaction.atomic():
+                    transaction = Transaction.objects.create(
+                        user=user,
+                        montant=montant,
+                        hedera_transaction_hash=result.get('transactionId'),
+                        hedera_status=result.get('status'),
+                        hedera_hashscan_url=result.get('hashscanUrl'),
+                        contributeur=user,
+                        association=association,
+                        destination='association',
+                        statut='confirme',
+                        notes_verification=f"Transfert direct - {message_perso}" if message_perso else "Transfert direct vers association"
+                    )
+
+                # ✅ Envoi d’e-mail à l’association
+                recipient_email = association.email_contact or association.user.email
+                if recipient_email:
+                    subject = f"🎉 Nouveau don reçu sur SolidAvenir - {association.nom}"
+                    html_message = f"""
+                    <p>Bonjour <b>{association.nom}</b>,</p>
+                    <p>Vous avez reçu un nouveau don de la part de <b>{user.get_full_name_or_username()}</b>.</p>
+                    <ul>
+                        <li><b>Montant :</b> {montant} HBAR</li>
+                        <li><b>Message :</b> {message_perso or 'Aucun message personnel'}</li>
+                        <li><b>Transaction :</b> <a href="{result.get('hashscanUrl')}" target="_blank">Voir sur Hashscan</a></li>
+                    </ul>
+                    <p>Merci de continuer à œuvrer pour vos causes sur <a href="{request.build_absolute_uri('/')}">SolidAvenir</a>.</p>
+                    <hr>
+                    <small>Cet e-mail vous est envoyé automatiquement par la plateforme SolidAvenir.</small>
+                    """
+                    plain_message = strip_tags(html_message)
+
+                    send_mail(
+                        subject,
+                        plain_message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [recipient_email],
+                        html_message=html_message,
+                        fail_silently=True,
+                    )
+
+                # ✅ (Optionnel) Création d'une notification interne
+                if hasattr(association.user, 'notifications'):
+                    association.user.notifications.create(
+                        titre="🎁 Nouveau don reçu",
+                        message=f"{user.get_full_name_or_username()} a envoyé {montant} HBAR.",
+                        lien=result.get('hashscanUrl'),
+                    )
+
+                messages.success(request, f"✅ Transfert de {montant} HBAR vers {association.nom} effectué avec succès !")
+                return redirect('mes_dons')
+
+            except Exception as e:
+                messages.error(request, f"Erreur lors du transfert: {str(e)}")
+
+    else:
+        # Cas GET : préremplir si ?association=id est passé
+        initial_data = {}
+        if association_id:
+            try:
+                association = Association.objects.get(id=association_id, valide=True)
+                initial_data['association'] = association
+            except Association.DoesNotExist:
+                messages.warning(request, "Association invalide ou introuvable.")
+
+        form = TransferDirectForm(user=request.user, initial=initial_data)
+
+    return render(request, 'core/associations/transfer_direct.html', {'form': form})
 
 
 #===================
@@ -1896,6 +1969,9 @@ def soumettre_preuves_palier(request, palier_id):
         'preuve_existante': preuve_existante
     }
     return render(request, 'core/projets/soumettre_preuves.html', context)
+
+# views.py
+
 
 #===================
 # END PROJETS
@@ -2888,7 +2964,7 @@ def valider_projet(request, audit_uuid):
                     
                     messages.info(request, f"Identifiant unique généré: {identifiant}")
                 
-                # ✅ CRÉATION DU TOPIC HCS SUR HEDERA
+                #  CRÉATION DU TOPIC HCS SUR HEDERA
                 if not projet.topic_id:
                     try:
                         topic_response = creer_topic_pour_projet(projet, request.user)
@@ -3828,7 +3904,7 @@ def transfer_from_admin_to_doer(projet, porteur, montant_brut, palier=None, init
             initiateur=initiateur 
         )
 
-        # ✅ ENVOI HCS AVEC DÉTAILS COMPLETS
+        #  ENVOI HCS AVEC DÉTAILS COMPLETS
         if projet.topic_id:
             resultat_hcs = envoyer_don_hcs(
                 topic_id=projet.topic_id,

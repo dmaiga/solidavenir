@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-4">💰 Dons reçus</h3>
+
+    {% if transactions %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Donateur</th>
+                    <th>Montant (HBAR)</th>
+                    <th>Message</th>
+                    <th>Preuve</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td>{{ t.created_at|date:"d/m/Y H:i" }}</td>
+                    <td>{{ t.contributeur.username }}</td>
+                    <td><strong>{{ t.montant }}</strong></td>
+                    <td>{{ t.notes_verification|default:"—" }}</td>
+                    <td>
+                        {% if t.hedera_hashscan_url %}
+                        <a href="{{ t.hedera_hashscan_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            Voir sur HashScan
+                        </a>
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        Aucun don reçu pour le moment.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

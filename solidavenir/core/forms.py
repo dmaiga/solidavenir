@@ -857,7 +857,105 @@ class Transfer_fond(forms.ModelForm):
         
         return montant
 
+# forms.py
+import requests
+from django import forms
+from django.core.validators import MinValueValidator
+from django.conf import settings
 
+class TransferDirectForm(forms.Form):
+    """
+    Formulaire pour transfert direct vers une association - Version MVP
+    """
+    association = forms.ModelChoiceField(
+        queryset=Association.objects.filter(valide=True),
+        label="Association destinataire",
+        help_text="Choisissez l'association à laquelle vous souhaitez transférer des fonds",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
+    montant = forms.DecimalField(
+        max_digits=10,
+        decimal_places=0,
+        label="Montant (HBAR)",
+        validators=[MinValueValidator(1)],
+        help_text="Montant en HBAR à transférer (minimum 1 HBAR)",
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': '10',
+            'min': '1',
+            'step': '1'
+        })
+    )
+    
+    message = forms.CharField(
+        required=False,
+        max_length=200,
+        label="Message (optionnel)",
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Un message personnel pour l\'association...'
+        })
+    )
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filtrer les associations valides avec wallet actif
+        self.fields['association'].queryset = Association.objects.filter(
+            valide=True,
+            user__wallet_activated=True
+        ).select_related('user').order_by('nom')
+
+    def clean(self):
+        """Validation globale du formulaire"""
+        cleaned_data = super().clean()
+        montant = cleaned_data.get('montant')
+        association = cleaned_data.get('association')
+
+        if not self.user or not self.user.has_active_wallet:
+            raise forms.ValidationError("Vous devez avoir un wallet actif pour effectuer un transfert.")
+
+        if association and not association.user.has_active_wallet:
+            raise forms.ValidationError(
+                f"L'association {association.nom} n'a pas de wallet actif pour recevoir des fonds."
+            )
+
+        # Vérification simple du solde (optionnel pour MVP)
+        if montant and self.user:
+            try:
+                response = requests.get(
+                    f'http://localhost:3001/balance/{self.user.hedera_account_id}',
+                    timeout=10
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('success'):
+                        solde = float(data['balance'].split(' ')[0])  
+                        if montant > solde:
+                            raise forms.ValidationError(
+                                f"Solde insuffisant. Votre solde actuel est de {solde} HBAR."
+                            )
+            except requests.RequestException:
+                # On ignore l'erreur de vérification du solde en MVP
+                pass
+
+        return cleaned_data
+
+    def clean_montant(self):
+        """Validation spécifique du montant"""
+        montant = self.cleaned_data.get('montant')
+        
+        if montant and montant <= 0:
+            raise forms.ValidationError("Le montant doit être positif.")
+            
+        if montant and montant < 1:
+            raise forms.ValidationError("Le montant minimum est de 1 HBAR.")
+            
+        return montant
+    
 class EmailForm(forms.ModelForm):
     """
     Form for composing and sending emails.

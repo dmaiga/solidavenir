@@ -161,11 +161,22 @@
                                                     {{ transaction.contributeur.username|slice:":8" }}...
                                                 </span>
                                             </td>
-                                            <td>
-                                                <a href="{% url 'detail_projet' transaction.projet.audit_uuid %}" class="text-decoration-none">
-                                                    {{ transaction.projet.titre|truncatewords:3 }}
-                                                </a>
-                                            </td>
+
+<td>
+    {% if transaction.projet and transaction.projet.audit_uuid %}
+        <a href="{% url 'detail_projet' transaction.projet.audit_uuid %}" class="text-decoration-none">
+            {{ transaction.projet.titre }}
+        </a>
+    {% elif transaction.association %}
+        <div class="d-flex align-items-center">
+            <i class="fas fa-hands-helping text-warning me-2"></i>
+            <span class="text-muted">{{ transaction.association.nom }}</span>
+            <small class="ms-2 badge bg-warning">Transfert direct</small>
+        </div>
+    {% else %}
+        <span class="text-muted">N/A</span>
+    {% endif %}
+</td>
                                             <td><strong>{{ transaction.montant|intcomma }}</strong></td>
                                             <td>
                                                 <small class="text-muted">

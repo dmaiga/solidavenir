@@ -245,6 +245,11 @@
                                     <li><a class="dropdown-item" href="{% url 'espace_association' %}">
                                         <i class="bi bi-people me-2"></i>Association Space
                                     </a></li>
+    <li>
+        <a class="dropdown-item" href="{% url 'dons_recus' %}">
+            <i class="bi bi-wallet2 me-2"></i>Received Donations
+        </a>
+    </li>
                                 {% endif %}
                                 <li><a class="dropdown-item" href="{% url 'mes_dons' %}">
                                     <i class="bi bi-heart me-2"></i>My Contributions
@@ -323,6 +328,8 @@
                         <li class="mb-2"><a href="{% url 'mes_projets' %}"><i class="bi bi-folder me-2"></i>My Projects</a></li>
                         {% if user.is_association %}
                         <li class="mb-2"><a href="{% url 'espace_association' %}"><i class="bi bi-people me-2"></i>Association Space</a></li>
+                        <li class="mb-2"><a href="{% url 'dons_recus' %}"><i class="bi bi-wallet2 me-2"></i>Received Donations</a></li>
+
                         {% endif %}
                         <li class="mb-2"><a href="{% url 'mes_dons' %}"><i class="bi bi-heart me-2"></i>My Contributions</a></li>
                         <li class="mb-2"><a href="{% url 'modifier_profil' %}"><i class="bi bi-person me-2"></i>My Profile</a></li>
