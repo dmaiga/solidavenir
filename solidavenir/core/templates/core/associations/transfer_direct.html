@@ -1,57 +1,57 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Transfert Direct - Plateforme de Financement Participatif{% endblock %}
+{% block title %}Direct Transfer - Crowdfunding Platform{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
-            <!-- En-tête -->
+            <!-- Header -->
             <div class="text-center mb-5">
                 <h1 class="h2 mb-3">
                     <i class="fas fa-exchange-alt text-primary me-2"></i>
-                    Transfert Direct
+                    Direct Transfer
                 </h1>
                 <p class="text-muted">
-                    Transférez directement des HBAR de votre wallet vers une association
+                    Transfer HBAR directly from your wallet to an organization
                 </p>
             </div>
 
-            <!-- Carte principale -->
+            <!-- Main card -->
             <div class="card shadow-lg border-0">
                 <div class="card-header bg-primary text-white py-3">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-hand-holding-heart me-2"></i>
-                        Nouveau Transfert
+                        New Transfer
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    <!-- Informations sur le transfert -->
+                    <!-- Transfer information -->
                     <div class="alert alert-info border-0 mb-4">
                         <div class="d-flex">
                             <i class="fas fa-info-circle me-2 mt-1"></i>
                             <div>
-                                <h6 class="alert-heading mb-2">Comment ça marche ?</h6>
+                                <h6 class="alert-heading mb-2">How does it work?</h6>
                                 <p class="mb-0 small">
-                                    Le transfert s'effectue directement de votre wallet Hedera vers le wallet de l'association.
-                                    La transaction est enregistrée sur la blockchain Hedera et dans notre registre pour la transparence.
+                                    The transfer is made directly from your Hedera wallet to the organization's wallet.
+                                    The transaction is recorded on the Hedera blockchain and in our registry for transparency.
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Informations du wallet utilisateur -->
+                    <!-- User wallet information -->
                     {% if request.user.has_active_wallet %}
                     <div class="alert alert-success border-0 mb-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <i class="fas fa-wallet me-2"></i>
-                                <strong>Wallet actif</strong>
+                                <strong>Active wallet</strong>
                                 <small class="d-block text-muted">{{ request.user.hedera_account_id }}</small>
                             </div>
                             <a href="{% url 'mes_dons' %}" class="btn btn-outline-success btn-sm">
-                                Voir l'historique
+                                View history
                             </a>
                         </div>
                     </div>
@@ -60,10 +60,10 @@
                         <div class="d-flex">
                             <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
                             <div>
-                                <h6 class="alert-heading mb-2">Wallet non configuré</h6>
+                                <h6 class="alert-heading mb-2">Wallet not configured</h6>
                                 <p class="mb-0">
-                                    Vous devez activer votre wallet Hedera pour effectuer des transferts.
-                                    <a href="{% url 'profil' %}" class="alert-link">Configurer mon wallet</a>
+                                    You need to activate your Hedera wallet to make transfers.
+                                    <a href="{% url 'profil' %}" class="alert-link">Configure my wallet</a>
                             </div>
                         </div>
                     </div>
@@ -87,7 +87,7 @@
                         {% endfor %}
                     {% endif %}
 
-                    <!-- Formulaire -->
+                    <!-- Form -->
                     {% if request.user.has_active_wallet %}
                     <form method="post" id="transferForm" novalidate>
                         {% csrf_token %}
@@ -100,7 +100,7 @@
                             </div>
                         {% endif %}
 
-                        <!-- Sélection de l'association -->
+                        <!-- Organization selection -->
                         <div class="mb-4">
                             <label for="{{ form.association.id_for_label }}" class="form-label fw-semibold">
                                 <i class="fas fa-hands-helping me-2 text-primary"></i>
@@ -117,7 +117,7 @@
                             <div class="form-text">{{ form.association.help_text }}</div>
                         </div>
 
-                        <!-- Montant du transfert -->
+                        <!-- Transfer amount -->
                         <div class="mb-4">
                             <label for="{{ form.montant.id_for_label }}" class="form-label fw-semibold">
                                 <i class="fas fa-coins me-2 text-warning"></i>
@@ -137,7 +137,7 @@
                             <div class="form-text">{{ form.montant.help_text }}</div>
                         </div>
 
-                        <!-- Message optionnel -->
+                        <!-- Optional message -->
                         <div class="mb-4">
                             <label for="{{ form.message.id_for_label }}" class="form-label fw-semibold">
                                 <i class="fas fa-comment me-2 text-info"></i>
@@ -152,7 +152,7 @@
                                 </div>
                             {% endif %}
                             <div class="form-text">
-                                Ce message sera visible par l'association et enregistré dans la transaction.
+                                This message will be visible to the organization and recorded in the transaction.
                             </div>
                         </div>
 
@@ -160,11 +160,11 @@
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                             <a href="{% url 'mes_dons' %}" class="btn btn-outline-secondary me-md-2">
                                 <i class="fas fa-arrow-left me-2"></i>
-                                Annuler
+                                Cancel
                             </a>
                             <button type="submit" class="btn btn-primary btn-lg px-4" id="submitBtn">
                                 <i class="fas fa-paper-plane me-2"></i>
-                                Effectuer le Transfert
+                                Process Transfer
                             </button>
                         </div>
                     </form>
@@ -172,17 +172,17 @@
                 </div>
             </div>
 
-            <!-- Informations supplémentaires -->
+            <!-- Additional information -->
             <div class="row mt-4">
                 <div class="col-md-6">
                     <div class="card border-0 bg-light">
                         <div class="card-body">
                             <h6 class="card-title">
                                 <i class="fas fa-shield-alt me-2 text-success"></i>
-                                Sécurité garantie
+                                Guaranteed security
                             </h6>
                             <p class="card-text small text-muted mb-0">
-                                Toutes les transactions sont cryptées et enregistrées sur la blockchain Hedera pour une transparence totale.
+                                All transactions are encrypted and recorded on the Hedera blockchain for complete transparency.
                             </p>
                         </div>
                     </div>
@@ -192,10 +192,10 @@
                         <div class="card-body">
                             <h6 class="card-title">
                                 <i class="fas fa-bolt me-2 text-warning"></i>
-                                Transfert instantané
+                                Instant transfer
                             </h6>
                             <p class="card-text small text-muted mb-0">
-                                Les transferts HBAR sont presque instantanés avec des frais de transaction minimes.
+                                HBAR transfers are nearly instantaneous with minimal transaction fees.
                             </p>
                         </div>
                     </div>
@@ -214,43 +214,43 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (form) {
         form.addEventListener('submit', function(e) {
-            // Validation côté client basique
+            // Basic client-side validation
             const montant = document.getElementById('{{ form.montant.id_for_label }}').value;
             const association = document.getElementById('{{ form.association.id_for_label }}').value;
             
             if (!association) {
                 e.preventDefault();
-                alert('Veuillez sélectionner une association.');
+                alert('Please select an organization.');
                 return;
             }
             
             if (!montant || montant < 1) {
                 e.preventDefault();
-                alert('Veuillez saisir un montant valide (minimum 1 HBAR).');
+                alert('Please enter a valid amount (minimum 1 HBAR).');
                 return;
             }
             
-            // Désactiver le bouton et afficher le loading
+            // Disable button and show loading
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Transfert en cours...';
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Transfer in progress...';
             }
         });
     }
     
-    // Amélioration de l'UX pour la sélection d'association
+    // UX improvement for organization selection
     const associationSelect = document.getElementById('{{ form.association.id_for_label }}');
     if (associationSelect) {
         associationSelect.classList.add('form-select', 'form-select-lg');
     }
     
-    // Amélioration de l'UX pour le champ montant
+    // UX improvement for amount field
     const montantInput = document.getElementById('{{ form.montant.id_for_label }}');
     if (montantInput) {
         montantInput.classList.add('form-control', 'form-control-lg');
     }
     
-    // Amélioration de l'UX pour le champ message
+    // UX improvement for message field
     const messageTextarea = document.getElementById('{{ form.message.id_for_label }}');
     if (messageTextarea) {
         messageTextarea.classList.add('form-control');
@@ -303,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
     border-left: none;
 }
 
-/* Style pour le select d'association */
+/* Style for organization select */
 .form-select {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
