@@ -1,0 +1,343 @@
+{% extends 'base_admin.html' %}
+{% load static humanize %}
+
+{% block title %}Projects List - Funding Platform{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="container-fluid py-4">
+    <!-- Header with statistics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">
+                        <i class="fas fa-project-diagram me-2"></i>
+                        Projects Census
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-2 col-6 mb-3">
+                            <div class="border rounded p-3">
+                                <h3 class="text-primary">{{ total_projets|intcomma }}</h3>
+                                <small class="text-muted">Total Projects</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <div class="border rounded p-3">
+                                <h3 class="text-success">{{ projets_actifs|intcomma }}</h3>
+                                <small class="text-muted">Active</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <div class="border rounded p-3">
+                                <h3 class="text-warning">{{ projets_en_attente|intcomma }}</h3>
+                                <small class="text-muted">Pending</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <div class="border rounded p-3">
+                                <h3 class="text-info">{{ projets_termines|intcomma }}</h3>
+                                <small class="text-muted">Completed</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <div class="border rounded p-3">
+                                <h3 class="text-danger">{{ projets_expirant|intcomma }}</h3>
+                                <small class="text-muted">Expiring Soon</small>
+                            </div>
+                        </div>
+                       
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compact Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body py-3">
+                    <form method="get" class="row g-2 align-items-center">
+                        <div class="col-auto">
+                            <label for="statut" class="form-label mb-0">Status</label>
+                            <select name="statut" id="statut" class="form-select form-select-sm">
+                                <option value="tous">All Status</option>
+                                {% for value, label in statuts_choices %}
+                                    <option value="{{ value }}" {% if filtre_statut == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-auto">
+                            <label for="categorie" class="form-label mb-0">Category</label>
+                            <select name="categorie" id="categorie" class="form-select form-select-sm">
+                                <option value="toutes">All Categories</option>
+                                {% for value, label in categories_choices %}
+                                    <option value="{{ value }}" {% if filtre_categorie == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-auto">
+                            <label for="type_financement" class="form-label mb-0">Funding Type</label>
+                            <select name="type_financement" id="type_financement" class="form-select form-select-sm">
+                                <option value="tous">All Types</option>
+                                {% for value, label in types_financement_choices %}
+                                    <option value="{{ value }}" {% if filtre_type_financement == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-auto">
+                            <label for="tri" class="form-label mb-0">Sort</label>
+                            <select name="tri" id="tri" class="form-select form-select-sm">
+                                <option value="-date_creation" {% if tri_actuel == '-date_creation' %}selected{% endif %}>Newest</option>
+                                <option value="date_creation" {% if tri_actuel == 'date_creation' %}selected{% endif %}>Oldest</option>
+                                <option value="titre" {% if tri_actuel == 'titre' %}selected{% endif %}>Title A-Z</option>
+                                <option value="-titre" {% if tri_actuel == '-titre' %}selected{% endif %}>Title Z-A</option>
+                                <option value="-montant_collecte" {% if tri_actuel == '-montant_collecte' %}selected{% endif %}>Amount ↓</option>
+                                <option value="montant_collecte" {% if tri_actuel == 'montant_collecte' %}selected{% endif %}>Amount ↑</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-auto flex-grow-1">
+                            <label for="recherche" class="form-label mb-0">Search</label>
+                            <input type="text" name="recherche" id="recherche" class="form-control form-control-sm" 
+                                   placeholder="Search by title, description, tags..." 
+                                   value="{{ filtre_recherche }}">
+                        </div>
+                        
+                        <div class="col-auto d-flex align-items-end">
+                            <div class="btn-group btn-group-sm">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-1"></i>Apply
+                                </button>
+                                <a href="{% url 'liste_projets_admin' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>Reset
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Projects List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Projects ({{ total_projets|intcomma }})
+                    </h5>
+                </div>
+                
+                <div class="card-body p-0">
+                    {% if projets %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Project</th>
+                                        <th>Owner</th>
+                                        <th>Status</th>
+                                        <th>Funding</th>
+                                        <th>Amounts</th>
+                                        <th>Dates</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for projet in projets %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if projet.image_principale %}
+                                                <img src="{{ projet.image_principale.url }}" 
+                                                     alt="{{ projet.titre }}" 
+                                                     class="rounded me-3" 
+                                                     style="width: 50px; height: 50px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="bg-light rounded d-flex align-items-center justify-content-center me-3" 
+                                                     style="width: 50px; height: 50px;">
+                                                    <i class="fas fa-image text-muted"></i>
+                                                </div>
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-1">{{ projet.titre }}</h6>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-tag me-1"></i>
+                                                        {{ projet.categorie_display }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <strong>{{ projet.porteur.get_full_name|default:projet.porteur.username }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ projet.porteur.email }}</small>
+                                                {% if projet.association %}
+                                                <br>
+                                                <small class="text-info">
+                                                    <i class="fas fa-users me-1"></i>
+                                                    {{ projet.association.nom }}
+                                                </small>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if projet.statut == 'actif' %}bg-success
+                                                {% elif projet.statut == 'termine' %}bg-info
+                                                {% elif projet.statut == 'en_attente' %}bg-warning
+                                                {% elif projet.statut == 'brouillon' %}bg-secondary
+                                                {% elif projet.statut == 'echec' %}bg-danger
+                                                {% elif projet.statut == 'annule' %}bg-dark
+                                                {% elif projet.statut == 'rejete' %}bg-danger
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ projet.get_statut_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                <strong>Type:</strong> {{ projet.get_type_financement_display }}<br>
+                                                <strong>Goal:</strong> {{ projet.montant_demande|intcomma }} ℏ<br>
+                                                <strong>Raised:</strong> {{ projet.montant_engage|intcomma }} ℏ
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="progress mb-2" style="height: 8px;">
+                                                <div class="progress-bar {% if projet.pourcentage_financement >= 100 %}bg-success{% else %}bg-primary{% endif %}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ projet.pourcentage_financement }}%">
+                                                </div>
+                                            </div>
+                                            <small>
+                                                {{ projet.pourcentage_financement }}% ({{ projet.montant_restant|intcomma }} ℏ left)
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                <strong>Created:</strong> {{ projet.date_creation|date:"m/d/Y" }}<br>
+                                                {% if projet.date_debut %}
+                                                <strong>Start:</strong> {{ projet.date_debut|date:"m/d/Y" }}<br>
+                                                {% endif %}
+                                                {% if projet.date_fin %}
+                                                <strong>End:</strong> {{ projet.date_fin|date:"m/d/Y" }}
+                                                {% if projet.jours_restants > 0 %}
+                                                <br><span class="text-info">{{ projet.jours_restants }}d left</span>
+                                                {% endif %}
+                                                {% endif %}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ projet.get_absolute_url }}" 
+                                                   class="btn btn-outline-primary" 
+                                                   title="View project">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="#" 
+                                                   class="btn btn-outline-secondary" 
+                                                   title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                {% if projet.statut == 'en_attente' %}
+                                                <a href="{% url 'valider_projet' projet.audit_uuid %}" 
+                                                   class="btn btn-outline-success" 
+                                                   title="Validate project">
+                                                    <i class="fas fa-check"></i>
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h4 class="text-muted">No projects found</h4>
+                            <p class="text-muted">No projects match your search criteria.</p>
+                            <a href="{% url 'liste_projets_admin' %}" class="btn btn-primary">
+                                <i class="fas fa-times me-2"></i>Reset filters
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <div class="card-footer">
+                    <nav aria-label="Pagination">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    First
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    Previous
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    Next
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    Last
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-submit filters when they change
+    $('#statut, #categorie, #type_financement, #tri').change(function() {
+        $(this).closest('form').submit();
+    });
+    
+    // Tooltips
+    $('[title]').tooltip();
+});
+</script>
+{% endblock %}

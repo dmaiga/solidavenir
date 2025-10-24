@@ -692,7 +692,7 @@ class Projet(models.Model):
         """
         Returns the remaining amount needed to reach the funding goal.
         """
-        return max(0, self.montant_demande - (self.montant_collecte or 0))
+        return max(0, self.montant_demande - (self.montant_engage or 0))
 
     @property
     def pourcentage_financement(self):

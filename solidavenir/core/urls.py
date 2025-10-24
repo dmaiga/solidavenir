@@ -90,6 +90,7 @@ urlpatterns = [
     # Administration / Admin
     # -------------------------
     path('associations_admin/', views.liste_associations_admin, name='liste_associations_admin'),  # Admin: list associations
+    path('projets_admin/', views.liste_projets_admin, name='liste_projets_admin'),
     path('projets/en-attente/', views.liste_projets_attente, name='projets_attente'),  # Pending projects
     path('association/<int:association_id>/preview/', views.preview_association_admin, name='preview_association_admin'),  # Preview association (admin)
     path('association/<int:association_id>/valider/', views.valider_association, name='valider_association'),  # Validate association

@@ -23,11 +23,15 @@
             --admin-warning: #ffc107;
             --admin-danger: #dc3545;
             --admin-info: #17a2b8;
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 70px;
+            --transition-speed: 0.3s;
         }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa;
+            transition: margin-left var(--transition-speed);
         }
         
         .admin-sidebar {
@@ -37,21 +41,76 @@
             padding: 0;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
             z-index: 1000;
+            width: var(--sidebar-width);
+            transition: width var(--transition-speed);
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-x: hidden;
+        }
+        
+        .admin-sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+        
+        .admin-sidebar.collapsed .sidebar-content {
+            padding: 1rem 0.5rem;
+        }
+        
+        .admin-sidebar.collapsed .nav-link span,
+        .admin-sidebar.collapsed .brand-text,
+        .admin-sidebar.collapsed .dropdown-toggle strong,
+        .admin-sidebar.collapsed hr {
+            display: none;
+        }
+        
+        .admin-sidebar.collapsed .nav-link {
+            padding: 0.8rem 0.5rem;
+            justify-content: center;
+            border-left: none;
+            border-right: 3px solid transparent;
+        }
+        
+        .admin-sidebar.collapsed .nav-link.active {
+            border-left: none;
+            border-right: 3px solid var(--admin-accent);
+        }
+        
+        .admin-sidebar.collapsed .nav-link i {
+            margin-right: 0;
+            font-size: 1.2rem;
+        }
+        
+        .admin-sidebar.collapsed .notification-badge {
+            top: 5px;
+            right: 5px;
+        }
+        
+        .sidebar-content {
+            padding: 1rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: padding var(--transition-speed);
         }
         
         .admin-sidebar .nav-link {
             color: rgba(255, 255, 255, 0.8);
-            padding: 0.8rem 1.5rem;
+            padding: 0.8rem 1rem;
             border-left: 3px solid transparent;
             transition: all 0.3s;
             display: flex;
             align-items: center;
+            white-space: nowrap;
+            position: relative;
         }
         
         .admin-sidebar .nav-link i {
             margin-right: 10px;
             width: 20px;
             text-align: center;
+            transition: margin var(--transition-speed);
+            flex-shrink: 0;
         }
         
         .admin-sidebar .nav-link:hover,
@@ -61,14 +120,42 @@
             border-left-color: var(--admin-accent);
         }
         
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: margin-left var(--transition-speed);
+            min-height: 100vh;
+        }
+        
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+        
         .admin-header {
             background-color: white;
             border-bottom: 1px solid #dee2e6;
-            padding: 1rem 0;
+            padding: 1rem 2rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             position: sticky;
             top: 0;
             z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: var(--admin-primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .sidebar-toggle:hover {
+            background-color: var(--admin-light);
         }
         
         .admin-content {
@@ -146,8 +233,8 @@
         
         .notification-badge {
             position: absolute;
-            top: 5px;
-            right: 5px;
+            top: 8px;
+            right: 15px;
             background-color: var(--admin-danger);
             color: white;
             border-radius: 50%;
@@ -157,55 +244,100 @@
             align-items: center;
             justify-content: center;
             font-size: 0.7rem;
+            transition: right var(--transition-speed);
         }
         
         .nav-item {
             position: relative;
         }
         
+        /* Tooltip for collapsed sidebar */
+        .admin-sidebar.collapsed .nav-link::after {
+            content: attr(data-title);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--admin-dark);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+            z-index: 1001;
+            font-size: 0.9rem;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .admin-sidebar.collapsed .nav-link:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .admin-sidebar {
-                min-height: auto;
-                position: fixed;
-                bottom: 0;
                 width: 100%;
                 height: 60px;
+                position: fixed;
+                bottom: 0;
+                top: auto;
+                z-index: 1000;
             }
             
-            .admin-content {
-                padding: 1rem;
+            .admin-sidebar:not(.collapsed) {
+                height: 100vh;
+                top: 0;
+                bottom: auto;
+            }
+            
+            .main-content {
+                margin-left: 0;
                 margin-bottom: 60px;
             }
             
+            .main-content.expanded {
+                margin-left: 0;
+            }
+            
             .sidebar-content {
-                display: flex;
-                flex-direction: row;
-                overflow-x: auto;
+                padding: 0.5rem;
             }
             
             .sidebar-content ul {
                 display: flex;
                 flex-direction: row;
+                overflow-x: auto;
             }
             
             .sidebar-content .nav-item {
                 flex-shrink: 0;
             }
             
-            .sidebar-content .nav-link {
+            .admin-sidebar:not(.collapsed) .sidebar-content ul {
+                flex-direction: column;
+            }
+            
+            .admin-sidebar .nav-link {
                 padding: 0.5rem 1rem;
                 border-left: none;
                 border-bottom: 3px solid transparent;
             }
             
-            .sidebar-content .nav-link.active {
+            .admin-sidebar .nav-link.active {
                 border-left: none;
                 border-bottom: 3px solid var(--admin-accent);
             }
             
+            .admin-sidebar.collapsed .nav-link {
+                border-right: none;
+            }
+            
             .admin-header {
                 position: static;
+                padding: 1rem;
             }
         }
         
@@ -275,121 +407,141 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 admin-sidebar p-0">
-                <div class="d-flex flex-column p-3 h-100 sidebar-content">
-                    <div class="d-none d-md-block">
-                        <a href="{% url 'tableau_de_bord' %}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-                            <i class="fas fa-solid fa-hand-holding-heart fs-3 me-2"></i>
-                            <span class="fs-4">Solid'Avenir</span>
-                        </a>
-                        <hr>
-                    </div>
-                    
-                    <ul class="nav nav-pills flex-column mb-auto">
-                        <li class="nav-item">
-                            <a href="{% url 'tableau_de_bord' %}" class="nav-link {% if request.resolver_match.url_name == 'tableau_de_bord' %}active{% endif %}">
-                                <i class="fas fa-tachometer-alt"></i>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'liste_membres' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_membres' %}active{% endif %}">
-                                <i class="fas fa-users"></i>
-                                User Management
-                                {% if pending_members_count and pending_members_count > 0 %}
-                                    <span class="notification-badge">{{ pending_members_count }}</span>
-                                {% endif %}
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'liste_associations_admin' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_associations_admin' %}active{% endif %}">
-                                <i class="fas fa-building"></i>
-                                Associations to Validate
-                                {% if pending_associations_count and pending_associations_count > 0 %}
-                                    <span class="notification-badge">{{ pending_associations_count }}</span>
-                                {% endif %}
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'projets_attente' %}" class="nav-link {% if request.resolver_match.url_name == 'projets_attente' %}active{% endif %}">
-                                <i class="fas fa-project-diagram"></i>
-                                Projects to Validate
-                                {% if pending_projects_count and pending_projects_count > 0 %}
-                                    <span class="notification-badge">{{ pending_projects_count }}</span>
-                                {% endif %}
-                            </a>
-                        </li>
-                     
-                        <li>
-                            <a href="{% url 'gerer_distributions' %}" class="nav-link {% if request.resolver_match.url_name == 'gerer_distributions' %}active{% endif %}">
-                                <i class="fas fa-clipboard-list"></i>
-                                Manage Distributions
-                            </a>
-                        </li>
-
-                        <li>
-                            <a href="{% url 'liste_transactions_validation' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_transactions_validation' %}active{% endif %}">
-                                <i class="fas fa-money-bill-wave"></i>
-                                Transactions
-                                {% if pending_transactions_count and pending_transactions_count > 0 %}
-                                    <span class="notification-badge">{{ pending_transactions_count }}</span>
-                                {% endif %}
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'logs_audit' %}" class="nav-link {% if request.resolver_match.url_name == 'logs_audit' %}active{% endif %}">
-                                <i class="fas fa-clipboard-list"></i>
-                                Audit Logs
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'liste_emails' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_emails' %}active{% endif %}">
-                                <i class="fas fa-envelope"></i>
-                                Communication
-                            </a>
-                        </li>
-                    </ul>
-                    
-                    <hr>
-                    
-                    <div class="mt-auto">
-                        <div class="dropdown">
-                            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle me-2"></i>
-                                <strong>{{ user.username }}</strong>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser">
-                                <li><a class="dropdown-item" href="{% url 'accueil' %}"><i class="fas fa-external-link-alt me-2"></i>Back to Site</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'deconnexion' %}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-                            </ul>
-                        </div>
-                    </div>
+    <div class="container-fluid p-0">
+        <!-- Sidebar -->
+        <div class="admin-sidebar" id="adminSidebar">
+            <div class="d-flex flex-column h-100 sidebar-content">
+                <div class="d-none d-md-block">
+                    <a href="{% url 'tableau_de_bord' %}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                        <i class="fas fa-solid fa-hand-holding-heart fs-3 me-2"></i>
+                        <span class="fs-4 brand-text">Solid'Avenir</span>
+                    </a>
+                    <hr class="d-none d-md-block">
                 </div>
-            </div>
-
-            <!-- Main content -->
-            <div class="col-md-9 col-lg-10 p-0">
                 
-                <div class="admin-content">
-                  
+                <ul class="nav nav-pills flex-column mb-auto">
+                    <li class="nav-item">
+                        <a href="{% url 'tableau_de_bord' %}" 
+                           class="nav-link {% if request.resolver_match.url_name == 'tableau_de_bord' %}active{% endif %}"
+                           data-title="Dashboard">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'liste_membres' %}" 
+                           class="nav-link {% if request.resolver_match.url_name == 'liste_membres' %}active{% endif %}"
+                           data-title="User Management">
+                            <i class="fas fa-users"></i>
+                            <span>User Management</span>
+                            {% if pending_members_count and pending_members_count > 0 %}
+                                <span class="notification-badge">{{ pending_members_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'liste_associations_admin' %}" 
+                           class="nav-link {% if request.resolver_match.url_name == 'liste_associations_admin' %}active{% endif %}"
+                           data-title="Associations">
+                            <i class="fas fa-building"></i>
+                            <span>Associations</span>
+                            {% if pending_associations_count and pending_associations_count > 0 %}
+                                <span class="notification-badge">{{ pending_associations_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'liste_projets_admin' %}" 
+                           class="nav-link {% if request.resolver_match.url_name == 'liste_projets_admin' %}active{% endif %}"
+                           data-title="Projects">
+                            <i class="fas fa-project-diagram"></i>
+                            <span>Projects</span>
+                            {% if pending_projects_count and pending_projects_count > 0 %}
+                                <span class="notification-badge">{{ pending_projects_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                 
+                    <li>
+                        <a href="{% url 'gerer_distributions' %}" 
+                           class="nav-link {% if request.resolver_match.url_name == 'gerer_distributions' %}active{% endif %}"
+                           data-title="Manage Distributions">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Manage Distributions</span>
+                        </a>
+                    </li>
 
-                    {% block content %}
-                    <!-- Specific page content will be inserted here -->
-                    {% endblock %}
-
+                    <li>
+                        <a href="{% url 'liste_transactions_validation' %}" 
+                           class="nav-link {% if request.resolver_match.url_name == 'liste_transactions_validation' %}active{% endif %}"
+                           data-title="Transactions">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>Transactions</span>
+                            {% if pending_transactions_count and pending_transactions_count > 0 %}
+                                <span class="notification-badge">{{ pending_transactions_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'logs_audit' %}" 
+                           class="nav-link {% if request.resolver_match.url_name == 'logs_audit' %}active{% endif %}"
+                           data-title="Audit Logs">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Audit Logs</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'liste_emails' %}" 
+                           class="nav-link {% if request.resolver_match.url_name == 'liste_emails' %}active{% endif %}"
+                           data-title="Communication">
+                            <i class="fas fa-envelope"></i>
+                            <span>Communication</span>
+                        </a>
+                    </li>
+                </ul>
+                
+                <hr class="d-none d-md-block">
+                
+                <div class="mt-auto">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" 
+                           id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-2"></i>
+                            <strong class="user-name">{{ user.username }}</strong>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser">
+                            <li><a class="dropdown-item" href="{% url 'accueil' %}"><i class="fas fa-external-link-alt me-2"></i>Back to Site</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'deconnexion' %}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
-    
+
+        <!-- Main content -->
+        <div class="main-content" id="mainContent">
+            <div class="admin-header">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="d-flex align-items-center">
+                    <span class="fs-5 fw-bold text-primary"> SOLID'AVENIR Dashboard</span>
+                </div>
+                <div></div> <!-- Empty div for flex spacing -->
+            </div>
+            
+            <div class="admin-content">
+                {% block content %}
+                <!-- Specific page content will be inserted here -->
+                {% endblock %}
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -400,8 +552,36 @@
     {% block extra_js %}{% endblock %}
     
     <script>
-        // Script to handle badge notifications
         document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('adminSidebar');
+            const mainContent = document.getElementById('mainContent');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const toggleIcon = sidebarToggle.querySelector('i');
+            
+            // Check if sidebar state is saved in localStorage
+            const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            
+            if (isCollapsed) {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+                toggleIcon.className = 'fas fa-bars';
+            }
+            
+            // Toggle sidebar
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+                
+                // Update toggle icon
+                if (sidebar.classList.contains('collapsed')) {
+                    toggleIcon.className = 'fas fa-bars';
+                    localStorage.setItem('sidebarCollapsed', 'true');
+                } else {
+                    toggleIcon.className = 'fas fa-times';
+                    localStorage.setItem('sidebarCollapsed', 'false');
+                }
+            });
+            
             // Auto-dismiss alerts after 5 seconds
             setTimeout(function() {
                 var alerts = document.querySelectorAll('.alert');
@@ -411,13 +591,31 @@
                 });
             }, 5000);
             
-            // Responsive sidebar toggle for mobile
-            if (window.innerWidth <= 768) {
-                const sidebar = document.querySelector('.admin-sidebar');
-                const content = document.querySelector('.admin-content');
-                
-                // You can add a toggle button functionality here if needed
+            // Handle responsive behavior
+            function handleResponsive() {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.remove('expanded');
+                    sidebarToggle.style.display = 'block';
+                } else {
+                    sidebarToggle.style.display = 'block';
+                    // Restore saved state on desktop
+                    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                    if (isCollapsed) {
+                        sidebar.classList.add('collapsed');
+                        mainContent.classList.add('expanded');
+                    } else {
+                        sidebar.classList.remove('collapsed');
+                        mainContent.classList.remove('expanded');
+                    }
+                }
             }
+            
+            // Initial call
+            handleResponsive();
+            
+            // Listen for window resize
+            window.addEventListener('resize', handleResponsive);
         });
     </script>
 </body>

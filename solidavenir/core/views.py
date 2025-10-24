@@ -2705,12 +2705,12 @@ def tableau_de_bord(request):
     # Top donateurs
     top_donateurs = User.objects.filter(
         user_type='donateur',
-        transaction__statut='confirme'
+        transactions__statut='confirme'
     ).annotate(
-        total_dons=Sum('transaction__montant'),
-        nombre_dons=Count('transaction')
+        total_dons=Sum('transactions__montant'),  
+        nombre_dons=Count('transactions')  
     ).order_by('-total_dons')[:5]
-    
+
     # Projets les plus financés
     projets_populaires = Projet.objects.filter(
         statut='actif'
@@ -2878,6 +2878,109 @@ L'équipe Solidavenir""",
     context = {'association': association}
     return render(request, 'core/admin/valider_association.html', context)
 
+
+@permission_required('core.manage_users', raise_exception=True)
+@login_required
+def liste_projets_admin(request):
+    """
+    Vue fonctionnelle pour afficher la liste des projets avec filtres et statistiques.
+    """
+    queryset = Projet.objects.select_related(
+        'porteur', 
+        'association', 
+        'valide_par'
+    ).prefetch_related('paliers', 'images')
+
+    # --- Récupération des filtres GET ---
+    statut = request.GET.get('statut')
+    categorie = request.GET.get('categorie')
+    type_financement = request.GET.get('type_financement')
+    recherche = request.GET.get('recherche')
+    tri = request.GET.get('tri', '-date_creation')
+
+    # --- Application des filtres ---
+    if statut and statut != 'tous':
+        queryset = queryset.filter(statut=statut)
+
+    if categorie and categorie != 'toutes':
+        if categorie == 'autre':
+            queryset = queryset.filter(categorie='autre')
+        else:
+            queryset = queryset.filter(categorie=categorie)
+
+    if type_financement and type_financement != 'tous':
+        queryset = queryset.filter(type_financement=type_financement)
+
+    if recherche:
+        queryset = queryset.filter(
+            Q(titre__icontains=recherche) |
+            Q(description__icontains=recherche) |
+            Q(description_courte__icontains=recherche) |
+            Q(tags__icontains=recherche) |
+            Q(porteur__username__icontains=recherche) |
+            Q(porteur__email__icontains=recherche)
+        )
+
+    # --- Tri ---
+    if tri in [
+        'date_creation', '-date_creation', 
+        'titre', '-titre', 
+        'montant_demande', '-montant_demande', 
+        'montant_collecte', '-montant_collecte'
+    ]:
+        queryset = queryset.order_by(tri)
+
+    # --- Pagination ---
+    paginator = Paginator(queryset, 20)
+    page_number = request.GET.get('page')
+    projets_page = paginator.get_page(page_number)
+
+    # --- Statistiques globales ---
+    total_projets = Projet.objects.count()
+    projets_actifs = Projet.objects.filter(statut='actif').count()
+    projets_termines = Projet.objects.filter(statut='termine').count()
+    projets_en_attente = Projet.objects.filter(statut='en_attente').count()
+    projets_brouillon = Projet.objects.filter(statut='brouillon').count()
+
+    montant_total_demande = Projet.objects.aggregate(total=Sum('montant_demande'))['total'] or 0
+    montant_total_collecte = Projet.objects.aggregate(total=Sum('montant_collecte'))['total'] or 0
+    taux_collecte_global = (
+        (montant_total_collecte / montant_total_demande * 100)
+        if montant_total_demande > 0 else 0
+    )
+
+    # --- Projets expirant bientôt ---
+    projets_expirant = Projet.objects.filter(
+        statut='actif',
+        date_fin__lte=timezone.now() + timezone.timedelta(days=7),
+        date_fin__gt=timezone.now()
+    ).count()
+
+    # --- Contexte ---
+    context = {
+        'projets': projets_page,
+        'total_projets': total_projets,
+        'projets_actifs': projets_actifs,
+        'projets_termines': projets_termines,
+        'projets_en_attente': projets_en_attente,
+        'projets_brouillon': projets_brouillon,
+        'projets_expirant': projets_expirant,
+        'montant_total_demande': montant_total_demande,
+        'montant_total_collecte': montant_total_collecte,
+        'taux_collecte_global': taux_collecte_global,
+
+        # Filtres et valeurs actuelles
+        'statuts_choices': Projet.STATUTS,
+        'categories_choices': Projet.CATEGORIES,
+        'types_financement_choices': Projet.TYPES_FINANCEMENT,
+        'filtre_statut': statut or '',
+        'filtre_categorie': categorie or '',
+        'filtre_type_financement': type_financement or '',
+        'filtre_recherche': recherche or '',
+        'tri_actuel': tri,
+    }
+
+    return render(request, 'core/admin/liste_projets.html', context)
 
 @login_required
 @permission_required('core.validate_project', raise_exception=True)

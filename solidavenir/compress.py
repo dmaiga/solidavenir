@@ -3,9 +3,9 @@ from PIL import Image
 from tqdm import tqdm
 
 # Dossier source : ton dossier "about"
-SOURCE_DIR = r"core/static/images/amaldeme"
+SOURCE_DIR = r"core/static/images/mobile"
 # Dossier de sortie : les images compressées WebP
-OUTPUT_DIR = r"core/static/images/amaldeme_webp"
+OUTPUT_DIR = r"core/static/images/mobile_webp"
 
 # Crée le dossier de sortie s'il n'existe pas
 os.makedirs(OUTPUT_DIR, exist_ok=True)

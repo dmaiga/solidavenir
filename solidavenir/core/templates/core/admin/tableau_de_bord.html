@@ -303,9 +303,9 @@
             
                 Associations
             </a>
-            <a href="{% url 'logs_audit' %}" class="quick-link">
+            <a href="{% url 'liste_projets_admin' %}" class="quick-link">
             
-                Audit Logs
+                Projects
             </a>
             <a href="{% url 'gerer_distributions' %}" class="quick-link">
               
@@ -336,7 +336,7 @@
             </a>
             
             <!-- Proofs to Verify -->
-            <a href="#" class="priority-card proofs">
+            <a href="{% url 'gerer_distributions' %}" class="priority-card proofs">
                 <div class="priority-number">{{ stats.preuves_verification }}</div>
                 <div class="priority-label">Proofs to Verify</div>
                 <div class="priority-description">Milestone achievement proofs</div>
@@ -490,7 +490,7 @@
                                     <div class="flex-grow-1">
                                         <h6 class="mb-1">{{ palier.projet.titre|truncatewords:4 }}</h6>
                                         <small class="text-muted">
-                                            Milestone {{ palier.pourcentage }}% • 
+                                            Milestone {{ palier.titre }} 
                                             Raised: {{ item.montant_collecte|floatformat:0|intcomma }} ℏ HBAR
                                         </small>
                                         <div class="progress mt-2">
@@ -528,7 +528,7 @@
                                     <div class="flex-grow-1">
                                         <h6 class="mb-1">{{ preuve.palier.projet.titre|truncatewords:4 }}</h6>
                                         <small class="text-muted">
-                                            Milestone {{ preuve.palier.pourcentage }}% • 
+                                            Milestone {{ preuve.palier.titre }} 
                                             Submitted {{ preuve.date_soumission|date:"m/d/Y" }}
                                         </small>
                                         <br>
