@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Project Policy - Solid'Avenir{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- En-tête -->
+            <div class="text-center mb-5 fade-in">
+                <h1 class="display-4 fw-bold text-primary mb-3">Project Policy</h1>
+                <p class="lead text-muted">Our governance framework built on radical transparency and trust</p>
+                <div class="border-bottom mx-auto" style="width: 100px; border-color: var(--primary-orange)!important; height: 3px;"></div>
+            </div>
+
+            <!-- Introduction -->
+            <div class="card shadow-sm border-0 mb-5 fade-in">
+                <div class="card-body p-4">
+                    <h2 class="h4 text-primary mb-3">Solid'Avenir: A Digital Trust Infrastructure</h2>
+                    <p class="mb-0">
+                        Solid'Avenir is a digital trust infrastructure that merges entrepreneurial crowdfunding 
+                        with community solidarity. Our governance is built on radical transparency, guaranteed 
+                        by Hedera Hashgraph technology. The project policy rests on four fundamental pillars:
+                    </p>
+                </div>
+            </div>
+
+            <!-- Pilliers fondamentaux -->
+            <div class="row mb-5">
+                <div class="col-md-6 mb-4 fade-in">
+                    <div class="card h-100 border-0 shadow-sm policy-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="policy-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-shield-check fs-5"></i>
+                                </div>
+                                <h3 class="h5 mb-0">1. Verification & Compliance</h3>
+                            </div>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Mandatory audit of all project holders</li>
+                                <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Legal and administrative document verification</li>
+                                <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Technical, financial, and social impact analysis</li>
+                                <li class="mb-0"><i class="bi bi-check-circle text-success me-2"></i>Rigorous due diligence process</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4 fade-in">
+                    <div class="card h-100 border-0 shadow-sm policy-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="policy-icon bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-eye fs-5"></i>
+                                </div>
+                                <h3 class="h5 mb-0">2. Transparency & Traceability</h3>
+                            </div>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Immutable data on Hedera Hashgraph</li>
+                                <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Public ledger accessible to all contributors</li>
+                                <li class="mb-0"><i class="bi bi-check-circle text-success me-2"></i>Secure storage of field evidence</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4 fade-in">
+                    <div class="card h-100 border-0 shadow-sm policy-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="policy-icon bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-cash-coin fs-5"></i>
+                                </div>
+                                <h3 class="h5 mb-0">3. Fund Distribution</h3>
+                            </div>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Milestone-based fund release</li>
+                                <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Proof validation for each disbursement</li>
+                                <li class="mb-0"><i class="bi bi-check-circle text-success me-2"></i>Independent compliance supervision</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4 fade-in">
+                    <div class="card h-100 border-0 shadow-sm policy-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="policy-icon bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-lock fs-5"></i>
+                                </div>
+                                <h3 class="h5 mb-0">4. Data Protection</h3>
+                            </div>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>No identifiable personal data on distributed ledger</li>
+                                <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>End-to-end encryption</li>
+                                <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Multi-factor authentication</li>
+                                <li class="mb-0"><i class="bi bi-check-circle text-success me-2"></i>Strict compliance with local data protection laws</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow Section -->
+            <div class="card shadow-sm border-0 mb-5 fade-in">
+                <div class="card-body p-4">
+                    <h2 class="h3 text-primary mb-4">Our Workflow Process</h2>
+                    
+                    <div class="row">
+                        <div class="col-lg-6 mb-4">
+                            <h4 class="h5 text-primary mb-3">Entrepreneurial Workflow</h4>
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <span class="timeline-marker bg-primary"></span>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Submission & Verification</h6>
+                                        <p class="small mb-0">Project submission, due diligence, approval</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-marker bg-info"></span>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Funding & Execution</h6>
+                                        <p class="small mb-0">Secure collection, controlled disbursement, dual verification</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-marker bg-success"></span>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Closure & Transparency</h6>
+                                        <p class="small mb-0">Final reporting, verifiable impact assessment</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-6">
+                            <h4 class="h5 text-primary mb-3">Community Solidarity Workflow</h4>
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <span class="timeline-marker bg-warning"></span>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Reporting & Validation</h6>
+                                        <p class="small mb-0">Case reporting, dual validation by governance committee</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-marker bg-orange"></span>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Mobilization & Monitoring</h6>
+                                        <p class="small mb-0">Campaign launch, supervised disbursement, proof collection</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-marker bg-success"></span>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Closure & Accountability</h6>
+                                        <p class="small mb-0">Final impact report with full evidence access</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="text-center fade-in">
+                <div class="card bg-gradient-primary text-white border-0 shadow">
+                    <div class="card-body py-5">
+                        <h3 class="h2 mb-3">Ready to Make an Impact?</h3>
+                        <p class="lead mb-4">Join our transparent crowdfunding platform and be part of the change</p>
+                        <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+                            <a href="{% url 'liste_projets' %}" class="btn btn-light btn-lg">
+                                <i class="bi bi-rocket-takeoff me-2"></i>Discover Projects
+                            </a>
+                            <a href="{% url 'creer_projet' %}" class="btn btn-outline-light btn-lg">
+                                <i class="bi bi-lightbulb me-2"></i>Start a Project
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .policy-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .policy-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15)!important;
+    }
+    
+    .policy-icon {
+        transition: transform 0.3s ease;
+    }
+    
+    .policy-card:hover .policy-icon {
+        transform: scale(1.1);
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 25px;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: -30px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 3px var(--bs-primary);
+    }
+    
+    .timeline-content {
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .timeline-item:last-child .timeline-content {
+        border-bottom: none;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%);
+    }
+    
+    .fade-in {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    
+    .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animation au défilement
+        const fadeElements = document.querySelectorAll('.fade-in');
+        
+        const fadeInOnScroll = () => {
+            fadeElements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+                
+                if (elementTop < window.innerHeight - elementVisible) {
+                    element.classList.add('visible');
+                }
+            });
+        };
+        
+        fadeInOnScroll();
+        window.addEventListener('scroll', fadeInOnScroll);
+    });
+</script>
+{% endblock %}

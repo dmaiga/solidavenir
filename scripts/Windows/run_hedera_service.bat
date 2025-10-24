@@ -1,18 +1,18 @@
 @echo off
 echo ==============================
-echo  Lancement du service Hedera
+echo  Starting Hedera Service
 echo ==============================
 
-:: Aller dans le dossier hedera_service
+:: Go to the hedera_service folder
 cd /d %~dp0..\..\hedera_service
 
-:: Vérifier si node_modules existe
+:: Check if node_modules exists
 if not exist node_modules (
-    echo 📦 Installation des dépendances...
+    echo  Installing dependencies...
     npm install
 )
 
-echo ▶️ Démarrage du service Hedera...
+echo  Starting Hedera service...
 npm run start
 
 pause

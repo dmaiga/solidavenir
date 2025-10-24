@@ -117,6 +117,12 @@ def savoir_plus(request):
     """Page En savoir plus"""
     return render(request, 'core/site/savoir_plus.html')
 
+def policy_view(request):
+    context = {
+        'title': 'Project Policy - Solid\'Avenir',
+        'description': 'Discover our governance model based on four fundamental pillars: verification, transparency, fund distribution, and data protection.'
+    }
+    return render(request, 'core/site/policy.html', context)
 
 def contact(request):
     """Contact page"""

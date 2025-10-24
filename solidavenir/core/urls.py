@@ -13,6 +13,7 @@ urlpatterns = [
     path('inscription/', views.inscription, name='inscription'),  # User registration
     path('connexion/', views.connexion, name='connexion'),  # Login
     path('deconnexion/', views.deconnexion, name='deconnexion'),  # Logout
+    path('project-policy/', views.policy_view, name='project_policy'),
 
     # -------------------------
     # User profile

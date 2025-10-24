@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} 
 {% load static %}
 
 {% block title %}Solid'Avenir - Transparent and Secure Crowdfunding Platform{% endblock %}
@@ -83,7 +83,7 @@
                 
                 <div class="advantage-item">
                     <h5><i class="bi bi-lock advantage-icon"></i> Immutable Records</h5>
-                    <p>Every donation is recorded on Hedera's immutable public ledger, providing donors with full transparency and permanent auditability laying the foundation for unshakable trust.</p>
+                    <p>Every transaction is recorded on Hedera's immutable public ledger, providing donors with full transparency and permanent auditability laying the foundation for unshakable trust.</p>
                 </div>
                 
                 <div class="advantage-item">
@@ -94,6 +94,10 @@
                 <div class="text-center mt-4">
                     <a href="{% url 'transparence' %}" class="btn btn-primary btn-lg">
                         <i class="bi bi-shield-check me-2"></i>Explore Our Transparency
+                    </a>
+                    <!-- Ligne ajoutée vers la documentation Politique du projet -->
+                    <a href="{% url 'project_policy' %}" class="btn btn-outline-primary btn-lg ms-2">
+                        <i class="bi bi-file-text me-2"></i>Project Policy
                     </a>
                 </div>
             </div>
@@ -160,6 +164,10 @@
         <div class="text-center mt-4 fade-in">
             <a href="{% url 'liste_projets' %}" class="btn btn-outline-primary">See all verified projects</a>
             <a href="{% url 'transparence' %}" class="btn btn-info ms-2">Check transactions</a>
+            <!-- Ligne ajoutée vers la documentation Politique du projet -->
+            <a href="{% url 'project_policy' %}" class="btn btn-outline-info ms-2">
+                <i class="bi bi-file-text me-1"></i>Project Policy
+            </a>
         </div>
         {% endif %}
     </div>
@@ -186,6 +194,7 @@
             <div class="col-lg-8 mx-auto text-center mb-5 fade-in">
                 <h2 class="section-title">Why Solid'Avenir?</h2>
                 <p class="lead">Solid'Avenir positions itself as the first mover, offering a trusted, tech-driven solution adapted to the local context.</p>
+                
             </div>
         </div>
         
@@ -194,52 +203,60 @@
                 <div class="col-lg-6">
                     <h3 class="mb-4">The Gap We Fill</h3>
                     
-                    <div class="competitor-comparison">
-                        <h5 class="mb-3">Current Limitations in West Africa:</h5>
-                        
-                        <div class="comparison-item">
-                            <h6><i class="bi bi-x-circle advantage-icon"></i> International Platforms</h6>
-                            <p class="small mb-0">GoFundMe, Ulule - rarely used due to high fees, complex access, and no Mobile Money integration</p>
-                        </div>
-                        
-                        <div class="comparison-item">
-                            <h6><i class="bi bi-x-circle advantage-icon"></i> Local Associations</h6>
-                            <p class="small mb-0">Relying on donations but lacking a dedicated digital platform or transparent tracking</p>
-                        </div>
-                        
-                        <div class="comparison-item">
-                            <h6><i class="bi bi-x-circle advantage-icon"></i> Informal Collections</h6>
-                            <p class="small mb-0">Through WhatsApp, Facebook, and Mobile Money, with no structure or traceability</p>
-                        </div>
-                        
-                        <div class="comparison-item">
-                            <h6><i class="bi bi-x-circle advantage-icon"></i> Personal Initiatives</h6>
-                            <p class="small mb-0">Limited to small closed circles and rarely reaching the people most in need</p>
-                        </div>
-                    </div>
+                   <div class="competitor-comparison">
+    <h5 class="mb-3">Current Limitations in West Africa:</h5>
+    
+    <div class="comparison-item">
+        <h6><i class="bi bi-x-circle advantage-icon"></i> Payment Systems</h6>
+        <p class="small mb-0">Low banking penetration; Mobile Money dominates - international platforms don't support local payment methods</p>
+    </div>
+    
+    <div class="comparison-item">
+        <h6><i class="bi bi-x-circle advantage-icon"></i> Trust & Transparency</h6>
+        <p class="small mb-0">Initial mistrust; cash-based culture; strong need for visible proof of impact</p>
+    </div>
+    
+    <div class="comparison-item">
+        <h6><i class="bi bi-x-circle advantage-icon"></i> Impact Verification</h6>
+        <p class="small mb-0">Strong demand for tangible, visible results - not just text updates</p>
+    </div>
+    
+    <div class="comparison-item">
+        <h6><i class="bi bi-x-circle advantage-icon"></i> Economic Model</h6>
+        <p class="small mb-0">International fees too expensive for African purchasing power</p>
+    </div>
+</div>
                 </div>
                 
-                <div class="col-lg-6">
+                
+                    <div class="col-lg-6">
                     <h3 class="mb-4">Our Unique Advantages</h3>
                     
                     <div class="advantage-item">
-                        <h5><i class="bi bi-check-circle advantage-icon"></i> First Mover Advantage</h5>
-                        <p>No existing player combines fundraising with blockchain-based transparency in West Africa.</p>
+                        <h5><i class="bi bi-phone advantage-icon"></i> Mobile-First & Local Payments</h5>
+                        <p>Native Mobile Money integration, designed for African connectivity and payment habits.</p>
                     </div>
                     
                     <div class="advantage-item">
-                        <h5><i class="bi bi-check-circle advantage-icon"></i> Local Context Adaptation</h5>
-                        <p>Designed specifically for West African markets with Mobile Money integration and local payment solutions.</p>
+                        <h5><i class="bi bi-shield-check advantage-icon"></i> Blockchain Transparency</h5>
+                        <p>Every transaction immutably recorded on Hedera, with field audits and dual reporting.</p>
                     </div>
                     
                     <div class="advantage-item">
-                        <h5><i class="bi bi-check-circle advantage-icon"></i> Blockchain Transparency</h5>
-                        <p>Every donation is recorded on Hedera's immutable public ledger, providing donors with full transparency.</p>
+                        <h5><i class="bi bi-cash-coin advantage-icon"></i> Fair & Adaptive Pricing</h5>
+                        <p>Lower fees tailored to local purchasing power (2-5% social, 5-10% entrepreneurial projects).</p>
                     </div>
                     
                     <div class="advantage-item">
-                        <h5><i class="bi bi-check-circle advantage-icon"></i> Rigorous Vetting</h5>
-                        <p>We rigorously vet the legitimacy of every initiative, verify regulatory compliance, and assess feasibility.</p>
+                        <h5><i class="bi bi-translate advantage-icon"></i> Culturally Adapted</h5>
+                        <p>Built with local communities, respecting languages, customs and regulatory requirements.</p>
+                    </div>
+
+                    <!-- Ligne ajoutée vers la documentation Politique du projet -->
+                    <div class="text-center mt-4">
+                        <a href="{% url 'project_policy' %}" class="btn btn-primary">
+                            <i class="bi bi-file-text me-2"></i>Learn About Our Governance
+                        </a>
                     </div>
                 </div>
             </div>
