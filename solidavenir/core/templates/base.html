@@ -1,5 +1,6 @@
-
+{% load static %}
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,29 +12,33 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
     <!-- Styles personnalisés -->
     <style>
-@media screen and (min-resolution: 120dpi) {
-  html {
-    font-size: 15px; /* Ajuste la base pour les zooms */
-  }
-  
-  .navbar-logo {
-    height: 45px; /* Réduction proportionnelle */
-  }
-  .nav-link {
-    font-size: 1.1rem; /* Légère réduction */
-    padding: 0.8rem 1.5rem;
-  }
-}
+        @media screen and (min-resolution: 120dpi) {
+          html {
+            font-size: 15px; /* Ajuste la base pour les zooms */
+          }
+          
+          .navbar-logo {
+            height: 50px; /* Réduction proportionnelle */
+          }
+          .nav-link {
+            font-size: 1.2rem; /* Légère réduction */
+            padding: 0.8rem 1.4rem;
+          }
+        }
 
-@media screen and (min-resolution: 144dpi) {
-  html {
-    font-size: 12px;
-  }
-  
-  .container {
-    max-width: 90%; /* Évite le débordement */
-  }
-}
+        @media screen and (min-resolution: 144dpi) {
+          html {
+            font-size: 13px;
+          }
+          .nav-link {
+            font-size: 2rem; /* Légère réduction */
+            padding: 0.4rem 1.2rem;
+          }
+          
+          .container {
+            max-width: 90%; /* Évite le débordement */
+          }
+        }
 
         /* Variables CSS étendues */
         :root {
@@ -70,6 +75,18 @@
             font-weight: bold;
             font-size: 1.8rem;
             color: white !important;
+            display: flex;
+            align-items: center;
+        }
+        
+        .navbar-logo {
+            height: 50px;
+            width: auto;
+            transition: var(--transition);
+        }
+        
+        .navbar-logo:hover {
+            transform: scale(1.05);
         }
         
         .nav-link {
@@ -85,8 +102,6 @@
             color: white !important;
             background-color: rgba(255, 255, 255, 0.1);
         }
-        
-        
         
         .btn-primary {
             background-color: var(--primary-orange);
@@ -179,6 +194,16 @@
             .nav-link {
                 margin: 5px 0;
             }
+            
+            .navbar-logo {
+                height: 40px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .navbar-logo {
+                height: 35px;
+            }
         }
     </style>
     
@@ -190,7 +215,7 @@
         <div class="container">
             <!-- Logo -->
             <a class="navbar-brand" href="{% url 'accueil' %}">
-                <i class="bi bi-shield-check me-2"></i>Solid'Avenir
+                <img src="{% static 'images/hero_webp/logo_sa.webp' %}" alt="Solid'Avenir Logo" class="navbar-logo me-2">
             </a>
 
             <!-- Bouton mobile -->
@@ -295,7 +320,10 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-3 col-md-6 mb-4">
-                <h5 class="text-uppercase fw-bold mb-3">Solid'Avenir</h5>
+                <div class="d-flex align-items-center mb-3">
+                    <img src="{% static 'images/hero_web/logo_sa.webp' %}" alt="Solid'Avenir Logo" style="height: 40px; width: auto; margin-right: 10px;">
+                    <h5 class="text-uppercase fw-bold mb-0">Solid'Avenir</h5>
+                </div>
                 <p class="mb-3">Transparent crowdfunding platform for a united future, with guaranteed blockchain traceability.</p>
                 <!-- Slogan ajouté ici -->
                 <div class="slogan-container mb-3">

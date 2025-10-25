@@ -2,50 +2,50 @@
 set -e
 
 echo "=============================="
-echo "⚙️  Préparation de l'environnement backend Django"
+echo "Preparing the Django backend environment"
 echo "=============================="
 
-# Aller dans le dossier solidavenir
+# Go to the solidavenir folder
 cd "$(dirname "$0")/../../solidavenir"
 
-# Vérifier si python3 est installé
+# Check if python3 is installed
 if ! command -v python3 &> /dev/null
 then
-    echo "❌ Python3 n'est pas installé. Installez-le avec: sudo apt install python3-full python3-venv python3-pip"
+    echo " Python3 is not installed. Install it with: sudo apt install python3-full python3-venv python3-pip"
     exit 1
 fi
 
-# Créer le virtual environment si inexistant
+# Create the virtual environment if it doesn't exist
 if [ ! -d "venv" ]; then
-    echo "📦 Création du virtual environment..."
+    echo " Creating virtual environment..."
     python3 -m venv venv
 fi
 
-# Activer le virtual environment
+# Activate the virtual environment
 source venv/bin/activate
 
-# Mettre à jour pip
+# Upgrade pip
 pip install --upgrade pip
 
-# Installer les dépendances
-echo "📦 Installation des dépendances..."
+# Install dependencies
+echo " Installing dependencies..."
 pip install -r requirements.txt
 
-# Appliquer les migrations
-echo "🗄️  Appliquer les migrations..."
+# Apply migrations
+echo " Applying migrations..."
 python manage.py makemigrations
 python manage.py migrate
 
-# Vérifier et créer le superuser admin si nécessaire
-echo "👤 Vérification du superuser..."
+# Check and create the admin superuser if necessary
+echo " Checking for superuser..."
 python manage.py shell <<EOF
 from django.contrib.auth import get_user_model
 User = get_user_model()
 if not User.objects.filter(username="admin").exists():
     User.objects.create_superuser(username="admin", email="admin@solidavenir.com", password="changeMe123!", user_type="admin")
-    print("✅ Superuser créé !")
+    print("Superuser created!")
 else:
-    print("ℹ️ Superuser existe déjà")
+    print("Superuser already exists")
 EOF
 
-echo "✅ Backend prêt ! Vous pouvez maintenant démarrer le serveur avec ./run_backend.sh"
+echo " Backend ready! You can now start the server with ./run_backend.sh"

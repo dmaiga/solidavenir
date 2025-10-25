@@ -2,18 +2,18 @@
 set -e
 
 echo "=============================="
-echo "🚀 Lancement du service Hedera"
+echo " Starting Hedera Service"
 echo "=============================="
 
-# Aller dans le dossier hedera_service/src
+# Go to the hedera_service/src folder
 cd "$(dirname "$0")/../../hedera_service/src" || exit
 
-# Installer les dépendances si besoin
+# Install dependencies if needed
 if [ ! -d "node_modules" ]; then
-    echo "📦 Installation des dépendances..."
+    echo " Installing dependencies..."
     npm install
 fi
 
-# Lancer le service
-echo "▶️ Démarrage du service Hedera..."
+# Start the service
+echo "Starting Hedera service..."
 npm start
