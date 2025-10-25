@@ -128,7 +128,7 @@ docker-compose up --build
 >
 > * In `core/models.py`, replace `localhost` in `ensure_wallet` with the **Docker service name** (`hedera_service`) because `localhost` inside a container refers to the container itself.
 >
-> * Similarly, in `views` or any HTTP calls between services, replace `localhost` with the container name (`solidavenir_hedera`) to enable proper inter-container communication.
+> * Similarly, in `views` and `forms` or any HTTP calls between services, replace `localhost` with the container name (`solidavenir_hedera`) to enable proper inter-container communication.
 
 **Docker Compose Extract:**
 
