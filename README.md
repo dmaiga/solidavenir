@@ -123,48 +123,61 @@ flowchart LR
     style FE fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
     style BE fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
     style HE fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+```
 
+---
 
- Future Development
-🤖 Smart Contracts for automatic milestone fund release
+### 🚀 Future Development
 
-🪙 Token-based DAO governance (voting & compliance)
+* 🤖 **Smart Contracts** – automatic milestone fund release
+* 🪙 **Token-based DAO governance** – voting & compliance
+* 📱 **Mobile App** – accessible project tracking
+* 🧾 **Decentralized audit dashboard** – via Mirror Node integration
+* 🔐 **Judge & AI Access** – for transparent evaluation
 
-📱 Mobile App
+---
 
-🧾 Decentralized audit dashboard (Mirror Node integration)
+### ✅ Collaborator & Credentials
 
-🔐 Judge & AI Access
-✅ Collaborator Invited: Hackathon@hashgraph-association.com
+* **Collaborator Invited:** `Hackathon@hashgraph-association.com`
+* **Test Credentials:** Provided in DoraHacks submission notes
 
-🔑 Test Credentials: Provided in DoraHacks submission notes
+---
 
-🔒 Security & Credentials
-Important Security Notes
-✅ No private keys committed to repository
+### 🔒 Security & Credentials
 
-✅ Example configuration files provided (.env.example)
+**Important Security Notes**
 
-🔐 Testnet credentials provided separately to judges
+* ✅ No private keys committed to repository
+* ✅ Example configuration files provided (`.env.example`)
+* 🔐 Testnet credentials provided separately to judges
 
-Key Audit Files
-hedera_service/src/app.js - Core Hedera interactions
+---
 
-solidavenir/core/models.py - Business logic and wallet management
+### 🗂️ Key Audit Files
 
-solidavenir/core/views.py - API endpoints and workflow handling
+| File                         | Description                        |
+| ---------------------------- | ---------------------------------- |
+| `hedera_service/src/app.js`  | Core Hedera interactions           |
+| `solidavenir/core/models.py` | Business logic & wallet management |
+| `solidavenir/core/views.py`  | API endpoints & workflow handling  |
 
-## 🌱 Environment Variables (.example)
+---
 
-**hedera_service/.env.example**
+### 🌱 Environment Variables (.example)
+
+#### **hedera_service/.env.example**
+
 ```env
 HEDERA_OPERATOR_ID=
 HEDERA_OPERATOR_PRIVATE_KEY=
 PORT=3001
 NODE_ENV=development
-solidavenir/.env.example
+```
 
-env
+#### **solidavenir/.env.example**
+
+```env
 # Database (Postgres via Docker)
 DATABASE_URL=postgres://solidavenir:solidavenir@db:5432/solidavenir_db
 POSTGRES_USER=solidavenir
@@ -172,6 +185,8 @@ POSTGRES_PASSWORD=solidavenir
 POSTGRES_DB=solidavenir_db
 POSTGRES_HOST=db
 POSTGRES_PORT=5432
+```
+
 
 
 ## Project Structure
