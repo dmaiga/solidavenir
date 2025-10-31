@@ -26,31 +26,24 @@ Funds are released based on milestone validation, and all evidence (photos, rece
 
 ## ⚙️ Hedera Integration Summary
 
-### **Hedera Consensus Service (HCS)**
-We chose HCS for immutable logging of project milestones and audit proofs because its predictable $0.0001 fee guarantees operational cost stability, essential for low-margin crowdfunding in Africa. Each validated project gets a dedicated HCS topic.
+| Component                        | Usage |
+|---------------------------------|-------|
+| **Hedera Consensus Service (HCS)** | Each project has a dedicated Topic for immutable anchoring of proofs, milestones, and reports |
+| **Hedera Token Service (HTS)**    | Tokenization of contributions and fractional ownership of projects |
+| **Hedera Mirror Node**            | Enables public audit and traceability of all actions |
+| **Hedera Account Service**        | Creates accounts for validated projects and enrolled users for fund transfers |
+| **Smart Contracts (Planned)**     | Automate milestone-based fund release (Trust-as-a-Service - TaaS) |
 
-**Transactions:** `TopicCreateTransaction`, `TopicMessageSubmitTransaction`
-
-### **Hedera Token Service (HTS)**  
-We use HTS for tokenizing contributions to enable fractional ownership and transparent fund tracking. Hedera's high throughput (10,000+ TPS) ensures we can handle mass adoption across West Africa.
-
-**Transactions:** `TransferTransaction`, `AccountBalanceQuery`
-
-### **Hedera Account Service**
-We create Hedera accounts for validated projects to enable direct, transparent fund transfers with ABFT finality in 2-3 seconds, building essential trust for African donors.
-
-**Transactions:** `AccountCreateTransaction`
 
 ### **Transaction Types Executed**
 
-| Transaction | Data Sent | Description |
-|-------------|------------|-------------|
-| `AccountCreateTransaction` | `{ initialBalance }` | Creates a new Hedera account for user/project. Returns `accountId`, `privateKey`, `publicKey`. |
-| `TransferTransaction` | `{ fromAccountId, fromPrivateKey, toAccountId, amount }` | Transfers HBAR between Hedera accounts. Returns transaction status and HashScan link. |
-| `AccountBalanceQuery` | — | Retrieves HBAR balance of a Hedera account. |
-| `TopicCreateTransaction` | `{ memo }` | Creates an HCS Topic dedicated to a project for immutable anchoring of proofs and milestones. |
-| `TopicMessageSubmitTransaction` | `{ topicId, message }` | Submits message (proof, report) to the HCS Topic. Includes HashScan and Mirror Node link for auditability. |
-
+| Transaction | Backend Endpoint | Data Sent | Description |
+|-------------|------------------|-----------|-------------|
+| `AccountCreateTransaction` | `POST /create-wallet` | `{ initialBalance }` | Creates a new Hedera account for user/project. Returns `accountId`, `privateKey`, `publicKey` |
+| `TransferTransaction` | `POST /transfer` | `{ fromAccountId, fromPrivateKey, toAccountId, amount }` | Transfers HBAR between Hedera accounts. Returns transaction status and HashScan link |
+| `AccountBalanceQuery` | `GET /balance/:accountId` | — | Retrieves HBAR balance of a Hedera account |
+| `TopicCreateTransaction` | `POST /create-topic` | `{ memo }` | Creates HCS Topic dedicated to a project for immutable anchoring of proofs and milestones |
+| `TopicMessageSubmitTransaction` | `POST /send-message` | `{ topicId, message }` | Submits message (proof, report) to HCS Topic. Includes HashScan and Mirror Node link for auditability |
 
 **Usage:**
 - `AccountCreateTransaction` → Creation of Hedera accounts for validated projects
@@ -61,19 +54,19 @@ We create Hedera accounts for validated projects to enable direct, transparent f
 
 ---
 
+
 ## 🆔 Deployed Hedera Testnet IDs
 
-| Component | Testnet ID | Purpose |
-|-----------|------------|---------|
-| Operator Account | `0.0.6808286` | Main platform account |
-| HCS Topic | `0.0.7053681` | Test Project |
-| *Additional IDs will be generated during judge testing* | | |
+| Component | Testnet ID | Verification Link |
+|-----------|------------|-------------------|
+| Operator Account | `0.0.6808286` | [View on HashScan](https://hashscan.io/testnet/account/0.0.6808286) |
+| HCS Topic (Example) | `0.0.7053681` | [View on HashScan](https://hashscan.io/testnet/topic/0.0.7053681) |
+| Sample Transaction | `0.0.6808286@1761862484.177943340` | [View Transaction](https://hashscan.io/testnet/transaction/0.0.6808286@1761862484.177943340) |
 
 ---
 
 ## 💰 Economic Justification for Hedera
-
-Hedera's low, predictable fees ($0.0001/transaction) enable Solid'Avenir to charge only 2-5% platform fees instead of 8-15% with traditional solutions, making crowdfunding financially viable for African communities while maintaining full transparency.
+Hedera’s low and predictable fees ($0.0001 per transaction) enable Solid’Avenir to charge only 2–5% platform fees for social projects and 5–10% for economic projects, making crowdfunding financially viable for African communities while ensuring full transparency.
 
 1. **Low, Predictable Fees → Financial Sustainability**  
 Thanks to Hedera, Solid'Avenir minimizes operational costs and offers reduced fees, maximizing funds allocated to projects.
@@ -129,11 +122,11 @@ flowchart LR
 
 ### 🚀 Future Development
 
+* 📱 **Mobile App** 
 * 🤖 **Smart Contracts** – automatic milestone fund release
 * 🪙 **Token-based DAO governance** – voting & compliance
-* 📱 **Mobile App** – accessible project tracking
 * 🧾 **Decentralized audit dashboard** – via Mirror Node integration
-* 🔐 **Judge & AI Access** – for transparent evaluation
+
 
 ---
 
@@ -164,6 +157,20 @@ flowchart LR
 
 ---
 
+
+
+
+## Project Structure
+
+```
+/hedera_service       # Node.js service for Hedera
+/solidavenir          # Django backend
+/scripts
+  /linux              # Linux scripts (.sh)
+  /windows            # Windows scripts (.bat)
+docker-compose.yml    # To run services via Docker
+```
+
 ### 🌱 Environment Variables (.example)
 
 #### **hedera_service/.env.example**
@@ -178,6 +185,10 @@ NODE_ENV=development
 #### **solidavenir/.env.example**
 
 ```env
+# ⚙️ Database Configuration
+# By default, Solid’Avenir uses SQLite for local development (no setup required).
+# PostgreSQL is only used when running the app via Docker using the provided scripts.
+
 # Database (Postgres via Docker)
 DATABASE_URL=postgres://solidavenir:solidavenir@db:5432/solidavenir_db
 POSTGRES_USER=solidavenir
@@ -187,18 +198,6 @@ POSTGRES_HOST=db
 POSTGRES_PORT=5432
 ```
 
-
-
-## Project Structure
-
-```
-/hedera_service       # Node.js service for Hedera
-/solidavenir          # Django backend
-/scripts
-  /linux              # Linux scripts (.sh)
-  /windows            # Windows scripts (.bat)
-docker-compose.yml    # To run services via Docker
-```
 
 ---
 ⚠️ Important:
@@ -229,10 +228,11 @@ cd solidavenir
 ```
 powershell
 
-# Terminal 1
-.\scripts\windows\run_hedera_service.bat
+# Terminal 1 → Starts the Node.js service to use the Hedera SDK
 
-# Terminal 2
+.\scripts\windows\run_hedera_service.bat 
+
+# Terminal 2 → Starts the Django backend for business logic
 .\scripts\windows\run_backend.bat
 
 ```
@@ -272,10 +272,11 @@ chmod +x scripts/linux/run_backend.sh
 3. Launch the services in separate terminals:
 ```bash
 
-# Terminal 1
+# Terminal 1 → Starts the Node.js service to use the Hedera SDK
+
 ./scripts/linux/run_hedera_service.sh
 
-# Terminal 2
+# Terminal 2 → Starts the Django backend for business logic
 ./scripts/linux/run_backend.sh
 
 ```
@@ -314,52 +315,6 @@ docker-compose up --build
 >
 > * Similarly, in `views` and `forms` or any HTTP calls between services, replace `localhost` with the container name (`solidavenir_hedera`) to enable proper inter-container communication.
 
-**Docker Compose Extract:**
-
-```yaml
-services:
-  db:
-    image: postgres:15
-    container_name: solidavenir_db
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-solidavenir}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-solidavenir}
-      POSTGRES_DB: ${POSTGRES_DB:-solidavenir_db}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - solidavenir_net
-
-  django:
-    build: ./solidavenir
-    container_name: solidavenir_django
-    env_file:
-      - ./solidavenir/.env
-    depends_on:
-      - db
-    ports:
-      - "8000:8000"
-    networks:
-      - solidavenir_net
-    entrypoint: ["/entrypoint.sh"]
-
-  hedera_service:
-    build: ./hedera_service
-    container_name: solidavenir_hedera
-    env_file:
-      - ./hedera_service/.env
-    ports:
-      - "3001:3001"
-    networks:
-      - solidavenir_net
-
-volumes:
-  postgres_data:
-
-networks:
-  solidavenir_net:
-    driver: bridge
-```
 
 ---
 
