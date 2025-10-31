@@ -7,7 +7,7 @@
 
 ## 🔗 Official Links
 - 🎓 **Certification – Hedera Hashgraph:** [View PDF](https://drive.google.com/file/d/1SNWzoYJ55lqK3ZBflzJZfvrE3rJCQAK2/view?usp=drive_link)  
-- 📊 **Pitch Deck:** [View PDF](https://drive.google.com/file/d/1HSGMQ3nlVTvw3fq1CCsJu9OS5hhIC_Yu/view?usp=drive_link)  
+- 📊 **Pitch Deck:** [View PDF](https://drive.google.com/file/d/1bCRylbIFU40lLtkM6SEQE5Oyh7Vl0Kbn/view?usp=drive_link)  
 - 📁 **Project Documentation:** [View PDF](https://drive.google.com/file/d/1TZ9Jxa-pJM1GcBHM8KzCxxV7EEgJ1ulz/view?usp=drive_link)  
 - 🎥 **Demo Video (YouTube):** [Watch Video](https://www.youtube.com/watch?si=6gF8j8ZWwULKfuJY&v=nvAchPVDPoY&feature=youtu.be)  
 - 🌍 **Website:** [solidavenir.com](https://solidavenir.com)  
