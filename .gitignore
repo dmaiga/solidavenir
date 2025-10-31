@@ -7,8 +7,12 @@ env/
 *.db
 
 # Fichiers sensibles
-
+# --- Environment Variables ---
+*.env
 *.env.local
+hedera_service/.env
+solidavenir/.env
+
 
 # Fichiers Python compilés
 __pycache__/
