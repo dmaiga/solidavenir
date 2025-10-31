@@ -9,6 +9,7 @@ env/
 # Fichiers sensibles
 # --- Environment Variables ---
 *.env
+
 *.env.local
 hedera_service/.env
 solidavenir/.env
