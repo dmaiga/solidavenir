@@ -1,9 +1,178 @@
+# Solid'Avenir - See it, Trust it, Fund it
+**Crowdfunding & Impact Tracking Platform powered by Hedera Hashgraph**  
+
+**Track:** Onchain Finance & Real-World Assets (RWA)
 
 ---
 
-# Solid’Avenir
+## 🔗 Official Links
+- 🎓 **Certification – Hedera Hashgraph:** [View PDF](https://drive.google.com/file/d/1SNWzoYJ55lqK3ZBflzJZfvrE3rJCQAK2/view?usp=drive_link)  
+- 📊 **Pitch Deck:** [View PDF](https://drive.google.com/file/d/1HSGMQ3nlVTvw3fq1CCsJu9OS5hhIC_Yu/view?usp=drive_link)  
+- 📁 **Project Documentation:** [View PDF](https://drive.google.com/file/d/1TZ9Jxa-pJM1GcBHM8KzCxxV7EEgJ1ulz/view?usp=drive_link)  
+- 🎥 **Demo Video (YouTube):** [Watch Video](https://www.youtube.com/watch?si=6gF8j8ZWwULKfuJY&v=nvAchPVDPoY&feature=youtu.be)  
+- 🌍 **Website:** [solidavenir.com](https://solidavenir.com)  
 
-Crowdfunding platform with Hedera service and Django backend.
+**Solid'Avenir** provides a transparent, verifiable, and decentralized funding platform.  
+Funds are released based on milestone validation, and all evidence (photos, receipts, reports) are immutably anchored on Hedera Hashgraph.
+
+**Core pillars:**
+- 🔍 Audit & verification of every project  
+- 💰 Controlled, milestone-based fund release  
+- 🧾 Immutable record of proofs & reports  
+- 🌐 Mobile-first, offline-ready architecture  
+- 🧠 DAO-based governance for future scalability  
+
+---
+
+## ⚙️ Hedera Integration Summary
+
+### **Hedera Consensus Service (HCS)**
+We chose HCS for immutable logging of project milestones and audit proofs because its predictable $0.0001 fee guarantees operational cost stability, essential for low-margin crowdfunding in Africa. Each validated project gets a dedicated HCS topic.
+
+**Transactions:** `TopicCreateTransaction`, `TopicMessageSubmitTransaction`
+
+### **Hedera Token Service (HTS)**  
+We use HTS for tokenizing contributions to enable fractional ownership and transparent fund tracking. Hedera's high throughput (10,000+ TPS) ensures we can handle mass adoption across West Africa.
+
+**Transactions:** `TransferTransaction`, `AccountBalanceQuery`
+
+### **Hedera Account Service**
+We create Hedera accounts for validated projects to enable direct, transparent fund transfers with ABFT finality in 2-3 seconds, building essential trust for African donors.
+
+**Transactions:** `AccountCreateTransaction`
+
+### **Transaction Types Executed**
+
+| Transaction | Data Sent | Description |
+|-------------|------------|-------------|
+| `AccountCreateTransaction` | `{ initialBalance }` | Creates a new Hedera account for user/project. Returns `accountId`, `privateKey`, `publicKey`. |
+| `TransferTransaction` | `{ fromAccountId, fromPrivateKey, toAccountId, amount }` | Transfers HBAR between Hedera accounts. Returns transaction status and HashScan link. |
+| `AccountBalanceQuery` | — | Retrieves HBAR balance of a Hedera account. |
+| `TopicCreateTransaction` | `{ memo }` | Creates an HCS Topic dedicated to a project for immutable anchoring of proofs and milestones. |
+| `TopicMessageSubmitTransaction` | `{ topicId, message }` | Submits message (proof, report) to the HCS Topic. Includes HashScan and Mirror Node link for auditability. |
+
+
+**Usage:**
+- `AccountCreateTransaction` → Creation of Hedera accounts for validated projects
+- `TransferTransaction` → Transfer of contributions (HBAR/tokens)
+- `TopicCreateTransaction` → Creation of topics per validated project
+- `TopicMessageSubmitTransaction` → Sending messages (proofs, reports, validations)
+- `AccountBalanceQuery` → Verification of project account balances
+
+---
+
+## 🆔 Deployed Hedera Testnet IDs
+
+| Component | Testnet ID | Purpose |
+|-----------|------------|---------|
+| Operator Account | `0.0.6808286` | Main platform account |
+| HCS Topic | `0.0.7053681` | Test Project |
+| *Additional IDs will be generated during judge testing* | | |
+
+---
+
+## 💰 Economic Justification for Hedera
+
+Hedera's low, predictable fees ($0.0001/transaction) enable Solid'Avenir to charge only 2-5% platform fees instead of 8-15% with traditional solutions, making crowdfunding financially viable for African communities while maintaining full transparency.
+
+1. **Low, Predictable Fees → Financial Sustainability**  
+Thanks to Hedera, Solid'Avenir minimizes operational costs and offers reduced fees, maximizing funds allocated to projects.
+
+2. **High Throughput → Mass Adoption**  
+Supports thousands of simultaneous projects in West Africa, >10,000 TPS at constant cost, without prohibitive fees.
+
+3. **ABFT Finality → Essential Trust**  
+Each donation is secured with complete and instant traceability, strengthening contributor confidence.
+
+4. **Economic Benefits for African Context**  
+- **For project creators:** reduction in audit costs, faster fund access, mobile optimization  
+- **For backers:** viable micro-donations, real-time impact tracking, competitive local fees  
+
+> Hedera makes African crowdfunding safer, faster, and more accessible.
+
+---
+
+## 🏗️ Architecture Diagram (ASCII)
+
+```mermaid
+flowchart LR
+    subgraph Frontend
+        FE[🌐 Frontend<br/>UI/UX]
+    end
+
+    subgraph Backend
+        BE[⚙️ Backend<br/>Django API]
+    end
+
+    subgraph Hedera
+        HE[🔗 Hedera Network<br/>HCS + HTS + Mirror Nodes]
+    end
+
+    %% --- Flow connections ---
+    FE -- "1️⃣ Submit Project" --> BE
+    BE -- "2️⃣ Create HCS Topic" --> HE
+    BE -- "3️⃣ Project Approved" --> FE
+    FE -- "4️⃣ Make Payment" --> BE
+    BE -- "5️⃣ HTS Token Transfer" --> HE
+    FE -- "6️⃣ Submit Milestone Proof" --> BE
+    BE -- "7️⃣ Submit HCS Message" --> HE
+    HE -- "8️⃣ Query Mirror Node" --> BE
+    BE -- "9️⃣ View Audit Reports" --> FE
+
+    %% --- Styling ---
+    style FE fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+    style BE fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style HE fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+
+
+ Future Development
+🤖 Smart Contracts for automatic milestone fund release
+
+🪙 Token-based DAO governance (voting & compliance)
+
+📱 Mobile App
+
+🧾 Decentralized audit dashboard (Mirror Node integration)
+
+🔐 Judge & AI Access
+✅ Collaborator Invited: Hackathon@hashgraph-association.com
+
+🔑 Test Credentials: Provided in DoraHacks submission notes
+
+🔒 Security & Credentials
+Important Security Notes
+✅ No private keys committed to repository
+
+✅ Example configuration files provided (.env.example)
+
+🔐 Testnet credentials provided separately to judges
+
+Key Audit Files
+hedera_service/src/app.js - Core Hedera interactions
+
+solidavenir/core/models.py - Business logic and wallet management
+
+solidavenir/core/views.py - API endpoints and workflow handling
+
+## 🌱 Environment Variables (.example)
+
+**hedera_service/.env.example**
+```env
+HEDERA_OPERATOR_ID=
+HEDERA_OPERATOR_PRIVATE_KEY=
+PORT=3001
+NODE_ENV=development
+solidavenir/.env.example
+
+env
+# Database (Postgres via Docker)
+DATABASE_URL=postgres://solidavenir:solidavenir@db:5432/solidavenir_db
+POSTGRES_USER=solidavenir
+POSTGRES_PASSWORD=solidavenir
+POSTGRES_DB=solidavenir_db
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+
 
 ## Project Structure
 
